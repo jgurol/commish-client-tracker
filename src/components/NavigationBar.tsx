@@ -35,17 +35,6 @@ export function NavigationBar() {
               </Link>
             </NavigationMenuItem>
 
-            {isAdmin && (
-              <NavigationMenuItem>
-                <Link to="/admin">
-                  <NavigationMenuLink className={navigationMenuTriggerStyle()}>
-                    <Users className="h-4 w-4 mr-2 inline" />
-                    User Management
-                  </NavigationMenuLink>
-                </Link>
-              </NavigationMenuItem>
-            )}
-
             <NavigationMenuItem>
               <NavigationMenuTrigger>System Settings</NavigationMenuTrigger>
               <NavigationMenuContent>
@@ -59,9 +48,15 @@ export function NavigationBar() {
                   </ListItem>
                   
                   {isAdmin && (
-                    <ListItem href="/settings/system" title="System Configuration" Icon={Settings}>
-                      Configure global system settings and defaults
-                    </ListItem>
+                    <>
+                      <ListItem href="/admin" title="User Management" Icon={Users}>
+                        Manage users, set permissions, and control access
+                      </ListItem>
+                      
+                      <ListItem href="/settings/system" title="System Configuration" Icon={Settings}>
+                        Configure global system settings and defaults
+                      </ListItem>
+                    </>
                   )}
                 </ul>
               </NavigationMenuContent>
