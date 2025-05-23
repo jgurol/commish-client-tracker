@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -6,6 +7,16 @@ import { Plus, DollarSign, Pencil, CheckCircle, Clock, Building, FileText, Users
 import { Transaction, Client, ClientInfo } from "@/pages/Index";
 import { AddTransactionDialog } from "@/components/AddTransactionDialog";
 import { EditTransactionDialog } from "@/components/EditTransactionDialog";
+import { 
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle
+} from "@/components/ui/alert-dialog";
 
 interface RecentTransactionsProps {
   transactions: Transaction[];
@@ -14,7 +25,7 @@ interface RecentTransactionsProps {
   onAddTransaction: (transaction: Omit<Transaction, "id">) => void;
   onUpdateTransaction: (transaction: Transaction) => void;
   onApproveCommission: (transactionId: string) => void;
-  onPayCommission?: (transactionId: string, paidDate: string) => void; // New prop for paying commissions
+  onPayCommission?: (transactionId: string, paidDate: string) => void;
 }
 
 export const RecentTransactions = ({ 
@@ -29,6 +40,9 @@ export const RecentTransactions = ({
   const [isAddTransactionOpen, setIsAddTransactionOpen] = useState(false);
   const [isEditTransactionOpen, setIsEditTransactionOpen] = useState(false);
   const [currentTransaction, setCurrentTransaction] = useState<Transaction | null>(null);
+  // New state for the approval warning dialog
+  const [approvalWarningOpen, setApprovalWarningOpen] = useState(false);
+  const [pendingApprovalId, setPendingApprovalId] = useState<string | null>(null);
 
   const recentTransactions = transactions.slice(0, 5);
 
@@ -42,6 +56,35 @@ export const RecentTransactions = ({
     const date = new Date(dateStr);
     const now = new Date();
     return date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear();
+  };
+
+  // New function to handle commission approval with warning check
+  const handleApproveCommission = (transactionId: string) => {
+    const transaction = transactions.find(t => t.id === transactionId);
+    
+    // If transaction exists and is not paid, show warning dialog
+    if (transaction && !transaction.isPaid) {
+      setPendingApprovalId(transactionId);
+      setApprovalWarningOpen(true);
+    } else {
+      // If paid or no transaction found, proceed with approval directly
+      onApproveCommission(transactionId);
+    }
+  };
+
+  // Function to handle confirmation of approval despite warning
+  const handleConfirmApproval = () => {
+    if (pendingApprovalId) {
+      onApproveCommission(pendingApprovalId);
+      setPendingApprovalId(null);
+    }
+    setApprovalWarningOpen(false);
+  };
+
+  // Function to cancel approval
+  const handleCancelApproval = () => {
+    setPendingApprovalId(null);
+    setApprovalWarningOpen(false);
   };
 
   // New function to handle commission payment
@@ -164,7 +207,7 @@ export const RecentTransactions = ({
                             size="sm" 
                             variant="outline" 
                             className="text-xs h-7 border-green-200 text-green-700 hover:bg-green-50"
-                            onClick={() => onApproveCommission(transaction.id)}
+                            onClick={() => handleApproveCommission(transaction.id)}
                           >
                             <CheckCircle className="w-3 h-3 mr-1" /> Approve
                           </Button>
@@ -203,6 +246,25 @@ export const RecentTransactions = ({
           )}
         </CardContent>
       </Card>
+
+      {/* Warning dialog for approving unpaid invoices */}
+      <AlertDialog open={approvalWarningOpen} onOpenChange={setApprovalWarningOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Approve Unpaid Invoice?</AlertDialogTitle>
+            <AlertDialogDescription>
+              You are about to approve a commission for an invoice that hasn't been marked as paid yet. 
+              Are you sure you want to proceed?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={handleCancelApproval}>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmApproval} className="bg-amber-600 hover:bg-amber-700">
+              Approve Anyway
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <AddTransactionDialog
         open={isAddTransactionOpen}
