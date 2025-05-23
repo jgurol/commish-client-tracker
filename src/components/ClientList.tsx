@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Edit, Trash2, Mail, Percent, DollarSign, Users, Building, CheckCircle, Clock, AlertCircle } from "lucide-react";
 import { Client, Transaction } from "@/pages/Index";
 import { EditClientDialog } from "@/components/EditClientDialog";
+import { DeleteAgentDialog } from "@/components/DeleteAgentDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -14,7 +15,7 @@ interface ClientListProps {
   onUpdateClient: (client: Client) => void;
   onDeleteClient: (clientId: string) => void;
   onUpdateTransactions: (transactions: Transaction[]) => void;
-  onFetchClients: () => void; // Add this to refresh clients list after DB operations
+  onFetchClients: () => void;
 }
 
 export const ClientList = ({ 
@@ -26,6 +27,8 @@ export const ClientList = ({
   onFetchClients
 }: ClientListProps) => {
   const [editingClient, setEditingClient] = useState<Client | null>(null);
+  const [deletingClient, setDeletingClient] = useState<Client | null>(null);
+  const [associatedUsersCount, setAssociatedUsersCount] = useState<number>(0);
   const { toast } = useToast();
   
   // Updated function to calculate commission totals for a specific client
@@ -88,33 +91,82 @@ export const ClientList = ({
     }
   };
 
-  // Updated function to handle agent deletion with foreign key constraint resolution
-  const handleDeleteAgentFromDb = async (clientId: string) => {
+  // Function to check how many users are associated with an agent
+  const checkAssociatedUsers = async (agentId: string) => {
     try {
-      // First, remove any associations from profiles table
-      const { error: updateError } = await supabase
+      const { data, error } = await supabase
         .from('profiles')
-        .update({ 
-          associated_agent_id: null,
-          is_associated: false 
-        })
-        .eq('associated_agent_id', clientId);
+        .select('id')
+        .eq('associated_agent_id', agentId);
 
-      if (updateError) {
-        console.error('Error removing agent associations:', updateError);
-        toast({
-          title: "Error",
-          description: `Failed to remove agent associations: ${updateError.message}`,
-          variant: "destructive"
-        });
-        return;
+      if (error) {
+        console.error('Error checking associated users:', error);
+        return 0;
+      }
+
+      return data?.length || 0;
+    } catch (error) {
+      console.error('Exception checking associated users:', error);
+      return 0;
+    }
+  };
+
+  // Function to initiate agent deletion with warning dialog
+  const initiateAgentDeletion = async (client: Client) => {
+    const usersCount = await checkAssociatedUsers(client.id);
+    setAssociatedUsersCount(usersCount);
+    setDeletingClient(client);
+  };
+
+  // Updated function to handle agent deletion with optional reassignment
+  const handleDeleteAgentFromDb = async (reassignToAgentId?: string) => {
+    if (!deletingClient) return;
+
+    try {
+      if (reassignToAgentId) {
+        // Reassign users to another agent
+        const { error: updateError } = await supabase
+          .from('profiles')
+          .update({ 
+            associated_agent_id: reassignToAgentId 
+          })
+          .eq('associated_agent_id', deletingClient.id);
+
+        if (updateError) {
+          console.error('Error reassigning users to new agent:', updateError);
+          toast({
+            title: "Error",
+            description: `Failed to reassign users: ${updateError.message}`,
+            variant: "destructive"
+          });
+          return;
+        }
+      } else {
+        // Remove all associations
+        const { error: updateError } = await supabase
+          .from('profiles')
+          .update({ 
+            associated_agent_id: null,
+            is_associated: false 
+          })
+          .eq('associated_agent_id', deletingClient.id);
+
+        if (updateError) {
+          console.error('Error removing agent associations:', updateError);
+          toast({
+            title: "Error",
+            description: `Failed to remove agent associations: ${updateError.message}`,
+            variant: "destructive"
+          });
+          return;
+        }
       }
 
       // Now delete the agent
       const { error: deleteError } = await supabase
         .from('agents')
         .delete()
-        .eq('id', clientId);
+        .eq('id', deletingClient.id);
 
       if (deleteError) {
         console.error('Error deleting agent from database:', deleteError);
@@ -127,11 +179,13 @@ export const ClientList = ({
       }
       
       // Remove from local state
-      onDeleteClient(clientId);
+      onDeleteClient(deletingClient.id);
       
       toast({
         title: "Success",
-        description: "Agent deleted successfully from the database",
+        description: reassignToAgentId 
+          ? "Agent deleted and users reassigned successfully" 
+          : "Agent deleted successfully from the database",
       });
     } catch (error: any) {
       console.error('Exception deleting agent from database:', error);
@@ -206,7 +260,7 @@ export const ClientList = ({
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => handleDeleteAgentFromDb(client.id)}
+                          onClick={() => initiateAgentDeletion(client)}
                           className="hover:bg-red-50 hover:border-red-300 text-red-600"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -277,6 +331,15 @@ export const ClientList = ({
           onUpdateTransactions={onUpdateTransactions}
         />
       )}
+
+      <DeleteAgentDialog
+        open={!!deletingClient}
+        onOpenChange={(open) => !open && setDeletingClient(null)}
+        agentToDelete={deletingClient}
+        availableAgents={clients}
+        onConfirmDelete={handleDeleteAgentFromDb}
+        associatedUsersCount={associatedUsersCount}
+      />
     </>
   );
 };
