@@ -2,7 +2,8 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/context/AuthContext';
-import { LogOut, User, Shield } from 'lucide-react';
+import { LogOut, User, Shield, Settings } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 export const Header = () => {
   const { user, signOut, isAdmin } = useAuth();
@@ -31,6 +32,18 @@ export const Header = () => {
             )}
           </span>
         </div>
+        
+        {isAdmin && (
+          <Link to="/admin">
+            <Button 
+              variant="outline"
+              className="flex items-center gap-2"
+            >
+              <Settings className="w-4 h-4" />
+              Admin
+            </Button>
+          </Link>
+        )}
         
         <Button 
           onClick={() => signOut()}

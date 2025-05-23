@@ -96,11 +96,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           
           // For now, set sensible defaults to let the user continue
           setIsAdmin(false);
-          setIsAssociated(true); // Temporarily assume associated to give access
+          setIsAssociated(false); // Default to not associated for security
           
           toast({
             title: "Profile retrieval issue",
-            description: "There was an issue loading your profile details, but you can continue using the application.",
+            description: "There was an issue loading your profile details. Please contact support.",
+            variant: "destructive"
           });
           return;
         }
@@ -119,14 +120,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const isUserAdmin = data.role === 'admin';
         setIsAdmin(isUserAdmin);
 
-        // If the user is not an admin (i.e., they're an agent),
-        // check if they're associated with an agent in the system
-        if (!isUserAdmin) {
-          // Check the is_associated field in the profile
-          setIsAssociated(data.is_associated || false);
-        } else {
-          // Admins are always considered "associated"
+        // If the user is an admin, they're always considered "associated"
+        if (isUserAdmin) {
           setIsAssociated(true);
+        } else {
+          // For regular agents, check the is_associated flag
+          setIsAssociated(data.is_associated || false);
         }
       } else {
         console.log("No profile data found for user", userId);
