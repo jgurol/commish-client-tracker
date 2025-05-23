@@ -1,5 +1,3 @@
-
-
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -147,14 +145,15 @@ export const EditUserDialog = ({
     }
   };
 
-  // Filter out the current user from the agents list and ensure we only show agents
+  // Only show agents (not the current user) as available for association
   const availableAgents = agents.filter(agent => 
     agent.id !== user.id && agent.role === 'agent'
   );
 
-  console.log("Available agents:", availableAgents);
+  console.log("Available agents for association:", availableAgents);
   console.log("All agents passed to dialog:", agents);
-  console.log("Current user role:", user.role);
+  console.log("Current user being edited:", user.email, user.role);
+  console.log("Filtering criteria - user.id:", user.id);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -245,7 +244,7 @@ export const EditUserDialog = ({
                         ))
                       ) : (
                         <SelectItem value="no-agents" disabled>
-                          No agents available
+                          No other agents available
                         </SelectItem>
                       )}
                     </SelectContent>
@@ -267,4 +266,3 @@ export const EditUserDialog = ({
     </Dialog>
   );
 };
-
