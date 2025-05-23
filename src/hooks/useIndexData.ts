@@ -160,6 +160,20 @@ export const useIndexData = () => {
       console.log('[DEBUG] - associatedAgentId:', associatedAgentId);
       console.log('[DEBUG] - user.id:', user.id);
       
+      // Let's try a direct query for the specific transaction first
+      console.log('[DEBUG] Checking if specific transaction exists...');
+      const { data: specificTransaction, error: specificError } = await supabase
+        .from('transactions')
+        .select('*')
+        .eq('id', 'd0b91f93-75fd-4d3c-8c8c-b41c86f05eb1')
+        .single();
+      
+      if (specificError) {
+        console.log('[DEBUG] Specific transaction query error:', specificError);
+      } else {
+        console.log('[DEBUG] Specific transaction found:', specificTransaction);
+      }
+      
       // Build the query with filtering logic
       let query = supabase.from('transactions').select('*');
       
@@ -184,7 +198,7 @@ export const useIndexData = () => {
       // Add ordering to ensure consistent results
       query = query.order('created_at', { ascending: false });
       
-      console.log('[DEBUG] About to execute query');
+      console.log('[DEBUG] About to execute main query');
       
       // Execute the query
       const { data, error } = await query;
@@ -202,30 +216,19 @@ export const useIndexData = () => {
       console.log('[DEBUG] Raw transaction data from DB:', data);
       console.log('[DEBUG] Number of transactions returned:', data?.length || 0);
       
-      // Log all transaction IDs and their client_ids for debugging
-      if (data && data.length > 0) {
-        console.log('[DEBUG] All transaction IDs and client_ids returned:');
-        data.forEach((transaction, index) => {
-          console.log(`[DEBUG] Transaction ${index + 1}: ID=${transaction.id}, client_id=${transaction.client_id}`);
-        });
-      }
-      
-      console.log('[DEBUG] Looking for transaction d0b91f93-75fd-4d3c-8c8c-b41c86f05eb1 in raw data:', 
-        data?.find(t => t.id === 'd0b91f93-75fd-4d3c-8c8c-b41c86f05eb1'));
+      // Check if our target transaction is in the results
+      const targetTransaction = data?.find(t => t.id === 'd0b91f93-75fd-4d3c-8c8c-b41c86f05eb1');
+      console.log('[DEBUG] Target transaction in main query results:', targetTransaction ? 'FOUND' : 'NOT FOUND');
 
       // Map database transactions to our Transaction interface
       const mappedTransactions = await Promise.all(data?.map(async (transaction) => {
-        console.log(`[DEBUG] Processing transaction ${transaction.id}:`, transaction);
-        
         // Find client for this transaction
         const client = clients.find(c => c.id === transaction.client_id);
-        console.log(`[DEBUG] Found client for transaction ${transaction.id}:`, client);
         
         // Find client info for this transaction if available
         let clientInfo = null;
         if (transaction.client_info_id) {
           clientInfo = clientInfos.find(ci => ci.id === transaction.client_info_id);
-          console.log(`[DEBUG] Found client info for transaction ${transaction.id}:`, clientInfo);
         }
 
         const mappedTransaction = {
@@ -250,16 +253,10 @@ export const useIndexData = () => {
           commissionPaidDate: transaction.commission_paid_date
         };
         
-        if (transaction.id === 'd0b91f93-75fd-4d3c-8c8c-b41c86f05eb1') {
-          console.log('[DEBUG] Mapped target transaction:', mappedTransaction);
-        }
-        
         return mappedTransaction;
       }) || []);
       
-      console.log('[DEBUG] Final mapped transactions:', mappedTransactions);
-      console.log('[DEBUG] Target transaction in final array:', 
-        mappedTransactions.find(t => t.id === 'd0b91f93-75fd-4d3c-8c8c-b41c86f05eb1'));
+      console.log('[DEBUG] Final mapped transactions count:', mappedTransactions.length);
       
       setTransactions(mappedTransactions);
     } catch (err) {
