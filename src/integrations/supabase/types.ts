@@ -231,6 +231,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      delete_transaction: {
+        Args: { transaction_id: string }
+        Returns: undefined
+      }
       get_admin_users: {
         Args: Record<PropertyKey, never>
         Returns: {

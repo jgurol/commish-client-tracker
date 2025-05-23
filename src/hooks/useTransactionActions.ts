@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/context/AuthContext";
@@ -223,10 +222,45 @@ export const useTransactionActions = (
     }
   };
 
+  // Function to delete a transaction
+  const deleteTransaction = async (transactionId: string) => {
+    if (!user) return;
+    
+    try {
+      const { error } = await supabase.rpc('delete_transaction', {
+        transaction_id: transactionId
+      });
+
+      if (error) {
+        console.error('[deleteTransaction] Error deleting transaction:', error);
+        toast({
+          title: "Failed to delete transaction",
+          description: error.message,
+          variant: "destructive"
+        });
+      } else {
+        // Refresh transactions to reflect the deletion
+        fetchTransactions();
+        toast({
+          title: "Transaction deleted",
+          description: "The transaction has been deleted successfully.",
+        });
+      }
+    } catch (err) {
+      console.error('[deleteTransaction] Error in delete transaction operation:', err);
+      toast({
+        title: "Error",
+        description: "Failed to delete transaction",
+        variant: "destructive"
+      });
+    }
+  };
+
   return {
     addTransaction,
     updateTransaction,
     approveCommission,
-    payCommission
+    payCommission,
+    deleteTransaction
   };
 };

@@ -70,7 +70,8 @@ const IndexPage = () => {
     addTransaction,
     updateTransaction,
     approveCommission,
-    payCommission
+    payCommission,
+    deleteTransaction
   } = useTransactionActions(clients, fetchTransactions);
 
   const {
@@ -88,6 +89,7 @@ const IndexPage = () => {
       onUpdateTransaction={updateTransaction}
       onApproveCommission={approveCommission}
       onPayCommission={payCommission}
+      onDeleteTransaction={deleteTransaction}
       onFetchClients={fetchClients}
     />
   );

@@ -1,7 +1,7 @@
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { CheckCircle, Clock, DollarSign, Pencil } from "lucide-react";
+import { CheckCircle, Clock, DollarSign, Pencil, Trash2 } from "lucide-react";
 import { Transaction, ClientInfo } from "@/pages/Index";
 import {
   Table,
@@ -20,6 +20,7 @@ interface TransactionTableProps {
   onEditClick?: (transaction: Transaction) => void;
   onApproveCommission: (transactionId: string) => void;
   onPayCommission?: (transactionId: string) => void;
+  onDeleteTransaction?: (transactionId: string) => void;
   isCurrentMonth: (dateStr: string) => boolean;
 }
 
@@ -45,6 +46,7 @@ export const TransactionTable = ({
   onEditClick,
   onApproveCommission,
   onPayCommission,
+  onDeleteTransaction,
   isCurrentMonth
 }: TransactionTableProps) => {
   const { isAdmin } = useAuth();
@@ -52,6 +54,12 @@ export const TransactionTable = ({
   const handlePayCommission = (transactionId: string) => {
     if (onPayCommission) {
       onPayCommission(transactionId);
+    }
+  };
+
+  const handleDeleteTransaction = (transactionId: string) => {
+    if (onDeleteTransaction) {
+      onDeleteTransaction(transactionId);
     }
   };
 
@@ -181,6 +189,16 @@ export const TransactionTable = ({
                           onClick={() => handlePayCommission(transaction.id)}
                         >
                           <DollarSign className="w-3 h-3 mr-1" /> Pay
+                        </Button>
+                      )}
+                      {onDeleteTransaction && (
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          className="text-xs h-6 px-2 border-red-200 text-red-700 hover:bg-red-50"
+                          onClick={() => handleDeleteTransaction(transaction.id)}
+                        >
+                          <Trash2 className="w-3 h-3 mr-1" /> Del
                         </Button>
                       )}
                     </div>

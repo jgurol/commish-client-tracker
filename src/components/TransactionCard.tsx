@@ -1,7 +1,7 @@
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { CheckCircle, Clock, Building, FileText, Users, Pencil, DollarSign } from "lucide-react";
+import { CheckCircle, Clock, Building, FileText, Users, Pencil, DollarSign, Trash2 } from "lucide-react";
 import { Transaction, ClientInfo } from "@/pages/Index";
 import { useAuth } from "@/context/AuthContext";
 
@@ -11,6 +11,7 @@ interface TransactionCardProps {
   onEditClick?: (transaction: Transaction) => void;
   onApproveCommission: (transactionId: string) => void;
   onPayCommission?: (transactionId: string) => void;
+  onDeleteTransaction?: (transactionId: string) => void;
   isCurrentMonth: (dateStr: string) => boolean;
 }
 
@@ -36,6 +37,7 @@ export const TransactionCard = ({
   onEditClick,
   onApproveCommission,
   onPayCommission,
+  onDeleteTransaction,
   isCurrentMonth
 }: TransactionCardProps) => {
   const { isAdmin } = useAuth();
@@ -43,6 +45,12 @@ export const TransactionCard = ({
   const handlePayCommission = () => {
     if (onPayCommission) {
       onPayCommission(transaction.id);
+    }
+  };
+
+  const handleDeleteTransaction = () => {
+    if (onDeleteTransaction) {
+      onDeleteTransaction(transaction.id);
     }
   };
 
@@ -147,6 +155,16 @@ export const TransactionCard = ({
                   onClick={handlePayCommission}
                 >
                   <DollarSign className="w-3 h-3 mr-1" /> Mark Paid
+                </Button>
+              )}
+              {onDeleteTransaction && (
+                <Button 
+                  size="sm" 
+                  variant="outline" 
+                  className="text-xs h-7 border-red-200 text-red-700 hover:bg-red-50"
+                  onClick={handleDeleteTransaction}
+                >
+                  <Trash2 className="w-3 h-3 mr-1" /> Delete
                 </Button>
               )}
             </div>

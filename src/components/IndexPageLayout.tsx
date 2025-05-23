@@ -23,6 +23,7 @@ interface IndexPageLayoutProps {
   onUpdateTransaction: (transaction: Transaction) => void;
   onApproveCommission: (transactionId: string) => void;
   onPayCommission: (transactionId: string, paidDate: string) => void;
+  onDeleteTransaction: (transactionId: string) => void;
   onFetchClients: () => Promise<void>;
 }
 
@@ -36,6 +37,7 @@ export const IndexPageLayout = ({
   onUpdateTransaction,
   onApproveCommission,
   onPayCommission,
+  onDeleteTransaction,
   onFetchClients
 }: IndexPageLayoutProps) => {
   const [isAddClientOpen, setIsAddClientOpen] = useState(false);
@@ -96,6 +98,7 @@ export const IndexPageLayout = ({
               onUpdateTransaction={onUpdateTransaction}
               onApproveCommission={onApproveCommission}
               onPayCommission={onPayCommission}
+              onDeleteTransaction={onDeleteTransaction}
               associatedAgentId={associatedAgentId}
             />
           </div>
