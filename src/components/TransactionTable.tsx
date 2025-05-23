@@ -73,7 +73,6 @@ export const TransactionTable = ({
             <TableHead className="font-semibold">Amount</TableHead>
             <TableHead className="font-semibold">Date</TableHead>
             <TableHead className="font-semibold">Invoice</TableHead>
-            <TableHead className="font-semibold">Status</TableHead>
             <TableHead className="font-semibold">Commission</TableHead>
             {isAdmin && <TableHead className="font-semibold">Actions</TableHead>}
           </TableRow>
@@ -133,29 +132,28 @@ export const TransactionTable = ({
                       {transaction.paymentMethod === "check" ? "Check" : "Ref"} #{transaction.referenceNumber}
                     </div>
                   )}
-                </div>
-              </TableCell>
-              
-              <TableCell>
-                <div className="flex flex-col gap-1">
-                  {transaction.isPaid ? (
-                    <Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200 w-fit">
-                      <CheckCircle className="w-3 h-3 mr-1" />
-                      Paid
-                    </Badge>
-                  ) : (
-                    isCurrentMonth(transaction.date) && (
-                      <Badge variant="outline" className="text-xs bg-amber-50 text-amber-700 border-amber-200 w-fit">
-                        <Clock className="w-3 h-3 mr-1" />
-                        Due
+                  
+                  {/* Payment Status Badges - moved here from Status column */}
+                  <div className="flex flex-col gap-1 mt-2">
+                    {transaction.isPaid ? (
+                      <Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200 w-fit">
+                        <CheckCircle className="w-3 h-3 mr-1" />
+                        Paid
                       </Badge>
-                    )
-                  )}
-                  {transaction.paymentMethod && transaction.isPaid && (
-                    <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200 w-fit">
-                      {transaction.paymentMethod === "check" ? "Check" : "Zelle"}
-                    </Badge>
-                  )}
+                    ) : (
+                      isCurrentMonth(transaction.date) && (
+                        <Badge variant="outline" className="text-xs bg-amber-50 text-amber-700 border-amber-200 w-fit">
+                          <Clock className="w-3 h-3 mr-1" />
+                          Due
+                        </Badge>
+                      )
+                    )}
+                    {transaction.paymentMethod && transaction.isPaid && (
+                      <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200 w-fit">
+                        {transaction.paymentMethod === "check" ? "Check" : "Zelle"}
+                      </Badge>
+                    )}
+                  </div>
                 </div>
               </TableCell>
               
