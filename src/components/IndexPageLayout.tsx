@@ -53,30 +53,32 @@ export const IndexPageLayout = ({
           transactions={transactions}
         />
 
-        {/* Quick Actions Card - moved to top */}
-        <div className="mb-6">
-          <Card className="bg-white shadow border-0">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-lg font-medium text-gray-900">Quick Actions</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex gap-3">
-                <Link to="/agent-management">
-                  <Button variant="outline" className="justify-start">
-                    <UserCog className="mr-2 h-4 w-4" />
-                    Manage Agents
-                  </Button>
-                </Link>
-                <Link to="/client-management">
-                  <Button variant="outline" className="justify-start">
-                    <Building className="mr-2 h-4 w-4" />
-                    Manage Clients
-                  </Button>
-                </Link>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+        {/* Quick Actions Card - only show for admins */}
+        {isAdmin && (
+          <div className="mb-6">
+            <Card className="bg-white shadow border-0">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg font-medium text-gray-900">Quick Actions</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex gap-3">
+                  <Link to="/agent-management">
+                    <Button variant="outline" className="justify-start">
+                      <UserCog className="mr-2 h-4 w-4" />
+                      Manage Agents
+                    </Button>
+                  </Link>
+                  <Link to="/client-management">
+                    <Button variant="outline" className="justify-start">
+                      <Building className="mr-2 h-4 w-4" />
+                      Manage Clients
+                    </Button>
+                  </Link>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
 
         {/* Main Content - Transactions taking full width */}
         <div className="space-y-6">

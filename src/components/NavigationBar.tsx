@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
@@ -47,16 +46,16 @@ export function NavigationBar() {
                     View invoices, payment history, and manage billing settings
                   </ListItem>
                   
-                  <ListItem href="/client-management" title="Client Management" Icon={Building}>
-                    Manage your clients' information and details
-                  </ListItem>
-                  
-                  <ListItem href="/agent-management" title="Agent Management" Icon={UserCog}>
-                    Manage commission agents and their rates
-                  </ListItem>
-                  
                   {isAdmin && (
                     <>
+                      <ListItem href="/client-management" title="Client Management" Icon={Building}>
+                        Manage your clients' information and details
+                      </ListItem>
+                      
+                      <ListItem href="/agent-management" title="Agent Management" Icon={UserCog}>
+                        Manage commission agents and their rates
+                      </ListItem>
+                      
                       <ListItem href="/admin" title="User Management" Icon={Users}>
                         Manage users, set permissions, and control access
                       </ListItem>
