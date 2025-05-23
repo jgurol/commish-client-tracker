@@ -7,6 +7,8 @@ import { AddClientDialog } from "@/components/AddClientDialog";
 import { CommissionChart } from "@/components/CommissionChart";
 import { RecentTransactions } from "@/components/RecentTransactions";
 import { StatsCards } from "@/components/StatsCards";
+import { ClientInfoList } from "@/components/ClientInfoList";
+import { AddClientInfoDialog } from "@/components/AddClientInfoDialog";
 
 export interface Client {
   id: string;
@@ -300,7 +302,7 @@ const Index = () => {
           onAddClient={addClient}
         />
 
-        {/* We'll add the client info management UI in a separate component */}
+        {/* Client info management UI */}
         <Card className="bg-white shadow-lg border-0 mt-8">
           <CardHeader>
             <CardTitle className="text-xl font-semibold text-gray-900">Client Management</CardTitle>
@@ -323,7 +325,7 @@ const Index = () => {
           </CardContent>
         </Card>
 
-        {/* Add ClientInfo Dialog component will be created separately */}
+        {/* Add ClientInfo Dialog */}
         <AddClientInfoDialog
           open={isAddClientInfoOpen}
           onOpenChange={setIsAddClientInfoOpen}
