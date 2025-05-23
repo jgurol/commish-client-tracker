@@ -28,14 +28,20 @@ export const useClientManagement = () => {
         console.log("Is Admin:", isAdmin);
         console.log("Auth context user:", user);
         
-        // For admin users, fetch ALL clients
-        // For agent users, we also want to see all clients for management purposes
-        console.log("Attempting to fetch all client_info records...");
+        console.log("Attempting to fetch client_info records...");
         
-        const { data, error } = await supabase
-          .from('client_info')
-          .select('*')
-          .order('company_name', { ascending: true });
+        let query = supabase.from('client_info').select('*');
+        
+        // If user is admin, fetch ALL clients regardless of user_id
+        // If user is agent, only fetch their own clients
+        if (!isAdmin) {
+          console.log("User is not admin, filtering by user_id:", user.id);
+          query = query.eq('user_id', user.id);
+        } else {
+          console.log("User is admin, fetching ALL client records");
+        }
+        
+        const { data, error } = await query.order('company_name', { ascending: true });
         
         console.log("Raw Supabase response:");
         console.log("- Data:", data);
