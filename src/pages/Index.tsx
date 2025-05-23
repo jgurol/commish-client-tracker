@@ -175,6 +175,11 @@ const Index = () => {
     setTransactions(transactions.filter(transaction => transaction.clientId !== clientId));
   };
 
+  // New function to update transactions
+  const updateTransactions = (updatedTransactions: Transaction[]) => {
+    setTransactions(updatedTransactions);
+  };
+
   // New function to add client info
   const addClientInfo = (newClientInfo: Omit<ClientInfo, "id" | "createdAt" | "updatedAt">) => {
     const clientInfo: ClientInfo = {
@@ -356,6 +361,7 @@ const Index = () => {
           transactions={transactions}
           onUpdateClient={updateClient}
           onDeleteClient={deleteClient}
+          onUpdateTransactions={updateTransactions}
         />
 
         {/* Add Client Dialog */}

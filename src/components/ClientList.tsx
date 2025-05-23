@@ -12,9 +12,16 @@ interface ClientListProps {
   transactions: Transaction[];
   onUpdateClient: (client: Client) => void;
   onDeleteClient: (clientId: string) => void;
+  onUpdateTransactions: (transactions: Transaction[]) => void; // Add callback to update transactions
 }
 
-export const ClientList = ({ clients, transactions, onUpdateClient, onDeleteClient }: ClientListProps) => {
+export const ClientList = ({ 
+  clients, 
+  transactions, 
+  onUpdateClient, 
+  onDeleteClient,
+  onUpdateTransactions
+}: ClientListProps) => {
   const [editingClient, setEditingClient] = useState<Client | null>(null);
 
   // Updated function to calculate commission totals for a specific client
@@ -171,6 +178,8 @@ export const ClientList = ({ clients, transactions, onUpdateClient, onDeleteClie
           open={!!editingClient}
           onOpenChange={(open) => !open && setEditingClient(null)}
           onUpdateClient={onUpdateClient}
+          transactions={transactions}
+          onUpdateTransactions={onUpdateTransactions}
         />
       )}
     </>

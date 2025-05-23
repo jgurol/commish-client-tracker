@@ -4,16 +4,25 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Client } from "@/pages/Index";
+import { Client, Transaction } from "@/pages/Index";
 
 interface EditClientDialogProps {
   client: Client;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onUpdateClient: (client: Client) => void;
+  transactions?: Transaction[]; // Add transactions prop
+  onUpdateTransactions?: (transactions: Transaction[]) => void; // Add callback to update transactions
 }
 
-export const EditClientDialog = ({ client, open, onOpenChange, onUpdateClient }: EditClientDialogProps) => {
+export const EditClientDialog = ({ 
+  client, 
+  open, 
+  onOpenChange, 
+  onUpdateClient, 
+  transactions = [], // Default to empty array
+  onUpdateTransactions 
+}: EditClientDialogProps) => {
   const [companyName, setCompanyName] = useState(client.companyName || "");
   const [firstName, setFirstName] = useState(client.firstName || "");
   const [lastName, setLastName] = useState(client.lastName || "");
@@ -31,7 +40,7 @@ export const EditClientDialog = ({ client, open, onOpenChange, onUpdateClient }:
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (firstName && lastName && email && commissionRate) {
-      onUpdateClient({
+      const updatedClient = {
         ...client,
         firstName,
         lastName,
@@ -39,7 +48,28 @@ export const EditClientDialog = ({ client, open, onOpenChange, onUpdateClient }:
         companyName,
         email,
         commissionRate: parseFloat(commissionRate),
-      });
+      };
+      
+      onUpdateClient(updatedClient);
+      
+      // Update commission calculations for unpaid commissions
+      if (onUpdateTransactions && transactions.length > 0) {
+        const newRate = parseFloat(commissionRate);
+        // Only recalculate for transactions that belong to this client and don't have paid commissions
+        const updatedTransactions = transactions.map(transaction => {
+          if (transaction.clientId === client.id && !transaction.commissionPaidDate) {
+            // Recalculate commission based on the new rate
+            return {
+              ...transaction,
+              commission: transaction.amount * (newRate / 100)
+            };
+          }
+          return transaction;
+        });
+        
+        onUpdateTransactions(updatedTransactions);
+      }
+      
       onOpenChange(false);
     }
   };
