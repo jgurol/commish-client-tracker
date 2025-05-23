@@ -11,11 +11,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/components/ui/use-toast";
 
-interface ClientManagementProps {}
+interface ExtendedClientInfo extends ClientInfo {
+  agent_id?: string | null;
+}
 
 const ClientManagement = () => {
-  const [clientInfos, setClientInfos] = useState<ClientInfo[]>([]);
+  const [clientInfos, setClientInfos] = useState<ExtendedClientInfo[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [agentMapping, setAgentMapping] = useState<Record<string, string>>({});
   const { user } = useAuth();
   const { toast } = useToast();
 
@@ -43,6 +46,7 @@ const ClientManagement = () => {
           });
         } else {
           setClientInfos(data || []);
+          await fetchAgentNames();
         }
       } catch (err) {
         console.error('Error in client info fetch:', err);
@@ -59,12 +63,35 @@ const ClientManagement = () => {
     fetchClientInfos();
   }, [user, toast]);
 
+  // Fetch agent names for mapping
+  const fetchAgentNames = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('agents')
+        .select('id, company_name, first_name, last_name');
+      
+      if (error) {
+        console.error('Error fetching agents:', error);
+      } else if (data) {
+        const mapping: Record<string, string> = {};
+        data.forEach(agent => {
+          mapping[agent.id] = agent.company_name || `${agent.first_name} ${agent.last_name}`;
+        });
+        setAgentMapping(mapping);
+      }
+    } catch (err) {
+      console.error('Error creating agent mapping:', err);
+    }
+  };
+
   // Function to add client info
-  const addClientInfo = async (newClientInfo: Omit<ClientInfo, "id" | "created_at" | "updated_at" | "user_id">) => {
+  const addClientInfo = async (newClientInfo: Omit<ExtendedClientInfo, "id" | "created_at" | "updated_at" | "user_id">) => {
     if (!user) return;
 
+    // Handle the "none" special value for agent_id
     const clientInfoToInsert = {
       ...newClientInfo,
+      agent_id: newClientInfo.agent_id === "none" ? null : newClientInfo.agent_id,
       user_id: user.id
     };
 
@@ -101,7 +128,7 @@ const ClientManagement = () => {
   };
 
   // Function to update client info
-  const updateClientInfo = async (updatedClientInfo: ClientInfo) => {
+  const updateClientInfo = async (updatedClientInfo: ExtendedClientInfo) => {
     if (!user) return;
 
     // Check if this is a delete operation (special case)
@@ -110,18 +137,25 @@ const ClientManagement = () => {
       return;
     }
 
+    // Handle the "none" special value for agent_id
+    const clientInfoToUpdate = {
+      ...updatedClientInfo,
+      agent_id: updatedClientInfo.agent_id === "none" ? null : updatedClientInfo.agent_id,
+    };
+
     try {
       const { data, error } = await supabase
         .from('client_info')
         .update({
-          company_name: updatedClientInfo.company_name,
-          contact_name: updatedClientInfo.contact_name,
-          email: updatedClientInfo.email,
-          phone: updatedClientInfo.phone,
-          address: updatedClientInfo.address,
-          notes: updatedClientInfo.notes
+          company_name: clientInfoToUpdate.company_name,
+          contact_name: clientInfoToUpdate.contact_name,
+          email: clientInfoToUpdate.email,
+          phone: clientInfoToUpdate.phone,
+          address: clientInfoToUpdate.address,
+          notes: clientInfoToUpdate.notes,
+          agent_id: clientInfoToUpdate.agent_id
         })
-        .eq('id', updatedClientInfo.id)
+        .eq('id', clientInfoToUpdate.id)
         .select('*')
         .single();
 
@@ -181,6 +215,7 @@ const ClientManagement = () => {
               <ClientInfoList 
                 clientInfos={clientInfos}
                 onUpdateClientInfo={updateClientInfo}
+                agentMapping={agentMapping}
               />
             )}
           </CardContent>

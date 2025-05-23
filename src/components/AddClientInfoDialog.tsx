@@ -123,12 +123,12 @@ export const AddClientInfoDialog = ({ open, onOpenChange, onAddClientInfo }: Add
           </div>
           <div className="space-y-2">
             <Label htmlFor="agent">Associated Agent</Label>
-            <Select value={agentId || ""} onValueChange={setAgentId}>
+            <Select value={agentId || undefined} onValueChange={setAgentId}>
               <SelectTrigger id="agent" className="w-full">
                 <SelectValue placeholder="Select agent" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">None</SelectItem>
+                <SelectItem value="none">None</SelectItem>
                 {agents.map((agent) => (
                   <SelectItem key={agent.id} value={agent.id}>
                     {agent.company_name || `${agent.first_name} ${agent.last_name}`}

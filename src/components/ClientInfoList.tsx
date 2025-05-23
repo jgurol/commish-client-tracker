@@ -68,6 +68,11 @@ export const ClientInfoList = ({ clientInfos, onUpdateClientInfo, agentMapping =
     setDeletingClientId(null);
   };
 
+  const getAgentName = (agentId: string | null) => {
+    if (!agentId || agentId === "none") return "-";
+    return agentMapping[agentId] || "Unknown agent";
+  };
+
   return (
     <>
       {clientInfos.length === 0 ? (
@@ -92,7 +97,7 @@ export const ClientInfoList = ({ clientInfos, onUpdateClientInfo, agentMapping =
                 <TableRow key={clientInfo.id}>
                   <TableCell className="font-medium">{clientInfo.company_name}</TableCell>
                   <TableCell>{clientInfo.address || "-"}</TableCell>
-                  <TableCell>{clientInfo.agent_id ? (agentMapping[clientInfo.agent_id] || "Unknown agent") : "-"}</TableCell>
+                  <TableCell>{getAgentName(clientInfo.agent_id)}</TableCell>
                   <TableCell>{new Date(clientInfo.updated_at).toLocaleDateString()}</TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
