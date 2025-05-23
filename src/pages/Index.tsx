@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -19,6 +18,21 @@ export interface Client {
   commissionRate: number;
   totalEarnings: number;
   lastPayment: string;
+  // New fields for client information
+  clients?: ClientInfo[]; // Linked clients to this agent
+}
+
+// New interface for client information
+export interface ClientInfo {
+  id: string;
+  companyName: string;
+  contactName?: string;
+  email?: string;
+  phone?: string;
+  address?: string;
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface Transaction {
@@ -75,6 +89,28 @@ const Index = () => {
     }
   ]);
 
+  // New state for client information
+  const [clientInfos, setClientInfos] = useState<ClientInfo[]>([
+    {
+      id: "1",
+      companyName: "Tech Corp",
+      contactName: "John Smith",
+      email: "john@techcorp.com",
+      phone: "555-123-4567",
+      createdAt: "2024-05-10",
+      updatedAt: "2024-05-10"
+    },
+    {
+      id: "2",
+      companyName: "InnoSoft Solutions",
+      contactName: "Jane Doe",
+      email: "jane@innosoft.com",
+      phone: "555-987-6543",
+      createdAt: "2024-05-12",
+      updatedAt: "2024-05-15"
+    }
+  ]);
+
   const [transactions, setTransactions] = useState<Transaction[]>([
     {
       id: "1",
@@ -110,6 +146,8 @@ const Index = () => {
   ]);
 
   const [isAddClientOpen, setIsAddClientOpen] = useState(false);
+  // New state for client info dialog
+  const [isAddClientInfoOpen, setIsAddClientInfoOpen] = useState(false);
 
   const addClient = (newClient: Omit<Client, "id">) => {
     const client: Client = {
@@ -128,6 +166,26 @@ const Index = () => {
   const deleteClient = (clientId: string) => {
     setClients(clients.filter(client => client.id !== clientId));
     setTransactions(transactions.filter(transaction => transaction.clientId !== clientId));
+  };
+
+  // New function to add client info
+  const addClientInfo = (newClientInfo: Omit<ClientInfo, "id" | "createdAt" | "updatedAt">) => {
+    const clientInfo: ClientInfo = {
+      ...newClientInfo,
+      id: Date.now().toString(),
+      createdAt: new Date().toISOString().split('T')[0],
+      updatedAt: new Date().toISOString().split('T')[0]
+    };
+    setClientInfos([...clientInfos, clientInfo]);
+  };
+
+  // New function to update client info
+  const updateClientInfo = (updatedClientInfo: ClientInfo) => {
+    setClientInfos(clientInfos.map(clientInfo => 
+      clientInfo.id === updatedClientInfo.id ? 
+        { ...updatedClientInfo, updatedAt: new Date().toISOString().split('T')[0] } : 
+        clientInfo
+    ));
   };
 
   const addTransaction = (transaction: Omit<Transaction, "id">) => {
@@ -240,6 +298,36 @@ const Index = () => {
           open={isAddClientOpen}
           onOpenChange={setIsAddClientOpen}
           onAddClient={addClient}
+        />
+
+        {/* We'll add the client info management UI in a separate component */}
+        <Card className="bg-white shadow-lg border-0 mt-8">
+          <CardHeader>
+            <CardTitle className="text-xl font-semibold text-gray-900">Client Management</CardTitle>
+            <CardDescription>Manage your clients' information</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex justify-end mb-4">
+              <Button 
+                onClick={() => setIsAddClientInfoOpen(true)}
+                className="bg-green-600 hover:bg-green-700 text-white shadow-lg hover:shadow-xl transition-all duration-200"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Add Client
+              </Button>
+            </div>
+            <ClientInfoList 
+              clientInfos={clientInfos}
+              onUpdateClientInfo={updateClientInfo}
+            />
+          </CardContent>
+        </Card>
+
+        {/* Add ClientInfo Dialog component will be created separately */}
+        <AddClientInfoDialog
+          open={isAddClientInfoOpen}
+          onOpenChange={setIsAddClientInfoOpen}
+          onAddClientInfo={addClientInfo}
         />
       </div>
     </div>
