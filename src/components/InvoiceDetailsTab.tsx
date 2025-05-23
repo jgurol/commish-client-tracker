@@ -2,6 +2,7 @@
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 
 interface InvoiceDetailsTabProps {
   invoiceMonth: string;
@@ -10,8 +11,10 @@ interface InvoiceDetailsTabProps {
   setInvoiceYear: (value: string) => void;
   invoiceNumber: string;
   setInvoiceNumber: (value: string) => void;
-  commissionPaidDate: string;
-  setCommissionPaidDate: (value: string) => void;
+  isPaid: boolean;
+  setIsPaid: (value: boolean) => void;
+  datePaid: string;
+  setDatePaid: (value: string) => void;
 }
 
 // Array for month names - needed for display
@@ -37,8 +40,10 @@ export const InvoiceDetailsTab = ({
   setInvoiceYear,
   invoiceNumber,
   setInvoiceNumber,
-  commissionPaidDate,
-  setCommissionPaidDate
+  isPaid,
+  setIsPaid,
+  datePaid,
+  setDatePaid
 }: InvoiceDetailsTabProps) => {
   const currentYear = new Date().getFullYear();
   const years = Array.from({ length: 5 }, (_, i) => currentYear - 2 + i);
@@ -89,18 +94,20 @@ export const InvoiceDetailsTab = ({
         />
       </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="commissionPaidDate">Commission Paid Date</Label>
-        <Input
-          id="commissionPaidDate"
-          type="date"
-          value={commissionPaidDate}
-          onChange={(e) => setCommissionPaidDate(e.target.value)}
-          placeholder="Leave blank if not yet paid"
+      <div className="flex items-center space-x-2 pt-2">
+        <Checkbox 
+          id="isPaid" 
+          checked={isPaid} 
+          onCheckedChange={(checked) => {
+            setIsPaid(checked === true);
+            if (checked === true && !datePaid) {
+              setDatePaid(new Date().toISOString().split('T')[0]);
+            }
+          }}
         />
-        <div className="text-xs text-gray-500">
-          Leave blank if the commission has not been paid yet
-        </div>
+        <Label htmlFor="isPaid" className="font-medium text-sm">
+          Invoice has been paid
+        </Label>
       </div>
     </div>
   );

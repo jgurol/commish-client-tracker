@@ -2,47 +2,32 @@
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Checkbox } from "@/components/ui/checkbox";
 
 interface PaymentTabProps {
   isPaid: boolean;
-  setIsPaid: (value: boolean) => void;
   datePaid: string;
   setDatePaid: (value: string) => void;
   paymentMethod: string;
   setPaymentMethod: (value: string) => void;
   referenceNumber: string;
   setReferenceNumber: (value: string) => void;
+  commissionPaidDate: string;
+  setCommissionPaidDate: (value: string) => void;
 }
 
 export const PaymentTab = ({
   isPaid,
-  setIsPaid,
   datePaid,
   setDatePaid,
   paymentMethod,
   setPaymentMethod,
   referenceNumber,
-  setReferenceNumber
+  setReferenceNumber,
+  commissionPaidDate,
+  setCommissionPaidDate
 }: PaymentTabProps) => {
   return (
     <div className="space-y-4">
-      <div className="flex items-center space-x-2 pt-2">
-        <Checkbox 
-          id="isPaid" 
-          checked={isPaid} 
-          onCheckedChange={(checked) => {
-            setIsPaid(checked === true);
-            if (checked === true && !datePaid) {
-              setDatePaid(new Date().toISOString().split('T')[0]);
-            }
-          }}
-        />
-        <Label htmlFor="isPaid" className="font-medium text-sm">
-          Invoice has been paid
-        </Label>
-      </div>
-      
       {isPaid && (
         <>
           <div className="space-y-2">
@@ -87,6 +72,20 @@ export const PaymentTab = ({
           </div>
         </>
       )}
+
+      <div className="space-y-2">
+        <Label htmlFor="commissionPaidDate">Commission Paid Date</Label>
+        <Input
+          id="commissionPaidDate"
+          type="date"
+          value={commissionPaidDate}
+          onChange={(e) => setCommissionPaidDate(e.target.value)}
+          placeholder="Leave blank if not yet paid"
+        />
+        <div className="text-xs text-gray-500">
+          Leave blank if the commission has not been paid yet
+        </div>
+      </div>
     </div>
   );
 };

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -150,21 +149,24 @@ export const EditTransactionDialog = ({ transaction, open, onOpenChange, onUpdat
                   setInvoiceYear={setInvoiceYear}
                   invoiceNumber={invoiceNumber}
                   setInvoiceNumber={setInvoiceNumber}
-                  commissionPaidDate={commissionPaidDate}
-                  setCommissionPaidDate={setCommissionPaidDate}
+                  isPaid={isPaid}
+                  setIsPaid={setIsPaid}
+                  datePaid={datePaid}
+                  setDatePaid={setDatePaid}
                 />
               </TabsContent>
               
               <TabsContent value="payment">
                 <PaymentTab
                   isPaid={isPaid}
-                  setIsPaid={setIsPaid}
                   datePaid={datePaid}
                   setDatePaid={setDatePaid}
                   paymentMethod={paymentMethod}
                   setPaymentMethod={setPaymentMethod}
                   referenceNumber={referenceNumber}
                   setReferenceNumber={setReferenceNumber}
+                  commissionPaidDate={commissionPaidDate}
+                  setCommissionPaidDate={setCommissionPaidDate}
                 />
               </TabsContent>
             </Tabs>
