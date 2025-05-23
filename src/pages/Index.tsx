@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -220,14 +219,24 @@ const IndexPage = () => {
     try {
       setIsLoading(true);
       
+      console.log("Fetching transactions for user:", user.id);
+      console.log("User isAdmin:", isAdmin);
+      console.log("Associated agent ID:", associatedAgentId);
+      
       let query = supabase.from('transactions').select('*');
       
       // If user is not admin and has an associated agent, filter by that agent's ID
       if (!isAdmin && associatedAgentId) {
-        // This was the issue - we were using client_id here which is wrong for associated users
-        // We need to filter by the agent ID, not make the user the client
+        console.log("Filtering transactions for associated agent ID:", associatedAgentId);
         query = query.eq('client_id', associatedAgentId);
-        console.log("Filtering transactions for agent ID:", associatedAgentId);
+      } else if (!isAdmin) {
+        // If user is not admin but has no associated agent, show no transactions
+        console.log("User is not admin and has no associated agent, showing no transactions");
+        setTransactions([]);
+        setIsLoading(false);
+        return;
+      } else {
+        console.log("User is admin, showing all transactions");
       }
       
       query = query.order('date', { ascending: false });
@@ -244,12 +253,16 @@ const IndexPage = () => {
         return;
       }
 
-      console.log("Fetched transactions:", data);
+      console.log("Fetched transactions raw data:", data);
+      console.log("Number of transactions found:", data?.length || 0);
 
       // Map database transactions to our Transaction interface
       const mappedTransactions = await Promise.all(data?.map(async (transaction) => {
+        console.log("Processing transaction:", transaction.id, "for client_id:", transaction.client_id);
+        
         // Find client for this transaction
         const client = clients.find(c => c.id === transaction.client_id);
+        console.log("Found client for transaction:", client?.name || "Not found");
         
         // Find client info for this transaction if available
         let clientInfo = null;
@@ -280,6 +293,7 @@ const IndexPage = () => {
         };
       }) || []);
 
+      console.log("Final mapped transactions:", mappedTransactions);
       setTransactions(mappedTransactions);
     } catch (err) {
       console.error('Error in transaction fetch:', err);
