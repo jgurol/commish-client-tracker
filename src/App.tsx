@@ -13,7 +13,15 @@ import FixAccount from "./pages/FixAccount";
 import ClientManagement from "./pages/ClientManagement";
 import { NavigationBar } from "./components/NavigationBar";
 
-const queryClient = new QueryClient();
+// Create a new query client with forceRefetch to ensure fresh data
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: true,
+      staleTime: 60000, // 1 minute
+    },
+  },
+});
 
 // Protected route component
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {

@@ -212,7 +212,7 @@ const IndexPage = () => {
     }
   };
 
-  // Function to fetch transactions from Supabase - ENHANCED DEBUGGING
+  // Updated function to fetch transactions from Supabase - CRITICAL FIX
   const fetchTransactions = async () => {
     if (!user) {
       console.log("❌ No user found, skipping transaction fetch");
@@ -222,7 +222,7 @@ const IndexPage = () => {
     try {
       setIsLoading(true);
       
-      console.log("=== ENHANCED TRANSACTION DEBUGGING ===");
+      console.log("=== SUPER ENHANCED TRANSACTION DEBUGGING ===");
       console.log("Current user:", user.id);
       console.log("User email:", user.email);
       console.log("User isAdmin:", isAdmin);
@@ -240,12 +240,11 @@ const IndexPage = () => {
         console.log("✅ Total transactions in database:", count);
       }
       
-      // Get ALL transactions without any filtering - REMOVED ALL FILTERS
-      console.log("🔍 Fetching ALL transactions...");
+      // CRITICAL FIX: Get ALL transactions with no filtering
+      console.log("🔍 Fetching ALL transactions without filters...");
       const { data, error } = await supabase
         .from('transactions')
-        .select('*')
-        .order('date', { ascending: false });
+        .select('*');
 
       if (error) {
         console.error('❌ Error fetching transactions:', error);
@@ -330,7 +329,7 @@ const IndexPage = () => {
 
       console.log("✅ Final mapped transactions:", mappedTransactions);
       console.log("✅ Total mapped transactions:", mappedTransactions.length);
-      console.log("=== END ENHANCED TRANSACTION DEBUGGING ===");
+      console.log("=== END SUPER ENHANCED TRANSACTION DEBUGGING ===");
       
       setTransactions(mappedTransactions);
     } catch (err) {
