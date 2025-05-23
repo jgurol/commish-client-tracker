@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { Header } from '@/components/Header';
@@ -15,6 +16,7 @@ import { Button } from '@/components/ui/button';
 import { Shield, UserCheck, UserX, PencilIcon } from 'lucide-react';
 import { Navigate } from 'react-router-dom';
 import { EditUserDialog } from '@/components/EditUserDialog';
+import { AssociateUserDialog } from '@/components/AssociateUserDialog';
 
 interface UserProfile {
   id: string;
@@ -41,6 +43,7 @@ export default function Admin() {
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingUser, setEditingUser] = useState<UserProfile | null>(null);
+  const [associatingUser, setAssociatingUser] = useState<UserProfile | null>(null);
   const [agents, setAgents] = useState<Agent[]>([]);
 
   // Redirect non-admin users
@@ -150,14 +153,19 @@ export default function Admin() {
     setEditingUser(user);
   };
 
+  const handleAssociateUser = (user: UserProfile) => {
+    setAssociatingUser(user);
+  };
+
   const handleUpdateUser = (updatedUser: UserProfile) => {
     // Update local state
     setUsers(users.map(u => 
       u.id === updatedUser.id ? updatedUser : u
     ));
 
-    // Close the dialog
+    // Close the dialogs
     setEditingUser(null);
+    setAssociatingUser(null);
   };
 
   return (
@@ -260,7 +268,7 @@ export default function Admin() {
                               <Button 
                                 variant="outline" 
                                 size="sm" 
-                                onClick={() => updateUserAssociation(userProfile.id, true)}
+                                onClick={() => handleAssociateUser(userProfile)}
                                 className="text-green-600 border-green-200 hover:bg-green-50"
                               >
                                 <UserCheck className="w-4 h-4 mr-1" />
@@ -286,6 +294,18 @@ export default function Admin() {
           open={!!editingUser}
           onOpenChange={(open) => {
             if (!open) setEditingUser(null);
+          }}
+          onUpdateUser={handleUpdateUser}
+        />
+      )}
+
+      {associatingUser && (
+        <AssociateUserDialog
+          user={associatingUser}
+          agents={agents}
+          open={!!associatingUser}
+          onOpenChange={(open) => {
+            if (!open) setAssociatingUser(null);
           }}
           onUpdateUser={handleUpdateUser}
         />
