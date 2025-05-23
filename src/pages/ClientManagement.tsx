@@ -9,14 +9,11 @@ import { ClientInfo } from "@/pages/Index";
 import { Header } from "@/components/Header";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/context/AuthContext";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 
-interface ExtendedClientInfo extends ClientInfo {
-  agent_id?: string | null;
-}
-
+// Fixed type definition to make agent_id optional here as it is in the ClientInfo type
 const ClientManagement = () => {
-  const [clientInfos, setClientInfos] = useState<ExtendedClientInfo[]>([]);
+  const [clientInfos, setClientInfos] = useState<ClientInfo[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [agentMapping, setAgentMapping] = useState<Record<string, string>>({});
   const { user } = useAuth();
@@ -85,7 +82,7 @@ const ClientManagement = () => {
   };
 
   // Function to add client info
-  const addClientInfo = async (newClientInfo: Omit<ExtendedClientInfo, "id" | "created_at" | "updated_at" | "user_id">) => {
+  const addClientInfo = async (newClientInfo: Omit<ClientInfo, "id" | "created_at" | "updated_at" | "user_id">) => {
     if (!user) return;
 
     // Handle the "none" special value for agent_id
@@ -128,7 +125,7 @@ const ClientManagement = () => {
   };
 
   // Function to update client info
-  const updateClientInfo = async (updatedClientInfo: ExtendedClientInfo) => {
+  const updateClientInfo = async (updatedClientInfo: ClientInfo) => {
     if (!user) return;
 
     // Check if this is a delete operation (special case)

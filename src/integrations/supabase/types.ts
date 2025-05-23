@@ -134,6 +134,87 @@ export type Database = {
         }
         Relationships: []
       }
+      transactions: {
+        Row: {
+          amount: number
+          client_id: string
+          client_info_id: string | null
+          commission: number | null
+          commission_paid_date: string | null
+          created_at: string
+          date: string
+          date_paid: string | null
+          description: string
+          id: string
+          invoice_month: string | null
+          invoice_number: string | null
+          invoice_year: string | null
+          is_approved: boolean | null
+          is_paid: boolean | null
+          payment_method: string | null
+          reference_number: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          client_id: string
+          client_info_id?: string | null
+          commission?: number | null
+          commission_paid_date?: string | null
+          created_at?: string
+          date: string
+          date_paid?: string | null
+          description: string
+          id?: string
+          invoice_month?: string | null
+          invoice_number?: string | null
+          invoice_year?: string | null
+          is_approved?: boolean | null
+          is_paid?: boolean | null
+          payment_method?: string | null
+          reference_number?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          client_id?: string
+          client_info_id?: string | null
+          commission?: number | null
+          commission_paid_date?: string | null
+          created_at?: string
+          date?: string
+          date_paid?: string | null
+          description?: string
+          id?: string
+          invoice_month?: string | null
+          invoice_number?: string | null
+          invoice_year?: string | null
+          is_approved?: boolean | null
+          is_paid?: boolean | null
+          payment_method?: string | null
+          reference_number?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transactions_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transactions_client_info_id_fkey"
+            columns: ["client_info_id"]
+            isOneToOne: false
+            referencedRelation: "client_info"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never

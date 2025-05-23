@@ -2,31 +2,55 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Plus, ChevronRight } from "lucide-react";
+import { Header } from "@/components/Header";
+import { StatsCards } from "@/components/StatsCards";
+import { RecentTransactions } from "@/components/RecentTransactions";
 import { ClientList } from "@/components/ClientList";
 import { AddClientDialog } from "@/components/AddClientDialog";
 import { CommissionChart } from "@/components/CommissionChart";
-import { RecentTransactions } from "@/components/RecentTransactions";
-import { StatsCards } from "@/components/StatsCards";
-import { Header } from "@/components/Header";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/context/AuthContext";
 
+// Define the Client type
 export interface Client {
   id: string;
   firstName: string;
   lastName: string;
-  name: string; // Keeping for compatibility
-  companyName?: string; // Using as primary index for Agent name
+  name: string;
   email: string;
+  companyName: string | null;
   commissionRate: number;
   totalEarnings: number;
   lastPayment: string;
-  // New fields for client information
-  clients?: ClientInfo[]; // Linked clients to this agent
 }
 
-// Update the ClientInfo type to match the database schema
+// Define the Transaction type
+export interface Transaction {
+  id: string;
+  clientId: string;
+  clientName: string;
+  companyName: string;
+  amount: number;
+  date: string;
+  description: string;
+  datePaid?: string;
+  paymentMethod?: string;
+  referenceNumber?: string;
+  invoiceMonth?: string;
+  invoiceYear?: string;
+  invoiceNumber?: string;
+  isPaid?: boolean;
+  commission?: number;
+  isApproved?: boolean;
+  clientInfoId?: string;
+  clientCompanyName?: string;
+  commissionPaidDate?: string;
+}
+
+// Define the ClientInfo type
 export interface ClientInfo {
   id: string;
   user_id: string;
@@ -36,264 +60,479 @@ export interface ClientInfo {
   phone: string | null;
   address: string | null;
   notes: string | null;
-  agent_id: string | null; // Added this field to match the database column
+  agent_id: string | null;
   created_at: string;
   updated_at: string;
 }
 
-export interface Transaction {
-  id: string;
-  clientId: string;
-  clientName: string;
-  companyName: string; // Added as primary index for Agent name
-  amount: number;
-  date: string;
-  description: string;
-  datePaid?: string; // Optional field to track when payment was made
-  paymentMethod?: string; // Check or Zelle
-  referenceNumber?: string; // Check number or Zelle reference
-  invoiceMonth?: string; // Month of the invoice period
-  invoiceYear?: string; // Year of the invoice period
-  invoiceNumber?: string; // Invoice number
-  isPaid?: boolean; // Whether the customer has paid the invoice
-  clientInfoId?: string; // Reference to the client info
-  clientCompanyName?: string; // Client company name for display
-  commission?: number; // Commission amount
-  isApproved?: boolean; // Whether the commission has been approved
-  commissionPaidDate?: string; // New field to track when commission was paid
-}
-
-const Index = () => {
+const IndexPage = () => {
   const [clients, setClients] = useState<Client[]>([]);
-  const [loading, setLoading] = useState(true);
-  const { toast } = useToast();
-
-  // New state for client information - moved to ClientManagement page
-  const [clientInfos, setClientInfos] = useState<ClientInfo[]>([]);
-
-  const [transactions, setTransactions] = useState<Transaction[]>([
-    {
-      id: "1",
-      clientId: "1",
-      clientName: "Acme Corporation",
-      companyName: "Acme Inc.",
-      amount: 2500,
-      date: "2024-05-20",
-      description: "Q1 Sales Commission",
-      paymentMethod: "check",
-      referenceNumber: "12345"
-    },
-    {
-      id: "2",
-      clientId: "2",
-      clientName: "Tech Solutions Ltd",
-      companyName: "TechSol Group",
-      amount: 3750,
-      date: "2024-05-18",
-      description: "Monthly Commission",
-      paymentMethod: "zelle",
-      referenceNumber: "ZL98765"
-    },
-    {
-      id: "3",
-      clientId: "3",
-      clientName: "Global Enterprises",
-      companyName: "Global Holdings",
-      amount: 1840,
-      date: "2024-05-15",
-      description: "Project Completion Bonus"
-    }
-  ]);
-
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [isAddClientOpen, setIsAddClientOpen] = useState(false);
-  
-  // Fetch agents from the database
-  useEffect(() => {
-    fetchAgents();
-  }, []);
+  const [clientInfos, setClientInfos] = useState<ClientInfo[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const { user } = useAuth();
 
-  const fetchAgents = async () => {
-    setLoading(true);
+  // Load clients from Supabase when component mounts
+  useEffect(() => {
+    fetchClients();
+    fetchClientInfos();
+  }, [user]);
+
+  // Function to fetch transactions from Supabase
+  useEffect(() => {
+    if (clients.length > 0) {
+      fetchTransactions();
+    }
+  }, [clients, user]);
+
+  // Function to fetch clients from Supabase
+  const fetchClients = async () => {
+    if (!user) return;
+    
     try {
+      setIsLoading(true);
       const { data, error } = await supabase
         .from('agents')
-        .select('*');
+        .select('*')
+        .order('last_name', { ascending: true });
 
-      if (error) throw error;
-
-      if (data) {
-        // Transform data to match Client interface
-        const formattedClients: Client[] = data.map(agent => ({
-          id: agent.id,
-          firstName: agent.first_name,
-          lastName: agent.last_name,
-          name: `${agent.first_name} ${agent.last_name}`,
-          companyName: agent.company_name || '',
-          email: agent.email,
-          commissionRate: Number(agent.commission_rate),
-          totalEarnings: Number(agent.total_earnings || 0),
-          lastPayment: agent.last_payment || new Date().toISOString().split('T')[0]
-        }));
-
-        setClients(formattedClients);
+      if (error) {
+        console.error('Error fetching agents:', error);
+        toast({
+          title: "Failed to load agents",
+          description: error.message,
+          variant: "destructive"
+        });
+        return;
       }
-    } catch (error: any) {
-      console.error('Error fetching agents:', error);
+
+      // Map the data to match our Client interface
+      const mappedClients: Client[] = data?.map(agent => ({
+        id: agent.id,
+        firstName: agent.first_name,
+        lastName: agent.last_name,
+        name: `${agent.first_name} ${agent.last_name}`,
+        email: agent.email,
+        companyName: agent.company_name,
+        commissionRate: agent.commission_rate,
+        totalEarnings: agent.total_earnings || 0,
+        lastPayment: agent.last_payment ? new Date(agent.last_payment).toISOString() : new Date().toISOString()
+      })) || [];
+
+      setClients(mappedClients);
+    } catch (err) {
+      console.error('Error in client fetch:', err);
       toast({
         title: "Error",
-        description: `Failed to fetch agents: ${error.message}`,
+        description: "Failed to load agent data",
         variant: "destructive"
       });
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
-  const addClient = (newClient: Omit<Client, "id">) => {
-    // Local state update is now handled after DB insert in AddClientDialog
-    const client: Client = {
-      ...newClient,
-      id: Date.now().toString(), // This ID will be replaced by the DB-generated one
-    };
-    setClients([...clients, client]);
+  // Function to fetch client info from Supabase
+  const fetchClientInfos = async () => {
+    if (!user) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('client_info')
+        .select('*')
+        .order('company_name', { ascending: true });
+      
+      if (error) {
+        console.error('Error fetching client info:', error);
+        toast({
+          title: "Failed to load clients",
+          description: error.message,
+          variant: "destructive"
+        });
+      } else {
+        setClientInfos(data || []);
+      }
+    } catch (err) {
+      console.error('Error in client info fetch:', err);
+      toast({
+        title: "Error",
+        description: "Failed to load client information",
+        variant: "destructive"
+      });
+    }
   };
 
-  const updateClient = (updatedClient: Client) => {
-    // Local state update - database update is handled in ClientList component
+  // Function to fetch transactions from Supabase
+  const fetchTransactions = async () => {
+    if (!user) return;
+    
+    try {
+      setIsLoading(true);
+      const { data, error } = await supabase
+        .from('transactions')
+        .select('*')
+        .order('date', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching transactions:', error);
+        toast({
+          title: "Failed to load transactions",
+          description: error.message,
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // Map database transactions to our Transaction interface
+      const mappedTransactions = await Promise.all(data?.map(async (transaction) => {
+        // Find client for this transaction
+        const client = clients.find(c => c.id === transaction.client_id);
+        
+        // Find client info for this transaction if available
+        let clientInfo = null;
+        if (transaction.client_info_id) {
+          clientInfo = clientInfos.find(ci => ci.id === transaction.client_info_id);
+        }
+
+        return {
+          id: transaction.id,
+          clientId: transaction.client_id,
+          clientName: client?.name || "Unknown Agent",
+          companyName: client?.companyName || client?.name || "Unknown Company",
+          amount: transaction.amount,
+          date: transaction.date,
+          description: transaction.description,
+          datePaid: transaction.date_paid,
+          paymentMethod: transaction.payment_method,
+          referenceNumber: transaction.reference_number,
+          invoiceMonth: transaction.invoice_month,
+          invoiceYear: transaction.invoice_year,
+          invoiceNumber: transaction.invoice_number,
+          isPaid: transaction.is_paid,
+          commission: transaction.commission,
+          isApproved: transaction.is_approved,
+          clientInfoId: transaction.client_info_id,
+          clientCompanyName: clientInfo?.company_name,
+          commissionPaidDate: transaction.commission_paid_date
+        };
+      }) || []);
+
+      setTransactions(mappedTransactions);
+    } catch (err) {
+      console.error('Error in transaction fetch:', err);
+      toast({
+        title: "Error",
+        description: "Failed to load transaction data",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Function to add a new client to Supabase
+  const addClient = async (newClient: Omit<Client, "id" | "totalEarnings" | "lastPayment">) => {
+    if (!user) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('agents')
+        .insert({
+          first_name: newClient.firstName,
+          last_name: newClient.lastName,
+          email: newClient.email,
+          company_name: newClient.companyName,
+          commission_rate: newClient.commissionRate,
+          user_id: user.id,
+          total_earnings: 0,
+          last_payment: new Date().toISOString()
+        })
+        .select('*')
+        .single();
+
+      if (error) {
+        console.error('Error adding agent:', error);
+        toast({
+          title: "Failed to add agent",
+          description: error.message,
+          variant: "destructive"
+        });
+      } else if (data) {
+        // Map the returned data to our Client interface
+        const newClientWithId: Client = {
+          id: data.id,
+          firstName: data.first_name,
+          lastName: data.last_name,
+          name: `${data.first_name} ${data.last_name}`,
+          email: data.email,
+          companyName: data.company_name,
+          commissionRate: data.commission_rate,
+          totalEarnings: data.total_earnings || 0,
+          lastPayment: data.last_payment ? new Date(data.last_payment).toISOString() : new Date().toISOString()
+        };
+
+        setClients([...clients, newClientWithId]);
+        toast({
+          title: "Agent added",
+          description: `${newClientWithId.name} has been added successfully.`,
+        });
+      }
+    } catch (err) {
+      console.error('Error in add client operation:', err);
+      toast({
+        title: "Error",
+        description: "Failed to add agent",
+        variant: "destructive"
+      });
+    }
+  };
+
+  // Function to add a new transaction to Supabase
+  const addTransaction = async (newTransaction: Omit<Transaction, "id">) => {
+    if (!user) return;
+    
+    try {
+      // Find the client to get their commission rate
+      const client = clients.find(c => c.id === newTransaction.clientId);
+      if (!client) {
+        toast({
+          title: "Error",
+          description: "Client not found",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // Calculate commission based on client's rate
+      const commission = (client.commissionRate / 100) * newTransaction.amount;
+
+      const { data, error } = await supabase
+        .from('transactions')
+        .insert({
+          client_id: newTransaction.clientId,
+          client_info_id: newTransaction.clientInfoId === "none" ? null : newTransaction.clientInfoId,
+          amount: newTransaction.amount,
+          date: newTransaction.date,
+          description: newTransaction.description,
+          date_paid: newTransaction.datePaid,
+          payment_method: newTransaction.paymentMethod,
+          reference_number: newTransaction.referenceNumber,
+          invoice_month: newTransaction.invoiceMonth,
+          invoice_year: newTransaction.invoiceYear,
+          invoice_number: newTransaction.invoiceNumber,
+          is_paid: newTransaction.isPaid || false,
+          commission: commission,
+          is_approved: false, // Default to not approved
+          commission_paid_date: newTransaction.commissionPaidDate,
+          user_id: user.id
+        })
+        .select('*')
+        .single();
+
+      if (error) {
+        console.error('Error adding transaction:', error);
+        toast({
+          title: "Failed to add transaction",
+          description: error.message,
+          variant: "destructive"
+        });
+      } else if (data) {
+        // Refresh transactions to get the new one
+        fetchTransactions();
+        toast({
+          title: "Transaction added",
+          description: `Transaction for ${client.name} has been added successfully.`,
+        });
+      }
+    } catch (err) {
+      console.error('Error in add transaction operation:', err);
+      toast({
+        title: "Error",
+        description: "Failed to add transaction",
+        variant: "destructive"
+      });
+    }
+  };
+
+  // Function to update a transaction in Supabase
+  const updateTransaction = async (updatedTransaction: Transaction) => {
+    if (!user) return;
+    
+    try {
+      // Find the client to get their commission rate
+      const client = clients.find(c => c.id === updatedTransaction.clientId);
+      if (!client) {
+        toast({
+          title: "Error",
+          description: "Client not found",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // Calculate commission based on client's rate
+      const commission = (client.commissionRate / 100) * updatedTransaction.amount;
+
+      const { data, error } = await supabase
+        .from('transactions')
+        .update({
+          client_id: updatedTransaction.clientId,
+          client_info_id: updatedTransaction.clientInfoId === "none" ? null : updatedTransaction.clientInfoId,
+          amount: updatedTransaction.amount,
+          date: updatedTransaction.date,
+          description: updatedTransaction.description,
+          date_paid: updatedTransaction.datePaid,
+          payment_method: updatedTransaction.paymentMethod,
+          reference_number: updatedTransaction.referenceNumber,
+          invoice_month: updatedTransaction.invoiceMonth,
+          invoice_year: updatedTransaction.invoiceYear,
+          invoice_number: updatedTransaction.invoiceNumber,
+          is_paid: updatedTransaction.isPaid || false,
+          commission: commission,
+          is_approved: updatedTransaction.isApproved || false,
+          commission_paid_date: updatedTransaction.commissionPaidDate
+        })
+        .eq('id', updatedTransaction.id)
+        .select('*')
+        .single();
+
+      if (error) {
+        console.error('Error updating transaction:', error);
+        toast({
+          title: "Failed to update transaction",
+          description: error.message,
+          variant: "destructive"
+        });
+      } else {
+        // Refresh transactions to get the updated one
+        fetchTransactions();
+        toast({
+          title: "Transaction updated",
+          description: `Transaction for ${client.name} has been updated successfully.`,
+        });
+      }
+    } catch (err) {
+      console.error('Error in update transaction operation:', err);
+      toast({
+        title: "Error",
+        description: "Failed to update transaction",
+        variant: "destructive"
+      });
+    }
+  };
+
+  // Function to update a client in Supabase
+  const updateClient = async (updatedClient: Client) => {
+    // Update locally first
     setClients(clients.map(client => 
       client.id === updatedClient.id ? updatedClient : client
     ));
   };
 
-  const deleteClient = (clientId: string) => {
-    // Local state update - database deletion is handled in ClientList component
+  // Function to delete a client
+  const deleteClient = async (clientId: string) => {
     setClients(clients.filter(client => client.id !== clientId));
-    setTransactions(transactions.filter(transaction => transaction.clientId !== clientId));
   };
 
-  // New function to update transactions
-  const updateTransactions = (updatedTransactions: Transaction[]) => {
-    setTransactions(updatedTransactions);
-  };
+  // Function to approve a commission
+  const approveCommission = async (transactionId: string) => {
+    if (!user) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('transactions')
+        .update({
+          is_approved: true
+        })
+        .eq('id', transactionId)
+        .select('*')
+        .single();
 
-  const addTransaction = (transaction: Omit<Transaction, "id">) => {
-    // Find the client to get their commission rate
-    const client = clients.find(c => c.id === transaction.clientId);
-    
-    // Calculate commission based on client's commission rate
-    const commissionRate = client ? client.commissionRate : 0;
-    const commissionAmount = transaction.amount * (commissionRate / 100);
-    
-    // Process clientInfoId to handle the "none" value
-    const processedTransaction = {
-      ...transaction,
-      clientInfoId: transaction.clientInfoId === "none" ? undefined : transaction.clientInfoId,
-      id: Date.now().toString(),
-      // Set calculated commission based on client's rate
-      commission: commissionAmount,
-      isApproved: false, // Default to not approved
-    };
-    
-    setTransactions([processedTransaction, ...transactions]);
-
-    // Update client's total earnings
-    setClients(clients.map(client => {
-      if (client.id === transaction.clientId) {
-        return {
-          ...client,
-          totalEarnings: client.totalEarnings + transaction.amount,
-          lastPayment: transaction.date
-        };
+      if (error) {
+        console.error('Error approving commission:', error);
+        toast({
+          title: "Failed to approve commission",
+          description: error.message,
+          variant: "destructive"
+        });
+      } else {
+        // Refresh transactions to get the updated one
+        fetchTransactions();
+        toast({
+          title: "Commission approved",
+          description: "The commission has been approved successfully.",
+        });
       }
-      return client;
-    }));
-  };
-
-  const updateTransaction = (updatedTransaction: Transaction) => {
-    // Process clientInfoId to handle the "none" value
-    const processedTransaction = {
-      ...updatedTransaction,
-      clientInfoId: updatedTransaction.clientInfoId === "none" ? undefined : updatedTransaction.clientInfoId,
-    };
-    
-    // If we need to recalculate the commission (e.g., if amount or client changed)
-    if (updatedTransaction.clientId) {
-      const client = clients.find(c => c.id === updatedTransaction.clientId);
-      if (client) {
-        // Recalculate commission based on the client's rate and new amount
-        processedTransaction.commission = updatedTransaction.amount * (client.commissionRate / 100);
-      }
-    }
-    
-    setTransactions(transactions.map(transaction => {
-      if (transaction.id === processedTransaction.id) {
-        return processedTransaction;
-      }
-      return transaction;
-    }));
-
-    // Update client's total earnings if amount has changed
-    const oldTransaction = transactions.find(t => t.id === updatedTransaction.id);
-    if (oldTransaction && oldTransaction.amount !== updatedTransaction.amount) {
-      const amountDifference = updatedTransaction.amount - oldTransaction.amount;
-      
-      setClients(clients.map(client => {
-        if (client.id === updatedTransaction.clientId) {
-          return {
-            ...client,
-            totalEarnings: client.totalEarnings + amountDifference,
-            lastPayment: updatedTransaction.date
-          };
-        }
-        return client;
-      }));
-    }
-
-    // If client has changed, update both clients' earnings
-    if (oldTransaction && oldTransaction.clientId !== updatedTransaction.clientId) {
-      setClients(clients.map(client => {
-        if (client.id === oldTransaction.clientId) {
-          return {
-            ...client,
-            totalEarnings: client.totalEarnings - oldTransaction.amount
-          };
-        }
-        if (client.id === updatedTransaction.clientId) {
-          return {
-            ...client,
-            totalEarnings: client.totalEarnings + updatedTransaction.amount,
-            lastPayment: updatedTransaction.date
-          };
-        }
-        return client;
-      }));
+    } catch (err) {
+      console.error('Error in approve commission operation:', err);
+      toast({
+        title: "Error",
+        description: "Failed to approve commission",
+        variant: "destructive"
+      });
     }
   };
 
-  // New function to approve a commission
-  const approveCommission = (transactionId: string) => {
-    setTransactions(transactions.map(transaction => {
-      if (transaction.id === transactionId) {
-        return {
-          ...transaction,
-          isApproved: true
-        };
+  // Function to mark a commission as paid
+  const payCommission = async (transactionId: string, paidDate: string) => {
+    if (!user) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('transactions')
+        .update({
+          commission_paid_date: paidDate
+        })
+        .eq('id', transactionId)
+        .select('*')
+        .single();
+
+      if (error) {
+        console.error('Error marking commission as paid:', error);
+        toast({
+          title: "Failed to mark commission as paid",
+          description: error.message,
+          variant: "destructive"
+        });
+      } else {
+        // Refresh transactions to get the updated one
+        fetchTransactions();
+        toast({
+          title: "Commission marked as paid",
+          description: `The commission has been marked as paid on ${new Date(paidDate).toLocaleDateString()}.`,
+        });
       }
-      return transaction;
-    }));
+    } catch (err) {
+      console.error('Error in pay commission operation:', err);
+      toast({
+        title: "Error",
+        description: "Failed to mark commission as paid",
+        variant: "destructive"
+      });
+    }
   };
 
-  // Updated function to handle mark commission as paid
-  const payCommission = (transactionId: string, paidDate: string) => {
-    setTransactions(transactions.map(transaction => {
-      if (transaction.id === transactionId) {
-        return {
-          ...transaction,
-          commissionPaidDate: paidDate
-        };
-      }
-      return transaction;
-    }));
+  // Calculate the total value of all transactions
+  const totalTransactionValue = transactions.reduce((total, transaction) => total + transaction.amount, 0);
+  
+  // Calculate the total approved commissions
+  const totalApprovedCommissions = transactions
+    .filter(transaction => transaction.isApproved)
+    .reduce((total, transaction) => total + (transaction.commission || 0), 0);
+  
+  // Calculate the total paid commissions
+  const totalPaidCommissions = transactions
+    .filter(transaction => transaction.commissionPaidDate)
+    .reduce((total, transaction) => total + (transaction.commission || 0), 0);
+
+  // Calculate the number of transactions this month
+  const getThisMonthTransactions = () => {
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    return transactions.filter(transaction => new Date(transaction.date) >= startOfMonth).length;
   };
 
   return (
@@ -303,57 +542,82 @@ const Index = () => {
         <Header />
 
         {/* Stats Cards */}
-        <StatsCards clients={clients} transactions={transactions} />
-
-        {/* Charts and Recent Activity */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-          <CommissionChart transactions={transactions} />
-          <RecentTransactions 
-            transactions={transactions} 
-            clients={clients}
-            clientInfos={clientInfos}
-            onAddTransaction={addTransaction}
-            onUpdateTransaction={updateTransaction}
-            onApproveCommission={approveCommission}
-            onPayCommission={payCommission}
-          />
-        </div>
-
-        {/* Client List */}
-        <div className="mb-6 flex justify-between items-center">
-          <h2 className="text-xl font-bold">Agents</h2>
-          <Button 
-            onClick={() => setIsAddClientOpen(true)}
-            className="bg-blue-600 hover:bg-blue-700 text-white shadow-lg hover:shadow-xl transition-all duration-200"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Add Agent
-          </Button>
-        </div>
-        
-        {loading ? (
-          <div className="text-center py-8">Loading agents...</div>
-        ) : (
-          <ClientList 
-            clients={clients} 
-            transactions={transactions}
-            onUpdateClient={updateClient}
-            onDeleteClient={deleteClient}
-            onUpdateTransactions={updateTransactions}
-            onFetchClients={fetchAgents}
-          />
-        )}
-
-        {/* Add Client Dialog */}
-        <AddClientDialog 
-          open={isAddClientOpen}
-          onOpenChange={setIsAddClientOpen}
-          onAddClient={addClient}
-          onFetchClients={fetchAgents}
+        <StatsCards 
+          totalTransactionValue={totalTransactionValue} 
+          totalApprovedCommissions={totalApprovedCommissions} 
+          totalPaidCommissions={totalPaidCommissions}
+          transactionsThisMonth={getThisMonthTransactions()}
+          totalAgents={clients.length}
         />
+
+        {/* Main Content Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-8">
+          {/* Left side - Recent Transactions */}
+          <div className="lg:col-span-2 space-y-6">
+            <div className="flex justify-between items-center">
+              <h2 className="text-xl font-bold text-gray-900">Recent Activity</h2>
+              <Button 
+                variant="ghost"
+                onClick={() => navigate('/clients')}
+                className="text-blue-600"
+              >
+                View Clients
+                <ChevronRight className="ml-1 w-4 h-4" />
+              </Button>
+            </div>
+            
+            {/* Recent Transactions Component */}
+            <RecentTransactions 
+              transactions={transactions} 
+              clients={clients}
+              clientInfos={clientInfos}
+              onAddTransaction={addTransaction}
+              onUpdateTransaction={updateTransaction}
+              onApproveCommission={approveCommission}
+              onPayCommission={payCommission}
+            />
+
+            {/* Commission Chart */}
+            <CommissionChart 
+              transactions={transactions} 
+            />
+          </div>
+
+          {/* Right side - Client List */}
+          <div className="space-y-6">
+            <div className="flex justify-between items-center">
+              <h2 className="text-xl font-bold text-gray-900">Agents</h2>
+              <Button 
+                onClick={() => setIsAddClientOpen(true)}
+                size="sm"
+                className="bg-green-600 hover:bg-green-700 text-white"
+              >
+                <Plus className="w-4 h-4 mr-1" />
+                Add Agent
+              </Button>
+            </div>
+
+            {/* Client List Component */}
+            <ClientList 
+              clients={clients} 
+              transactions={transactions}
+              onUpdateClient={updateClient}
+              onDeleteClient={deleteClient}
+              onUpdateTransactions={setTransactions}
+              onFetchClients={fetchClients}
+            />
+          </div>
+        </div>
       </div>
+
+      {/* Add Client Dialog */}
+      <AddClientDialog 
+        open={isAddClientOpen}
+        onOpenChange={setIsAddClientOpen}
+        onAddClient={addClient}
+      />
     </div>
   );
 };
 
-export default Index;
+export default IndexPage;
