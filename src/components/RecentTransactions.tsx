@@ -5,7 +5,7 @@ import { Transaction, Client, ClientInfo } from "@/pages/Index";
 import { AddTransactionDialog } from "@/components/AddTransactionDialog";
 import { EditTransactionDialog } from "@/components/EditTransactionDialog";
 import { TransactionHeader } from "@/components/TransactionHeader";
-import { TransactionList } from "@/components/TransactionList";
+import { TransactionTable } from "@/components/TransactionTable";
 import { TransactionEmptyState } from "@/components/TransactionEmptyState";
 import { ApprovalWarningDialog } from "@/components/ApprovalWarningDialog";
 
@@ -104,11 +104,13 @@ export const RecentTransactions = ({
             onAddTransaction={() => setIsAddTransactionOpen(true)}
           />
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-0">
           {transactions.length === 0 ? (
-            <TransactionEmptyState associatedAgentId={associatedAgentId} />
+            <div className="p-6">
+              <TransactionEmptyState associatedAgentId={associatedAgentId} />
+            </div>
           ) : (
-            <TransactionList
+            <TransactionTable
               transactions={transactions}
               clientInfos={clientInfos}
               onEditClick={handleEditClick}

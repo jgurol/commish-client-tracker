@@ -1,7 +1,6 @@
 
 import { Transaction, ClientInfo } from "@/pages/Index";
-import { TransactionCard } from "@/components/TransactionCard";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { TransactionTable } from "@/components/TransactionTable";
 
 interface TransactionListProps {
   transactions: Transaction[];
@@ -21,20 +20,13 @@ export const TransactionList = ({
   isCurrentMonth
 }: TransactionListProps) => {
   return (
-    <ScrollArea className="h-[500px] pr-4">
-      <div className="space-y-3">
-        {transactions.map((transaction) => (
-          <TransactionCard
-            key={transaction.id}
-            transaction={transaction}
-            clientInfos={clientInfos}
-            onEditClick={onEditClick}
-            onApproveCommission={onApproveCommission}
-            onPayCommission={onPayCommission}
-            isCurrentMonth={isCurrentMonth}
-          />
-        ))}
-      </div>
-    </ScrollArea>
+    <TransactionTable
+      transactions={transactions}
+      clientInfos={clientInfos}
+      onEditClick={onEditClick}
+      onApproveCommission={onApproveCommission}
+      onPayCommission={onPayCommission}
+      isCurrentMonth={isCurrentMonth}
+    />
   );
 };
