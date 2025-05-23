@@ -6,6 +6,13 @@ import type { Database } from './types';
 const SUPABASE_URL = "https://wblwtdiywvzsbirkanal.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndibHd0ZGl5d3Z6c2JpcmthbmFsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc5NjYxMDYsImV4cCI6MjA2MzU0MjEwNn0.GCPYTmBMPv7pNQyKLNrTAsvgCaTTbpIHnUUlfj4JuYw";
 
+// Get the current site URL for auth configuration
+const getSiteUrl = () => {
+  return typeof window !== 'undefined' 
+    ? window.location.origin 
+    : 'https://lovable.dev/projects/c83c844e-8976-48a5-afbb-608359c9004d';
+};
+
 // Import the supabase client like this:
 // import { supabase } from "@/integrations/supabase/client";
 
@@ -14,5 +21,7 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
     storage: localStorage,
     persistSession: true,
     autoRefreshToken: true,
+    detectSessionInUrl: true,
+    flowType: 'pkce'
   }
 });

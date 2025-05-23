@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { z } from "zod";
@@ -87,57 +86,45 @@ const Auth = () => {
         setIsCheckingSession(true);
         
         try {
-          // Check if we have a valid session
-          const { data, error } = await supabase.auth.getSession();
+          // Clear any prior token errors
+          setTokenError(null);
           
-          if (error) {
-            console.error('Error getting session during recovery flow:', error);
-            setTokenError("Invalid or expired password reset link. Please try again.");
+          // Extract tokens from hash
+          const params = new URLSearchParams(hash.substring(1));
+          const accessToken = params.get('access_token');
+          const refreshToken = params.get('refresh_token');
+          
+          if (!accessToken) {
+            console.error('No access token found in URL');
+            setTokenError("Missing access token in recovery link. Please request a new one.");
+            setIsCheckingSession(false);
+            return;
+          }
+          
+          // Try to set session with the token from URL
+          console.log('Attempting to set session with token');
+          const { data: sessionData, error: sessionError } = await supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken || '',
+          });
+          
+          if (sessionError) {
+            console.error('Error setting session:', sessionError);
+            setTokenError(sessionError.message || "Invalid or expired password reset link. Please request a new one.");
             toast({
               title: "Reset Link Error",
-              description: "The password reset link is invalid or has expired. Please request a new one.",
+              description: sessionError.message || "The password reset link is invalid or has expired. Please request a new one.",
               variant: "destructive"
             });
-          } else if (data.session) {
-            console.log('Valid session detected during password reset');
-            setTokenError(null);
+          } else if (sessionData.session) {
+            console.log('Successfully set session from URL tokens');
           } else {
-            console.log('No session found for password reset, attempting to exchange token');
-            const params = new URLSearchParams(hash.substring(1));
-            const accessToken = params.get('access_token');
-            const refreshToken = params.get('refresh_token');
-            
-            if (accessToken) {
-              try {
-                // Try to set session with the token from URL
-                const { data: sessionData, error: sessionError } = await supabase.auth.setSession({
-                  access_token: accessToken,
-                  refresh_token: refreshToken || '',
-                });
-                
-                if (sessionError) {
-                  console.error('Error setting session:', sessionError);
-                  setTokenError("Invalid or expired password reset link. Please request a new one.");
-                  toast({
-                    title: "Reset Link Error",
-                    description: sessionError.message || "The password reset link is invalid or has expired. Please request a new one.",
-                    variant: "destructive"
-                  });
-                } else if (sessionData.session) {
-                  console.log('Successfully set session from URL tokens');
-                  setTokenError(null);
-                }
-              } catch (err) {
-                console.error('Unexpected error setting session:', err);
-                setTokenError("An unexpected error occurred. Please try again.");
-              }
-            } else {
-              setTokenError("Invalid password reset link. Missing required parameters.");
-            }
+            console.error('No session returned after setting tokens');
+            setTokenError("Failed to authenticate with provided token. Please request a new password reset link.");
           }
         } catch (err) {
-          console.error('Unexpected error during session check:', err);
-          setTokenError("An unexpected error occurred. Please try again.");
+          console.error('Unexpected error during recovery flow:', err);
+          setTokenError("An unexpected error occurred. Please try requesting a new password reset link.");
         } finally {
           setIsCheckingSession(false);
         }
@@ -210,11 +197,10 @@ const Auth = () => {
       setIsSubmitting(true);
       
       // Get the fully qualified URL with deployment domain
-      const siteUrl = window.location.origin;
-      const authPath = '/auth';
-      const redirectUrl = `${siteUrl}${authPath}`;
+      const currentUrl = window.location.origin;
+      const redirectUrl = `${currentUrl}/auth`;
       
-      console.log('Site URL for reset:', siteUrl);
+      console.log('Current origin URL:', currentUrl);
       console.log('Full redirect URL:', redirectUrl);
       
       const { error } = await supabase.auth.resetPasswordForEmail(values.email, {
