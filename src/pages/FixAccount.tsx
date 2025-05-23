@@ -5,12 +5,15 @@ import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Navigate } from "react-router-dom";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
+import { ExclamationTriangleIcon } from "lucide-react";
 
 export default function FixAccount() {
   const { user, signOut, loading } = useAuth();
   const { toast } = useToast();
   const [updating, setUpdating] = useState(false);
   const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
   
   useEffect(() => {
     if (user?.email) {
@@ -23,13 +26,12 @@ export default function FixAccount() {
     
     try {
       setUpdating(true);
-      const { error } = await supabase
-        .from('profiles')
-        .update({ 
-          role: 'admin',
-          is_associated: true
-        })
-        .eq('id', user.id);
+      setError(null);
+      
+      // Use RPC call to bypass RLS policies
+      const { error } = await supabase.rpc('make_user_admin', {
+        user_id: user.id
+      });
         
       if (error) throw error;
       
@@ -39,6 +41,7 @@ export default function FixAccount() {
       });
     } catch (error: any) {
       console.error("Error updating user:", error);
+      setError(`Failed to update account: ${error.message}`);
       toast({
         title: "Error",
         description: `Failed to update account: ${error.message}`,
@@ -54,12 +57,12 @@ export default function FixAccount() {
     
     try {
       setUpdating(true);
-      const { error } = await supabase
-        .from('profiles')
-        .update({ 
-          is_associated: true 
-        })
-        .eq('id', user.id);
+      setError(null);
+      
+      // Use RPC call to bypass RLS policies
+      const { error } = await supabase.rpc('make_user_associated', {
+        user_id: user.id
+      });
         
       if (error) throw error;
       
@@ -69,6 +72,7 @@ export default function FixAccount() {
       });
     } catch (error: any) {
       console.error("Error updating user:", error);
+      setError(`Failed to update account: ${error.message}`);
       toast({
         title: "Error",
         description: `Failed to update account: ${error.message}`,
@@ -95,6 +99,14 @@ export default function FixAccount() {
         <p className="mb-2 font-medium">Current user: {userEmail}</p>
         <p className="text-sm text-gray-600">Your account needs to be set up to continue using the system.</p>
       </div>
+      
+      {error && (
+        <Alert variant="destructive" className="mb-4">
+          <ExclamationTriangleIcon className="h-4 w-4" />
+          <AlertTitle>Error</AlertTitle>
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
       
       <div className="flex flex-col gap-4 w-full max-w-md">
         <Button
