@@ -92,14 +92,14 @@ const IndexPage = () => {
         .single();
       
       if (error) {
-        console.error('Error fetching user profile:', error);
+        console.error('[fetchUserProfile] Error fetching user profile:', error);
         return;
       }
       
-      console.log("User profile data:", data);
+      console.log("[fetchUserProfile] User profile data:", data);
       setAssociatedAgentId(data?.associated_agent_id || null);
     } catch (err) {
-      console.error('Exception fetching user profile:', err);
+      console.error('[fetchUserProfile] Exception fetching user profile:', err);
     }
   };
 
@@ -138,7 +138,7 @@ const IndexPage = () => {
       const { data, error } = await query;
 
       if (error) {
-        console.error('Error fetching agents:', error);
+        console.error('[fetchClients] Error fetching agents:', error);
         toast({
           title: "Failed to load agents",
           description: error.message,
@@ -147,7 +147,7 @@ const IndexPage = () => {
         return;
       }
 
-      console.log("Fetched agents:", data);
+      console.log("[fetchClients] Fetched agents:", data);
 
       // Map the data to match our Client interface
       const mappedClients: Client[] = data?.map(agent => ({
@@ -164,7 +164,7 @@ const IndexPage = () => {
 
       setClients(mappedClients);
     } catch (err) {
-      console.error('Error in client fetch:', err);
+      console.error('[fetchClients] Error in client fetch:', err);
       toast({
         title: "Error",
         description: "Failed to load agent data",
@@ -192,18 +192,18 @@ const IndexPage = () => {
       const { data, error } = await query;
       
       if (error) {
-        console.error('Error fetching client info:', error);
+        console.error('[fetchClientInfos] Error fetching client info:', error);
         toast({
           title: "Failed to load clients",
           description: error.message,
           variant: "destructive"
         });
       } else {
-        console.log("Fetched client infos:", data);
+        console.log("[fetchClientInfos] Fetched client infos:", data);
         setClientInfos(data || []);
       }
     } catch (err) {
-      console.error('Error in client info fetch:', err);
+      console.error('[fetchClientInfos] Error in client info fetch:', err);
       toast({
         title: "Error",
         description: "Failed to load client information",
@@ -212,10 +212,10 @@ const IndexPage = () => {
     }
   };
 
-  // DEBUGGING function - temporarily remove filtering to debug agent association
+  // COMPLETELY UNFILTERED fetch function to see ALL transactions for debugging
   const fetchTransactions = async () => {
     if (!user) {
-      console.log("❌ No user found, skipping transaction fetch");
+      console.log("❌ [fetchTransactions] No user found, skipping transaction fetch");
       return;
     }
     
@@ -223,37 +223,19 @@ const IndexPage = () => {
       setIsLoading(true);
       
       console.log("=== TRANSACTION FETCH DEBUGGING ===");
-      console.log("Current user:", user.id);
-      console.log("User email:", user.email);
-      console.log("User isAdmin:", isAdmin);
-      console.log("Associated agent ID:", associatedAgentId);
+      console.log("[fetchTransactions] Current user:", user.id);
+      console.log("[fetchTransactions] User email:", user.email);
+      console.log("[fetchTransactions] User isAdmin:", isAdmin);
+      console.log("[fetchTransactions] Associated agent ID:", associatedAgentId);
       
-      // Test basic database connection first
-      console.log("🔍 Testing basic database connection...");
-      const { count, error: countError } = await supabase
-        .from('transactions')
-        .select('*', { count: 'exact', head: true });
-        
-      if (countError) {
-        console.error("❌ Error getting transaction count:", countError);
-      } else {
-        console.log("✅ Total transactions in database:", count);
-      }
+      console.log("🔍 [fetchTransactions] Fetching ALL transactions WITHOUT FILTERING for debugging");
       
-      // TEMPORARILY REMOVED FILTERING FOR DEBUGGING
-      console.log("🔍 DEBUG MODE: Fetching ALL transactions to debug the issue");
       const { data, error } = await supabase
         .from('transactions')
         .select('*');
 
       if (error) {
-        console.error('❌ Error fetching transactions:', error);
-        console.error('Error details:', {
-          message: error.message,
-          details: error.details,
-          hint: error.hint,
-          code: error.code
-        });
+        console.error('❌ [fetchTransactions] Error fetching transactions:', error);
         toast({
           title: "Failed to load transactions",
           description: error.message,
@@ -262,14 +244,14 @@ const IndexPage = () => {
         return;
       }
 
-      console.log("✅ Raw transaction data from database:", data);
-      console.log("✅ Number of transactions fetched:", data?.length || 0);
+      console.log("✅ [fetchTransactions] Raw transaction data from database:", data);
+      console.log("✅ [fetchTransactions] Number of transactions fetched:", data?.length || 0);
 
       // Log each transaction in detail
       if (data && data.length > 0) {
         console.log("=== INDIVIDUAL TRANSACTION DETAILS ===");
         data.forEach((trans, index) => {
-          console.log(`Transaction ${index + 1}:`, {
+          console.log(`[fetchTransactions] Transaction ${index + 1}:`, {
             id: trans.id,
             client_id: trans.client_id,
             amount: trans.amount,
@@ -280,31 +262,37 @@ const IndexPage = () => {
             is_paid: trans.is_paid,
             commission: trans.commission
           });
+
+          // Critical debugging: Check if this transaction should be visible to current agent
+          if (!isAdmin && associatedAgentId) {
+            const isVisible = trans.client_id === associatedAgentId;
+            console.log(`[fetchTransactions] Transaction ${trans.id} visible to agent ${associatedAgentId}? ${isVisible}`);
+          }
         });
       }
 
       // Map database transactions to our Transaction interface
-      console.log("🔄 Mapping transactions...");
-      console.log("Available clients for mapping:", clients.map(c => ({ id: c.id, name: c.name })));
+      console.log("🔄 [fetchTransactions] Mapping transactions...");
+      console.log("[fetchTransactions] Available clients for mapping:", clients.map(c => ({ id: c.id, name: c.name })));
       
       const mappedTransactions = await Promise.all(data?.map(async (transaction) => {
-        console.log(`🔄 Processing transaction ${transaction.id} for client_id: ${transaction.client_id}`);
+        console.log(`🔄 [fetchTransactions] Processing transaction ${transaction.id} for client_id: ${transaction.client_id}`);
         
         // Find client for this transaction
         const client = clients.find(c => c.id === transaction.client_id);
-        console.log(`Client found for transaction ${transaction.id}:`, client?.name || "❌ NOT FOUND");
+        console.log(`[fetchTransactions] Client found for transaction ${transaction.id}:`, client?.name || "❌ NOT FOUND");
         
         // Enhanced debugging - is this client ID the same as the associated agent ID?
         if (associatedAgentId) {
           const isClientMatchingAgent = transaction.client_id === associatedAgentId;
-          console.log(`🔍 DEBUG: transaction client_id (${transaction.client_id}) === associated_agent_id (${associatedAgentId})? ${isClientMatchingAgent}`);
+          console.log(`🔍 [fetchTransactions] DEBUG: transaction client_id (${transaction.client_id}) === associated_agent_id (${associatedAgentId})? ${isClientMatchingAgent}`);
         }
         
         // Find client info for this transaction if available
         let clientInfo = null;
         if (transaction.client_info_id) {
           clientInfo = clientInfos.find(ci => ci.id === transaction.client_info_id);
-          console.log(`Client info found for transaction ${transaction.id}:`, clientInfo?.company_name || "❌ NOT FOUND");
+          console.log(`[fetchTransactions] Client info found for transaction ${transaction.id}:`, clientInfo?.company_name || "❌ NOT FOUND");
         }
 
         const mappedTransaction = {
@@ -329,17 +317,17 @@ const IndexPage = () => {
           commissionPaidDate: transaction.commission_paid_date
         };
         
-        console.log(`✅ Mapped transaction ${transaction.id}:`, mappedTransaction);
+        console.log(`✅ [fetchTransactions] Mapped transaction ${transaction.id}:`, mappedTransaction);
         return mappedTransaction;
       }) || []);
 
-      console.log("✅ Final mapped transactions:", mappedTransactions);
-      console.log("✅ Total mapped transactions:", mappedTransactions.length);
+      console.log("✅ [fetchTransactions] Final mapped transactions:", mappedTransactions);
+      console.log("✅ [fetchTransactions] Total mapped transactions:", mappedTransactions.length);
       console.log("=== END TRANSACTION FETCH DEBUGGING ===");
       
       setTransactions(mappedTransactions);
     } catch (err) {
-      console.error('💥 Exception in transaction fetch:', err);
+      console.error('💥 [fetchTransactions] Exception in transaction fetch:', err);
       toast({
         title: "Error",
         description: "Failed to load transaction data",
@@ -569,7 +557,7 @@ const IndexPage = () => {
         .single();
 
       if (error) {
-        console.error('Error approving commission:', error);
+        console.error('[approveCommission] Error approving commission:', error);
         toast({
           title: "Failed to approve commission",
           description: error.message,
@@ -584,7 +572,7 @@ const IndexPage = () => {
         });
       }
     } catch (err) {
-      console.error('Error in approve commission operation:', err);
+      console.error('[approveCommission] Error in approve commission operation:', err);
       toast({
         title: "Error",
         description: "Failed to approve commission",
@@ -608,7 +596,7 @@ const IndexPage = () => {
         .single();
 
       if (error) {
-        console.error('Error marking commission as paid:', error);
+        console.error('[payCommission] Error marking commission as paid:', error);
         toast({
           title: "Failed to mark commission as paid",
           description: error.message,
@@ -623,7 +611,7 @@ const IndexPage = () => {
         });
       }
     } catch (err) {
-      console.error('Error in pay commission operation:', err);
+      console.error('[payCommission] Error in pay commission operation:', err);
       toast({
         title: "Error",
         description: "Failed to mark commission as paid",
@@ -659,12 +647,15 @@ const IndexPage = () => {
         <Header />
 
         {/* Enhanced debugging notice */}
-        <div className="mb-4 p-4 bg-yellow-100 border border-yellow-400 rounded-lg">
-          <p className="text-yellow-800 font-medium">
-            🔍 DEBUG MODE: Showing all transactions to identify agent association issue
+        <div className="mb-4 p-4 bg-red-100 border border-red-400 rounded-lg">
+          <p className="text-red-800 font-medium">
+            🔥 CRITICAL DEBUG MODE: Showing ALL transactions without filtering
           </p>
-          <p className="text-yellow-700 text-sm mt-1">
-            Transactions displayed: {transactions.length} | User: {user?.email} | Admin: {isAdmin ? 'Yes' : 'No'} | Agent ID: {associatedAgentId}
+          <p className="text-red-700 text-sm mt-1">
+            User ID: {user?.id} | Admin: {isAdmin ? 'Yes' : 'No'} | Agent ID: {associatedAgentId || 'None'}
+          </p>
+          <p className="text-red-700 text-sm mt-1">
+            Transactions displayed: {transactions.length} | Clients: {clients.length}  
           </p>
         </div>
 

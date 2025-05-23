@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Plus, DollarSign, Pencil, CheckCircle, Clock, Building, FileText, Users } from "lucide-react";
+import { Plus, DollarSign, Pencil, CheckCircle, Clock, Building, FileText, Users, AlertCircle } from "lucide-react";
 import { Transaction, Client, ClientInfo } from "@/pages/Index";
 import { AddTransactionDialog } from "@/components/AddTransactionDialog";
 import { EditTransactionDialog } from "@/components/EditTransactionDialog";
@@ -19,6 +19,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle
 } from "@/components/ui/alert-dialog";
+import { useAuth } from "@/context/AuthContext";
 
 interface RecentTransactionsProps {
   transactions: Transaction[];
@@ -50,18 +51,23 @@ export const RecentTransactions = ({
   const [includePaidCommissions, setIncludePaidCommissions] = useState(false);
   const [showOnlyPaidInvoices, setShowOnlyPaidInvoices] = useState(true);
 
+  // Get authentication info
+  const { user, isAdmin } = useAuth();
+
   // Display transaction count for debugging
   const transactionCount = transactions.length;
   
-  // Log transaction data for debugging with added agent ID check
-  console.log("Transactions received in RecentTransactions component:", transactions);
-  console.log("Total transactions count:", transactionCount);
+  // Enhanced debugging
+  console.log("[RecentTransactions] Transactions received:", transactions);
+  console.log("[RecentTransactions] Current user:", user?.id);
+  console.log("[RecentTransactions] Is admin:", isAdmin);
+  console.log("[RecentTransactions] Total transactions count:", transactionCount);
   
   // Added debugging to check client/agent relationship
   transactions.forEach((transaction, index) => {
-    console.log(`DEBUG - Transaction ${index + 1} client ID: ${transaction.clientId}`);
+    console.log(`[RecentTransactions] Transaction ${index + 1} client ID: ${transaction.clientId}`);
     const client = clients.find(c => c.id === transaction.clientId);
-    console.log(`DEBUG - Transaction ${index + 1} client name: ${client?.name || 'Unknown'}`);
+    console.log(`[RecentTransactions] Transaction ${index + 1} client name: ${client?.name || 'Unknown'}`);
   });
 
   // Function to determine if a transaction is from the current month
@@ -164,6 +170,17 @@ export const RecentTransactions = ({
         </CardHeader>
         <CardContent>
           <ScrollArea className="h-[500px] pr-4">
+            {/* Critical debugging: Show alert about all transactions being displayed */}
+            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md text-xs text-red-700 flex items-start gap-2">
+              <AlertCircle className="w-4 h-4 text-red-500 shrink-0 mt-0.5" />
+              <div>
+                <p className="font-medium mb-1">IMPORTANT DEBUGGING MODE</p>
+                <p>ALL transactions are now being displayed without filtering to debug the issue. If transactions appear below but were not visible before, there is a filtering issue.</p>
+                <p className="mt-1">User ID: {user?.id || 'Not logged in'}</p>
+                <p>Admin: {isAdmin ? 'Yes' : 'No'}</p>
+              </div>
+            </div>
+            
             {/* Add debugging info at top of transaction list */}
             <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-md text-xs text-blue-700">
               <p className="font-medium mb-1">DEBUG: Transaction/Agent Information</p>
@@ -180,7 +197,7 @@ export const RecentTransactions = ({
                   <p>No transactions found for this agent</p>
                 </div>
               ) : (
-                // Note: Displaying filtered transactions based on user role
+                // Display ALL transactions without filtering for debugging
                 transactions.map((transaction) => (
                   <div
                     key={transaction.id}
@@ -238,6 +255,12 @@ export const RecentTransactions = ({
                       <div className="text-sm text-gray-600 mt-1">
                         {transaction.description}
                       </div>
+                      
+                      {/* Added debug info for this transaction */}
+                      <div className="text-xs text-orange-600 mt-1 bg-orange-50 p-1 rounded">
+                        DEBUG: Transaction ID: {transaction.id} | Client ID: {transaction.clientId}
+                      </div>
+                      
                       <div className="text-xs text-gray-500 mt-1 flex flex-wrap gap-2">
                         <span>Date: {new Date(transaction.date).toLocaleDateString()}</span>
                         {transaction.datePaid && (
