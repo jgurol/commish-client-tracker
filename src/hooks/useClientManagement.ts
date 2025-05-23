@@ -12,7 +12,7 @@ export const useClientManagement = (): ClientManagementHook => {
   const [isLoading, setIsLoading] = useState(true);
   const { user, isAdmin } = useAuth();
   const { toast } = useToast();
-  const { agentMapping, fetchAgentNames } = useAgentMapping();
+  const { agentMapping } = useAgentMapping();
 
   // Load client info from Supabase
   useEffect(() => {
@@ -33,14 +33,6 @@ export const useClientManagement = (): ClientManagementHook => {
         console.log("Setting clientInfos state with:", data?.length || 0, "clients");
         
         setClientInfos(data);
-        
-        // Fetch agent names but don't let it block the loading state
-        try {
-          await fetchAgentNames();
-        } catch (agentError) {
-          console.error('Error fetching agent names:', agentError);
-          // Don't throw here, just log the error
-        }
       } catch (err) {
         console.error('Error in client info fetch:', err);
         toast({
@@ -49,14 +41,13 @@ export const useClientManagement = (): ClientManagementHook => {
           variant: "destructive"
         });
       } finally {
-        // Always set loading to false, regardless of success or error
         console.log("Setting isLoading to false");
         setIsLoading(false);
       }
     };
 
     fetchClientInfos();
-  }, [user, isAdmin, toast, fetchAgentNames]);
+  }, [user, isAdmin, toast]);
 
   // Function to add client info
   const addClientInfo = async (newClientInfo: Omit<ClientInfo, "id" | "created_at" | "updated_at" | "user_id">) => {
