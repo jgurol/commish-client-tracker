@@ -1,3 +1,4 @@
+
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -107,9 +108,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return;
       }
 
-      if (data) {
+      if (data && data.length > 0) {
         console.log("Profile data retrieved:", data);
-        const isUserAdmin = data.role === 'admin';
+        const profileData = data[0];
+        const isUserAdmin = profileData.role === 'admin';
         setIsAdmin(isUserAdmin);
 
         // If the user is an admin, they're always considered "associated"
@@ -117,7 +119,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setIsAssociated(true);
         } else {
           // For regular agents, check the is_associated flag
-          setIsAssociated(data.is_associated || false);
+          setIsAssociated(profileData.is_associated || false);
         }
       } else {
         console.log("No profile data found for user", userId);

@@ -47,6 +47,13 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_user_profile: {
+        Args: { user_id: string }
+        Returns: {
+          role: string
+          is_associated: boolean
+        }[]
+      }
       make_user_admin: {
         Args: { user_id: string }
         Returns: undefined
