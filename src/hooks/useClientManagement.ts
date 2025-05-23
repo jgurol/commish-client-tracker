@@ -9,7 +9,7 @@ export const useClientManagement = () => {
   const [clientInfos, setClientInfos] = useState<ClientInfo[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [agentMapping, setAgentMapping] = useState<Record<string, string>>({});
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   const { toast } = useToast();
 
   // Load client info from Supabase
@@ -22,9 +22,9 @@ export const useClientManagement = () => {
       
       try {
         setIsLoading(true);
-        console.log("Fetching all client info for user:", user.id);
+        console.log("Fetching client info for user:", user.id, "isAdmin:", isAdmin);
         
-        // Always fetch all clients without any filtering - important for both admin and agent views
+        // Always fetch all clients for both admin and agent views
         const { data, error } = await supabase
           .from('client_info')
           .select('*')
@@ -38,8 +38,8 @@ export const useClientManagement = () => {
             variant: "destructive"
           });
         } else {
-          console.log("Fetched client data:", data);
-          // Ensure we're setting all client data regardless of user role
+          console.log("Fetched all client data:", data);
+          console.log("Setting clientInfos to:", data?.length || 0, "clients");
           setClientInfos(data || []);
           await fetchAgentNames();
         }
@@ -56,7 +56,7 @@ export const useClientManagement = () => {
     };
 
     fetchClientInfos();
-  }, [user, toast]);
+  }, [user, isAdmin, toast]);
 
   // Fetch agent names for mapping
   const fetchAgentNames = async () => {

@@ -15,6 +15,13 @@ export const ClientManagementContent = ({
   agentMapping, 
   onUpdateClientInfo 
 }: ClientManagementContentProps) => {
+  console.log("ClientManagementContent received:", {
+    clientInfosCount: clientInfos.length,
+    isLoading,
+    agentMappingKeys: Object.keys(agentMapping),
+    clientInfos: clientInfos.map(c => ({ id: c.id, company_name: c.company_name, agent_id: c.agent_id }))
+  });
+
   if (isLoading) {
     return (
       <div className="flex justify-center py-8">
