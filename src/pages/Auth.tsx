@@ -112,12 +112,21 @@ const Auth = () => {
     try {
       setIsSubmitting(true);
       
-      // Get the current URL for proper redirect
-      const redirectUrl = window.location.href.split('/').slice(0, 3).join('/') + '/auth';
-      console.log('Reset password redirect URL:', redirectUrl);
+      // Create an absolute URL for redirection
+      // Use the deployment domain, not localhost
+      const currentUrl = window.location.href;
+      const currentHost = window.location.host;
+      
+      // Get the current full URL path to auth page, ensuring it's not localhost
+      // Will be something like https://c83c844e-8976-48a5-afbb-608359c9004d.lovableproject.com/auth
+      const fullUrlPath = currentUrl.split('/').slice(0, -1).join('/') + '/auth';
+      
+      console.log('Current URL:', currentUrl);
+      console.log('Current Host:', currentHost);
+      console.log('Reset password redirect URL:', fullUrlPath);
       
       const { error } = await supabase.auth.resetPasswordForEmail(values.email, {
-        redirectTo: redirectUrl,
+        redirectTo: fullUrlPath,
       });
       
       if (error) {
