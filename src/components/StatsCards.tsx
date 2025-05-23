@@ -18,11 +18,11 @@ export const StatsCards = ({ clients, transactions }: StatsCardsProps) => {
     ? clients.reduce((sum, client) => sum + client.commissionRate, 0) / clients.length 
     : 0;
     
-  // Calculate qualified revenue with null checks
-  const qualifiedRevenue = transactions && transactions.length > 0
+  // Calculate qualified commissions with null checks - transactions with paid invoices but not approved commissions
+  const qualifiedCommissions = transactions && transactions.length > 0
     ? transactions
-        .filter(t => t.isPaid && !t.commissionPaidDate)
-        .reduce((sum, t) => sum + t.amount, 0)
+        .filter(t => t.isPaid && !t.isApproved && t.commission)
+        .reduce((sum, t) => sum + (t.commission || 0), 0)
     : 0;
 
   // Calculate commission totals with null checks
@@ -81,12 +81,12 @@ export const StatsCards = ({ clients, transactions }: StatsCardsProps) => {
 
       <Card className="bg-white shadow-lg hover:shadow-xl transition-shadow duration-200 border-0">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium text-gray-600">Qualified Revenue</CardTitle>
+          <CardTitle className="text-sm font-medium text-gray-600">Qualified Commissions</CardTitle>
           <Calendar className="h-4 w-4 text-orange-600" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold text-gray-900">${qualifiedRevenue.toLocaleString()}</div>
-          <p className="text-xs text-gray-500">Paid invoices with unpaid commissions</p>
+          <div className="text-2xl font-bold text-gray-900">${qualifiedCommissions.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
+          <p className="text-xs text-gray-500">Paid invoices with unapproved commissions</p>
         </CardContent>
       </Card>
 
