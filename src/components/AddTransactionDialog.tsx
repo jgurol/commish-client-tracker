@@ -33,6 +33,7 @@ export const AddTransactionDialog = ({ open, onOpenChange, onAddTransaction, cli
         onAddTransaction({
           clientId,
           clientName: selectedClient.name,
+          companyName: selectedClient.companyName || selectedClient.name,
           amount: parseFloat(amount),
           date,
           description,

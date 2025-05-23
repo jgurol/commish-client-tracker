@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Plus, DollarSign, Pencil, CheckCircle, Clock } from "lucide-react";
+import { Plus, DollarSign, Pencil, CheckCircle, Clock, Building } from "lucide-react";
 import { Transaction, Client } from "@/pages/Index";
 import { AddTransactionDialog } from "@/components/AddTransactionDialog";
 import { EditTransactionDialog } from "@/components/EditTransactionDialog";
@@ -93,6 +93,10 @@ export const RecentTransactions = ({
                           {transaction.paymentMethod === "check" ? "Check" : "Zelle"}
                         </Badge>
                       )}
+                    </div>
+                    <div className="flex items-center gap-1 mb-1 text-sm text-gray-600">
+                      <Building className="w-4 h-4" />
+                      {transaction.companyName}
                     </div>
                     <div className="text-sm text-gray-600">
                       {transaction.description}

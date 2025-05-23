@@ -13,7 +13,7 @@ export interface Client {
   firstName: string;
   lastName: string;
   name: string; // Keeping for compatibility
-  companyName?: string; // Added company name field
+  companyName?: string; // Using as primary index
   email: string;
   commissionRate: number;
   totalEarnings: number;
@@ -24,10 +24,13 @@ export interface Transaction {
   id: string;
   clientId: string;
   clientName: string;
+  companyName: string; // Added as primary index
   amount: number;
   date: string;
   description: string;
   datePaid?: string; // Optional field to track when payment was made
+  paymentMethod?: string; // Check or Zelle
+  referenceNumber?: string; // Check number or Zelle reference
 }
 
 const Index = () => {
@@ -72,22 +75,29 @@ const Index = () => {
       id: "1",
       clientId: "1",
       clientName: "Acme Corporation",
+      companyName: "Acme Inc.",
       amount: 2500,
       date: "2024-05-20",
-      description: "Q1 Sales Commission"
+      description: "Q1 Sales Commission",
+      paymentMethod: "check",
+      referenceNumber: "12345"
     },
     {
       id: "2",
       clientId: "2",
       clientName: "Tech Solutions Ltd",
+      companyName: "TechSol Group",
       amount: 3750,
       date: "2024-05-18",
-      description: "Monthly Commission"
+      description: "Monthly Commission",
+      paymentMethod: "zelle",
+      referenceNumber: "ZL98765"
     },
     {
       id: "3",
       clientId: "3",
       clientName: "Global Enterprises",
+      companyName: "Global Holdings",
       amount: 1840,
       date: "2024-05-15",
       description: "Project Completion Bonus"

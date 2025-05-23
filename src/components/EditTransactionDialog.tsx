@@ -48,6 +48,7 @@ export const EditTransactionDialog = ({ transaction, open, onOpenChange, onUpdat
           id: transaction.id,
           clientId,
           clientName: selectedClient.name,
+          companyName: selectedClient.companyName || selectedClient.name,
           amount: parseFloat(amount),
           date,
           description,
