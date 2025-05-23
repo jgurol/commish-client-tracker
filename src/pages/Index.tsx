@@ -223,6 +223,15 @@ const IndexPage = () => {
       console.log("User isAdmin:", isAdmin);
       console.log("Associated agent ID:", associatedAgentId);
       
+      // First, let's see ALL transactions in the database to debug
+      const { data: allTransactions, error: allError } = await supabase
+        .from('transactions')
+        .select('*')
+        .order('date', { ascending: false });
+      
+      console.log("ALL transactions in database:", allTransactions);
+      console.log("Looking for transactions with client_id:", associatedAgentId);
+      
       let query = supabase.from('transactions').select('*');
       
       // If user is not admin and has an associated agent, filter by that agent's ID
