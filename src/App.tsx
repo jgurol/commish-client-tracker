@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -15,7 +14,7 @@ const queryClient = new QueryClient();
 
 // Protected route component
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const { user, loading, isAssociated, isAdmin } = useAuth();
+  const { user, loading } = useAuth();
   
   if (loading) {
     return <div className="h-screen flex items-center justify-center">Loading...</div>;
@@ -24,10 +23,25 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   if (!user) {
     return <Navigate to="/auth" />;
   }
+  
+  // Removed the isAssociated check to allow all authenticated users to access the protected routes
+  return <>{children}</>;
+};
 
-  // If the user is logged in but not associated (i.e., an agent without association)
-  if (!isAssociated) {
-    return <Navigate to="/fix-account" />;
+// Admin route component - keeping this separate for when you implement admin-only pages later
+const AdminRoute = ({ children }: { children: React.ReactNode }) => {
+  const { user, loading, isAdmin } = useAuth();
+  
+  if (loading) {
+    return <div className="h-screen flex items-center justify-center">Loading...</div>;
+  }
+  
+  if (!user) {
+    return <Navigate to="/auth" />;
+  }
+  
+  if (!isAdmin) {
+    return <Navigate to="/" />;
   }
   
   return <>{children}</>;
@@ -44,9 +58,9 @@ const AppRoutes = () => {
         </ProtectedRoute>
       } />
       <Route path="/admin" element={
-        <ProtectedRoute>
+        <AdminRoute>
           <Admin />
-        </ProtectedRoute>
+        </AdminRoute>
       } />
       {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
       <Route path="*" element={<NotFound />} />
