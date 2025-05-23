@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/context/AuthContext";
@@ -46,7 +47,7 @@ export const useTransactionActions = (
           is_paid: newTransaction.isPaid || false,
           commission: commission,
           is_approved: false, // Default to not approved
-          commission_paid_date: newTransaction.commissionPaidDate,
+          commission_paid_date: newTransaction.commissionPaidDate || null,
           user_id: user.id
         })
         .select('*')
@@ -113,7 +114,7 @@ export const useTransactionActions = (
           is_paid: updatedTransaction.isPaid || false,
           commission: commission,
           is_approved: updatedTransaction.isApproved || false,
-          commission_paid_date: updatedTransaction.commissionPaidDate
+          commission_paid_date: updatedTransaction.commissionPaidDate || null
         })
         .eq('id', updatedTransaction.id)
         .select('*')
