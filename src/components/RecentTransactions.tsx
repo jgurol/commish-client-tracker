@@ -3,20 +3,34 @@ import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Plus, DollarSign } from "lucide-react";
+import { Plus, DollarSign, Pencil } from "lucide-react";
 import { Transaction, Client } from "@/pages/Index";
 import { AddTransactionDialog } from "@/components/AddTransactionDialog";
+import { EditTransactionDialog } from "@/components/EditTransactionDialog";
 
 interface RecentTransactionsProps {
   transactions: Transaction[];
   clients: Client[];
   onAddTransaction: (transaction: Omit<Transaction, "id">) => void;
+  onUpdateTransaction: (transaction: Transaction) => void;
 }
 
-export const RecentTransactions = ({ transactions, clients, onAddTransaction }: RecentTransactionsProps) => {
+export const RecentTransactions = ({ 
+  transactions, 
+  clients, 
+  onAddTransaction, 
+  onUpdateTransaction 
+}: RecentTransactionsProps) => {
   const [isAddTransactionOpen, setIsAddTransactionOpen] = useState(false);
+  const [isEditTransactionOpen, setIsEditTransactionOpen] = useState(false);
+  const [currentTransaction, setCurrentTransaction] = useState<Transaction | null>(null);
 
   const recentTransactions = transactions.slice(0, 5);
+
+  const handleEditClick = (transaction: Transaction) => {
+    setCurrentTransaction(transaction);
+    setIsEditTransactionOpen(true);
+  };
 
   return (
     <>
@@ -62,6 +76,14 @@ export const RecentTransactions = ({ transactions, clients, onAddTransaction }: 
                       {new Date(transaction.date).toLocaleDateString()}
                     </div>
                   </div>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="text-gray-500 hover:text-blue-600"
+                    onClick={() => handleEditClick(transaction)}
+                  >
+                    <Pencil className="w-4 h-4" />
+                  </Button>
                 </div>
               ))
             )}
@@ -80,6 +102,14 @@ export const RecentTransactions = ({ transactions, clients, onAddTransaction }: 
         open={isAddTransactionOpen}
         onOpenChange={setIsAddTransactionOpen}
         onAddTransaction={onAddTransaction}
+        clients={clients}
+      />
+
+      <EditTransactionDialog
+        transaction={currentTransaction}
+        open={isEditTransactionOpen}
+        onOpenChange={setIsEditTransactionOpen}
+        onUpdateTransaction={onUpdateTransaction}
         clients={clients}
       />
     </>

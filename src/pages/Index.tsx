@@ -1,8 +1,7 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, Users, TrendingUp, DollarSign, Calendar } from "lucide-react";
+import { Plus } from "lucide-react";
 import { ClientList } from "@/components/ClientList";
 import { AddClientDialog } from "@/components/AddClientDialog";
 import { CommissionChart } from "@/components/CommissionChart";
@@ -123,6 +122,52 @@ const Index = () => {
     }));
   };
 
+  const updateTransaction = (updatedTransaction: Transaction) => {
+    setTransactions(transactions.map(transaction => {
+      if (transaction.id === updatedTransaction.id) {
+        return updatedTransaction;
+      }
+      return transaction;
+    }));
+
+    // Update client's total earnings if amount has changed
+    const oldTransaction = transactions.find(t => t.id === updatedTransaction.id);
+    if (oldTransaction && oldTransaction.amount !== updatedTransaction.amount) {
+      const amountDifference = updatedTransaction.amount - oldTransaction.amount;
+      
+      setClients(clients.map(client => {
+        if (client.id === updatedTransaction.clientId) {
+          return {
+            ...client,
+            totalEarnings: client.totalEarnings + amountDifference,
+            lastPayment: updatedTransaction.date
+          };
+        }
+        return client;
+      }));
+    }
+
+    // If client has changed, update both clients' earnings
+    if (oldTransaction && oldTransaction.clientId !== updatedTransaction.clientId) {
+      setClients(clients.map(client => {
+        if (client.id === oldTransaction.clientId) {
+          return {
+            ...client,
+            totalEarnings: client.totalEarnings - oldTransaction.amount
+          };
+        }
+        if (client.id === updatedTransaction.clientId) {
+          return {
+            ...client,
+            totalEarnings: client.totalEarnings + updatedTransaction.amount,
+            lastPayment: updatedTransaction.date
+          };
+        }
+        return client;
+      }));
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
       <div className="container mx-auto px-4 py-8 max-w-7xl">
@@ -151,6 +196,7 @@ const Index = () => {
             transactions={transactions} 
             clients={clients}
             onAddTransaction={addTransaction}
+            onUpdateTransaction={updateTransaction}
           />
         </div>
 
