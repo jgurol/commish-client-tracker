@@ -20,36 +20,44 @@ export const EditClientInfoDialog = ({
   onOpenChange, 
   onUpdateClientInfo 
 }: EditClientInfoDialogProps) => {
-  const [companyName, setCompanyName] = useState(clientInfo.companyName);
-  const [contactName, setContactName] = useState(clientInfo.contactName || "");
+  const [companyName, setCompanyName] = useState(clientInfo.company_name);
+  const [contactName, setContactName] = useState(clientInfo.contact_name || "");
   const [email, setEmail] = useState(clientInfo.email || "");
   const [phone, setPhone] = useState(clientInfo.phone || "");
   const [address, setAddress] = useState(clientInfo.address || "");
   const [notes, setNotes] = useState(clientInfo.notes || "");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Update form when clientInfo changes
   useEffect(() => {
-    setCompanyName(clientInfo.companyName);
-    setContactName(clientInfo.contactName || "");
+    setCompanyName(clientInfo.company_name);
+    setContactName(clientInfo.contact_name || "");
     setEmail(clientInfo.email || "");
     setPhone(clientInfo.phone || "");
     setAddress(clientInfo.address || "");
     setNotes(clientInfo.notes || "");
   }, [clientInfo]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (companyName) {
-      onUpdateClientInfo({
-        ...clientInfo,
-        companyName,
-        contactName: contactName || undefined,
-        email: email || undefined,
-        phone: phone || undefined,
-        address: address || undefined,
-        notes: notes || undefined,
-      });
-      onOpenChange(false);
+      setIsSubmitting(true);
+      try {
+        await onUpdateClientInfo({
+          ...clientInfo,
+          company_name: companyName,
+          contact_name: contactName || null,
+          email: email || null,
+          phone: phone || null,
+          address: address || null,
+          notes: notes || null,
+        });
+        onOpenChange(false);
+      } catch (err) {
+        console.error('Error updating client info:', err);
+      } finally {
+        setIsSubmitting(false);
+      }
     }
   };
 
@@ -126,8 +134,12 @@ export const EditClientInfoDialog = ({
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
-            <Button type="submit" className="bg-green-600 hover:bg-green-700">
-              Update Client
+            <Button 
+              type="submit" 
+              className="bg-green-600 hover:bg-green-700"
+              disabled={isSubmitting || !companyName}
+            >
+              {isSubmitting ? 'Updating...' : 'Update Client'}
             </Button>
           </div>
         </form>

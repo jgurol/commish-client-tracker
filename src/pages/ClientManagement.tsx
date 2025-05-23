@@ -7,52 +7,141 @@ import { ClientInfoList } from "@/components/ClientInfoList";
 import { AddClientInfoDialog } from "@/components/AddClientInfoDialog";
 import { ClientInfo } from "@/pages/Index";
 import { Header } from "@/components/Header";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/context/AuthContext";
+import { useToast } from "@/components/ui/use-toast";
 
 interface ClientManagementProps {}
 
 const ClientManagement = () => {
-  const [clientInfos, setClientInfos] = useState<ClientInfo[]>([
-    {
-      id: "1",
-      companyName: "Tech Corp",
-      contactName: "John Smith",
-      email: "john@techcorp.com",
-      phone: "555-123-4567",
-      createdAt: "2024-05-10",
-      updatedAt: "2024-05-10"
-    },
-    {
-      id: "2",
-      companyName: "InnoSoft Solutions",
-      contactName: "Jane Doe",
-      email: "jane@innosoft.com",
-      phone: "555-987-6543",
-      createdAt: "2024-05-12",
-      updatedAt: "2024-05-15"
-    }
-  ]);
+  const [clientInfos, setClientInfos] = useState<ClientInfo[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const { user } = useAuth();
+  const { toast } = useToast();
 
   // State for dialog
   const [isAddClientInfoOpen, setIsAddClientInfoOpen] = useState(false);
 
-  // Function to add client info
-  const addClientInfo = (newClientInfo: Omit<ClientInfo, "id" | "createdAt" | "updatedAt">) => {
-    const clientInfo: ClientInfo = {
-      ...newClientInfo,
-      id: Date.now().toString(),
-      createdAt: new Date().toISOString().split('T')[0],
-      updatedAt: new Date().toISOString().split('T')[0]
+  // Load client info from Supabase
+  useEffect(() => {
+    const fetchClientInfos = async () => {
+      if (!user) return;
+      
+      try {
+        setIsLoading(true);
+        const { data, error } = await supabase
+          .from('client_info')
+          .select('*')
+          .order('company_name', { ascending: true });
+        
+        if (error) {
+          console.error('Error fetching client info:', error);
+          toast({
+            title: "Failed to load clients",
+            description: error.message,
+            variant: "destructive"
+          });
+        } else {
+          setClientInfos(data || []);
+        }
+      } catch (err) {
+        console.error('Error in client info fetch:', err);
+        toast({
+          title: "Error",
+          description: "Failed to load client information",
+          variant: "destructive"
+        });
+      } finally {
+        setIsLoading(false);
+      }
     };
-    setClientInfos([...clientInfos, clientInfo]);
+
+    fetchClientInfos();
+  }, [user, toast]);
+
+  // Function to add client info
+  const addClientInfo = async (newClientInfo: Omit<ClientInfo, "id" | "createdAt" | "updatedAt">) => {
+    if (!user) return;
+
+    const clientInfoToInsert = {
+      ...newClientInfo,
+      user_id: user.id
+    };
+
+    try {
+      const { data, error } = await supabase
+        .from('client_info')
+        .insert(clientInfoToInsert)
+        .select('*')
+        .single();
+
+      if (error) {
+        console.error('Error adding client info:', error);
+        toast({
+          title: "Failed to add client",
+          description: error.message,
+          variant: "destructive"
+        });
+      } else if (data) {
+        toast({
+          title: "Client added",
+          description: `${data.company_name} has been added successfully.`,
+          variant: "default"
+        });
+        setClientInfos([...clientInfos, data]);
+      }
+    } catch (err) {
+      console.error('Error in add client operation:', err);
+      toast({
+        title: "Error",
+        description: "Failed to add client information",
+        variant: "destructive"
+      });
+    }
   };
 
   // Function to update client info
-  const updateClientInfo = (updatedClientInfo: ClientInfo) => {
-    setClientInfos(clientInfos.map(clientInfo => 
-      clientInfo.id === updatedClientInfo.id ? 
-        { ...updatedClientInfo, updatedAt: new Date().toISOString().split('T')[0] } : 
-        clientInfo
-    ));
+  const updateClientInfo = async (updatedClientInfo: ClientInfo) => {
+    if (!user) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('client_info')
+        .update({
+          company_name: updatedClientInfo.company_name,
+          contact_name: updatedClientInfo.contact_name,
+          email: updatedClientInfo.email,
+          phone: updatedClientInfo.phone,
+          address: updatedClientInfo.address,
+          notes: updatedClientInfo.notes
+        })
+        .eq('id', updatedClientInfo.id)
+        .select('*')
+        .single();
+
+      if (error) {
+        console.error('Error updating client info:', error);
+        toast({
+          title: "Failed to update client",
+          description: error.message,
+          variant: "destructive"
+        });
+      } else if (data) {
+        toast({
+          title: "Client updated",
+          description: `${data.company_name} has been updated successfully.`,
+          variant: "default"
+        });
+        setClientInfos(clientInfos.map(ci => ci.id === data.id ? data : ci));
+      }
+    } catch (err) {
+      console.error('Error in update client operation:', err);
+      toast({
+        title: "Error",
+        description: "Failed to update client information",
+        variant: "destructive"
+      });
+    }
   };
 
   return (
@@ -77,10 +166,17 @@ const ClientManagement = () => {
                 Add Client
               </Button>
             </div>
-            <ClientInfoList 
-              clientInfos={clientInfos}
-              onUpdateClientInfo={updateClientInfo}
-            />
+            
+            {isLoading ? (
+              <div className="flex justify-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-700"></div>
+              </div>
+            ) : (
+              <ClientInfoList 
+                clientInfos={clientInfos}
+                onUpdateClientInfo={updateClientInfo}
+              />
+            )}
           </CardContent>
         </Card>
 

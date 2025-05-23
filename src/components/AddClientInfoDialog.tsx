@@ -20,20 +20,28 @@ export const AddClientInfoDialog = ({ open, onOpenChange, onAddClientInfo }: Add
   const [phone, setPhone] = useState("");
   const [address, setAddress] = useState("");
   const [notes, setNotes] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (companyName) {
-      onAddClientInfo({
-        companyName,
-        contactName: contactName || undefined,
-        email: email || undefined,
-        phone: phone || undefined,
-        address: address || undefined,
-        notes: notes || undefined,
-      });
-      resetForm();
-      onOpenChange(false);
+      setIsSubmitting(true);
+      try {
+        await onAddClientInfo({
+          company_name: companyName,
+          contact_name: contactName || null,
+          email: email || null,
+          phone: phone || null,
+          address: address || null,
+          notes: notes || null,
+        });
+        resetForm();
+        onOpenChange(false);
+      } catch (err) {
+        console.error('Error submitting client info:', err);
+      } finally {
+        setIsSubmitting(false);
+      }
     }
   };
 
@@ -125,8 +133,12 @@ export const AddClientInfoDialog = ({ open, onOpenChange, onAddClientInfo }: Add
             }}>
               Cancel
             </Button>
-            <Button type="submit" className="bg-green-600 hover:bg-green-700">
-              Add Client
+            <Button 
+              type="submit" 
+              className="bg-green-600 hover:bg-green-700"
+              disabled={isSubmitting || !companyName}
+            >
+              {isSubmitting ? 'Adding...' : 'Add Client'}
             </Button>
           </div>
         </form>

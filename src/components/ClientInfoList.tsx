@@ -9,9 +9,12 @@ import {
   TableRow 
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Edit, Mail, Phone, MapPin } from "lucide-react";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { Edit, Mail, Phone, MapPin, Trash2 } from "lucide-react";
 import { ClientInfo } from "@/pages/Index";
 import { EditClientInfoDialog } from "@/components/EditClientInfoDialog";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/components/ui/use-toast";
 
 interface ClientInfoListProps {
   clientInfos: ClientInfo[];
@@ -20,6 +23,49 @@ interface ClientInfoListProps {
 
 export const ClientInfoList = ({ clientInfos, onUpdateClientInfo }: ClientInfoListProps) => {
   const [editingClientInfo, setEditingClientInfo] = useState<ClientInfo | null>(null);
+  const [deletingClientId, setDeletingClientId] = useState<string | null>(null);
+  const { toast } = useToast();
+
+  const handleDelete = async (clientId: string) => {
+    try {
+      const { error } = await supabase
+        .from('client_info')
+        .delete()
+        .eq('id', clientId);
+
+      if (error) {
+        console.error('Error deleting client info:', error);
+        toast({
+          title: "Failed to delete client",
+          description: error.message,
+          variant: "destructive"
+        });
+      } else {
+        // Filter out the deleted client from the local state
+        toast({
+          title: "Client deleted",
+          description: "Client has been deleted successfully.",
+          variant: "default"
+        });
+        
+        // Update the client list in the parent component
+        const updatedClients = clientInfos.filter(client => client.id !== clientId);
+        // We're indirectly updating by passing filtered data back up to the parent
+        onUpdateClientInfo({
+          ...clientInfos.find(client => client.id === clientId)!, 
+          _delete: true
+        } as any);
+      }
+    } catch (err) {
+      console.error('Error in delete operation:', err);
+      toast({
+        title: "Error",
+        description: "Failed to delete client information",
+        variant: "destructive"
+      });
+    }
+    setDeletingClientId(null);
+  };
 
   return (
     <>
@@ -44,8 +90,8 @@ export const ClientInfoList = ({ clientInfos, onUpdateClientInfo }: ClientInfoLi
             <TableBody>
               {clientInfos.map((clientInfo) => (
                 <TableRow key={clientInfo.id}>
-                  <TableCell className="font-medium">{clientInfo.companyName}</TableCell>
-                  <TableCell>{clientInfo.contactName || "-"}</TableCell>
+                  <TableCell className="font-medium">{clientInfo.company_name}</TableCell>
+                  <TableCell>{clientInfo.contact_name || "-"}</TableCell>
                   <TableCell>
                     {clientInfo.email ? (
                       <div className="flex items-center gap-1">
@@ -62,16 +108,48 @@ export const ClientInfoList = ({ clientInfos, onUpdateClientInfo }: ClientInfoLi
                       </div>
                     ) : "-"}
                   </TableCell>
-                  <TableCell>{new Date(clientInfo.updatedAt).toLocaleDateString()}</TableCell>
+                  <TableCell>{new Date(clientInfo.updated_at).toLocaleDateString()}</TableCell>
                   <TableCell className="text-right">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setEditingClientInfo(clientInfo)}
-                      className="hover:bg-blue-50 hover:border-blue-300"
-                    >
-                      <Edit className="w-4 h-4" />
-                    </Button>
+                    <div className="flex justify-end gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setEditingClientInfo(clientInfo)}
+                        className="hover:bg-blue-50 hover:border-blue-300"
+                      >
+                        <Edit className="w-4 h-4" />
+                      </Button>
+                      
+                      <AlertDialog open={deletingClientId === clientInfo.id} onOpenChange={(open) => !open && setDeletingClientId(null)}>
+                        <AlertDialogTrigger asChild>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setDeletingClientId(clientInfo.id)}
+                            className="hover:bg-red-50 hover:border-red-300 text-red-600 hover:text-red-700"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              This action will permanently delete the client "{clientInfo.company_name}" and cannot be undone.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction 
+                              onClick={() => handleDelete(clientInfo.id)}
+                              className="bg-red-600 hover:bg-red-700"
+                            >
+                              Delete
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}
