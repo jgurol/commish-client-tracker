@@ -180,12 +180,8 @@ const IndexPage = () => {
     if (!user) return;
     
     try {
+      // Remove agent-based filtering to show all clients
       let query = supabase.from('client_info').select('*');
-      
-      // If user is not admin and has an associated agent, filter by that agent ID
-      if (!isAdmin && associatedAgentId) {
-        query = query.eq('agent_id', associatedAgentId);
-      }
       
       query = query.order('company_name', { ascending: true });
       
