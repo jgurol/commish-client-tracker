@@ -11,6 +11,7 @@ import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 import FixAccount from "./pages/FixAccount";
 import ClientManagement from "./pages/ClientManagement";
+import AgentManagement from "./pages/AgentManagement";
 import { NavigationBar } from "./components/NavigationBar";
 
 // Create a new query client with forceRefetch to ensure fresh data
@@ -80,6 +81,11 @@ const AppRoutes = () => {
         <Route path="/client-management" element={
           <ProtectedRoute>
             <ClientManagement />
+          </ProtectedRoute>
+        } />
+        <Route path="/agent-management" element={
+          <ProtectedRoute>
+            <AgentManagement />
           </ProtectedRoute>
         } />
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

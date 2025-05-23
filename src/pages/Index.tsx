@@ -5,13 +5,13 @@ import { Plus, ChevronRight } from "lucide-react";
 import { Header } from "@/components/Header";
 import { StatsCards } from "@/components/StatsCards";
 import { RecentTransactions } from "@/components/RecentTransactions";
-import { ClientList } from "@/components/ClientList";
 import { AddClientDialog } from "@/components/AddClientDialog";
 import { CommissionChart } from "@/components/CommissionChart";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
+import { AgentSummary } from "@/components/AgentSummary";
 
 // Define the Client type
 export interface Client {
@@ -705,31 +705,33 @@ const IndexPage = () => {
             />
           </div>
 
-          {/* Right side - Client List */}
+          {/* Right side - Agent Summary instead of full ClientList */}
           <div className="space-y-6">
-            <div className="flex justify-between items-center">
-              <h2 className="text-xl font-bold text-gray-900">Agents</h2>
-              {isAdmin && (
-                <Button 
-                  onClick={() => setIsAddClientOpen(true)}
-                  size="sm"
-                  className="bg-green-600 hover:bg-green-700 text-white"
-                >
-                  <Plus className="w-4 h-4 mr-1" />
-                  Add Agent
-                </Button>
-              )}
-            </div>
-
-            {/* Client List Component */}
-            <ClientList 
+            <AgentSummary 
               clients={clients} 
-              transactions={transactions}
-              onUpdateClient={updateClient}
-              onDeleteClient={deleteClient}
-              onUpdateTransactions={setTransactions}
-              onFetchClients={fetchClients}
+              isAdmin={isAdmin} 
             />
+            
+            {/* Additional card for quick access */}
+            <Card className="bg-white shadow border-0">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg font-medium text-gray-900">Quick Actions</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <Link to="/agent-management">
+                  <Button variant="outline" className="w-full justify-start">
+                    <UserCog className="mr-2 h-4 w-4" />
+                    Manage Agents
+                  </Button>
+                </Link>
+                <Link to="/client-management">
+                  <Button variant="outline" className="w-full justify-start">
+                    <Building className="mr-2 h-4 w-4" />
+                    Manage Clients
+                  </Button>
+                </Link>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </div>
