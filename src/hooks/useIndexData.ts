@@ -203,18 +203,47 @@ export const useIndexData = () => {
       console.log('[DEBUG] - associatedAgentId:', associatedAgentId);
       console.log('[DEBUG] - profileLoaded:', profileLoaded);
       
-      // First, let's see ALL transactions in the database
-      console.log('[DEBUG] Fetching ALL transactions from database...');
+      // First, let's check the actual database connection and table structure
+      console.log('[DEBUG] Testing database connection...');
+      const { count, error: countError } = await supabase
+        .from('transactions')
+        .select('*', { count: 'exact', head: true });
+      
+      console.log('[DEBUG] Transaction count from database:', count);
+      if (countError) {
+        console.error('[DEBUG] Count error:', countError);
+      }
+      
+      // Let's also check if there are any RLS issues by checking our user's role
+      console.log('[DEBUG] Checking user role in database...');
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('role, is_associated, associated_agent_id')
+        .eq('id', user.id)
+        .single();
+      
+      console.log('[DEBUG] User profile from DB:', profileData);
+      if (profileError) {
+        console.error('[DEBUG] Profile error:', profileError);
+      }
+      
+      // First, let's see ALL transactions in the database with more detailed logging
+      console.log('[DEBUG] Fetching ALL transactions from database (no filters)...');
       const { data: allTransactions, error: allError } = await supabase
         .from('transactions')
-        .select('*')
-        .order('created_at', { ascending: false });
+        .select('*');
       
       if (allError) {
         console.error('[DEBUG] Error fetching all transactions:', allError);
+        console.error('[DEBUG] Error code:', allError.code);
+        console.error('[DEBUG] Error message:', allError.message);
+        console.error('[DEBUG] Error details:', allError.details);
       } else {
         console.log('[DEBUG] ALL transactions in database:', allTransactions);
         console.log('[DEBUG] Total transactions in DB:', allTransactions?.length || 0);
+        if (allTransactions && allTransactions.length > 0) {
+          console.log('[DEBUG] Sample transaction:', allTransactions[0]);
+        }
       }
       
       // Build the query with filtering logic
@@ -248,6 +277,9 @@ export const useIndexData = () => {
 
       if (error) {
         console.error('[DEBUG] Error fetching filtered transactions:', error);
+        console.error('[DEBUG] Filtered query error code:', error.code);
+        console.error('[DEBUG] Filtered query error message:', error.message);
+        console.error('[DEBUG] Filtered query error details:', error.details);
         toast({
           title: "Failed to load transactions",
           description: error.message,
