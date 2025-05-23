@@ -1,4 +1,5 @@
 
+
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -146,8 +147,14 @@ export const EditUserDialog = ({
     }
   };
 
-  // Filter out the current user from the agents list to prevent self-association
-  const availableAgents = agents.filter(agent => agent.id !== user.id);
+  // Filter out the current user from the agents list and ensure we only show agents
+  const availableAgents = agents.filter(agent => 
+    agent.id !== user.id && agent.role === 'agent'
+  );
+
+  console.log("Available agents:", availableAgents);
+  console.log("All agents passed to dialog:", agents);
+  console.log("Current user role:", user.role);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -212,37 +219,41 @@ export const EditUserDialog = ({
               )}
             />
 
-            {/* Only show agent association field for non-admin users */}
-            {form.watch("role") === "agent" && (
-              <FormField
-                control={form.control}
-                name="associated_agent_id"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Associate with Agent</FormLabel>
-                    <Select 
-                      onValueChange={field.onChange} 
-                      value={field.value || "none"}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select an agent" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="none">None</SelectItem>
-                        {availableAgents.map((agent) => (
+            {/* Show agent association field for all users */}
+            <FormField
+              control={form.control}
+              name="associated_agent_id"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Associate with Agent</FormLabel>
+                  <Select 
+                    onValueChange={field.onChange} 
+                    value={field.value || "none"}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select an agent" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="none">None</SelectItem>
+                      {availableAgents.length > 0 ? (
+                        availableAgents.map((agent) => (
                           <SelectItem key={agent.id} value={agent.id}>
                             {agent.full_name || agent.email}
                           </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            )}
+                        ))
+                      ) : (
+                        <SelectItem value="no-agents" disabled>
+                          No agents available
+                        </SelectItem>
+                      )}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             
             <div className="flex justify-end space-x-2">
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
@@ -256,3 +267,4 @@ export const EditUserDialog = ({
     </Dialog>
   );
 };
+
