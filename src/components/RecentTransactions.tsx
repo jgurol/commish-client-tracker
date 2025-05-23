@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -45,13 +46,16 @@ export const RecentTransactions = ({
   const [approvalWarningOpen, setApprovalWarningOpen] = useState(false);
   const [pendingApprovalId, setPendingApprovalId] = useState<string | null>(null);
   
-  // These states are kept for UI functionality but no longer filter transactions
+  // These filter checkboxes no longer affect filtering - they're kept for UI consistency
   const [includePaidCommissions, setIncludePaidCommissions] = useState(false);
   const [showOnlyPaidInvoices, setShowOnlyPaidInvoices] = useState(true);
 
-  // Using all transactions without filtering
-  // This is the only change needed - remove the filtering logic and use the transactions array directly
-  const filteredTransactions = transactions;
+  // Display transaction count for debugging
+  const transactionCount = transactions.length;
+  
+  // Log transaction data for debugging
+  console.log("Transactions received in RecentTransactions component:", transactions);
+  console.log("Total transactions count:", transactionCount);
 
   const handleEditClick = (transaction: Transaction) => {
     setCurrentTransaction(transaction);
@@ -109,7 +113,7 @@ export const RecentTransactions = ({
         <CardHeader className="flex flex-row items-center justify-between space-y-0">
           <div>
             <CardTitle className="text-lg font-semibold text-gray-900">Transactions</CardTitle>
-            <CardDescription>All commission payments</CardDescription>
+            <CardDescription>All commission payments ({transactionCount})</CardDescription>
           </div>
           <div className="flex items-center gap-4">
             <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
@@ -153,13 +157,13 @@ export const RecentTransactions = ({
         <CardContent>
           <ScrollArea className="h-[500px] pr-4">
             <div className="space-y-3">
-              {filteredTransactions.length === 0 ? (
+              {transactions.length === 0 ? (
                 <div className="text-center py-6 text-gray-500">
                   <DollarSign className="w-8 h-8 mx-auto mb-2 text-gray-300" />
                   <p>No transactions found</p>
                 </div>
               ) : (
-                filteredTransactions.map((transaction) => (
+                transactions.map((transaction) => (
                   <div
                     key={transaction.id}
                     className="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors duration-200"
