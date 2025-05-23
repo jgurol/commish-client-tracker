@@ -27,6 +27,9 @@ export const ClientInfoList = ({ clientInfos, onUpdateClientInfo, agentMapping =
   const [deletingClientId, setDeletingClientId] = useState<string | null>(null);
   const { toast } = useToast();
 
+  console.log("ClientInfoList received clientInfos:", clientInfos);
+  console.log("ClientInfoList received agentMapping:", agentMapping);
+
   const handleDelete = async (clientId: string) => {
     try {
       const { error } = await supabase

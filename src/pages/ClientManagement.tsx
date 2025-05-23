@@ -15,7 +15,7 @@ const ClientManagement = () => {
   const [clientInfos, setClientInfos] = useState<ClientInfo[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [agentMapping, setAgentMapping] = useState<Record<string, string>>({});
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   const { toast } = useToast();
 
   // State for dialog
