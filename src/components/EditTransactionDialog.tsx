@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -30,6 +31,7 @@ export const EditTransactionDialog = ({ transaction, open, onOpenChange, onUpdat
   const [invoiceNumber, setInvoiceNumber] = useState("");
   const [isPaid, setIsPaid] = useState(false);
   const [commissionPaidDate, setCommissionPaidDate] = useState("");
+  const [isApproved, setIsApproved] = useState(false);
 
   // Filter client infos based on selected agent
   const [filteredClientInfos, setFilteredClientInfos] = useState<ClientInfo[]>(clientInfos);
@@ -50,6 +52,7 @@ export const EditTransactionDialog = ({ transaction, open, onOpenChange, onUpdat
       setInvoiceNumber(transaction.invoiceNumber || "");
       setIsPaid(transaction.isPaid || false);
       setCommissionPaidDate(transaction.commissionPaidDate || "");
+      setIsApproved(transaction.isApproved || false);
     }
   }, [transaction]);
 
@@ -97,7 +100,7 @@ export const EditTransactionDialog = ({ transaction, open, onOpenChange, onUpdat
           clientInfoId: clientInfoId !== "none" ? clientInfoId : undefined,
           clientCompanyName: selectedClientInfo?.company_name,
           commission: transaction.commission,
-          isApproved: transaction.isApproved,
+          isApproved,
           commissionPaidDate: commissionPaidDate || undefined
         });
         onOpenChange(false);
@@ -167,6 +170,8 @@ export const EditTransactionDialog = ({ transaction, open, onOpenChange, onUpdat
                   setReferenceNumber={setReferenceNumber}
                   commissionPaidDate={commissionPaidDate}
                   setCommissionPaidDate={setCommissionPaidDate}
+                  isApproved={isApproved}
+                  setIsApproved={setIsApproved}
                 />
               </TabsContent>
             </Tabs>

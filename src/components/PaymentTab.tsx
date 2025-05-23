@@ -3,6 +3,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { X } from "lucide-react";
 
 interface PaymentTabProps {
@@ -15,6 +16,8 @@ interface PaymentTabProps {
   setReferenceNumber: (value: string) => void;
   commissionPaidDate: string;
   setCommissionPaidDate: (value: string) => void;
+  isApproved?: boolean;
+  setIsApproved?: (value: boolean) => void;
 }
 
 export const PaymentTab = ({
@@ -26,7 +29,9 @@ export const PaymentTab = ({
   referenceNumber,
   setReferenceNumber,
   commissionPaidDate,
-  setCommissionPaidDate
+  setCommissionPaidDate,
+  isApproved,
+  setIsApproved
 }: PaymentTabProps) => {
   return (
     <div className="space-y-4">
@@ -72,6 +77,19 @@ export const PaymentTab = ({
               placeholder={paymentMethod === "check" ? "Enter check number" : "Enter Zelle reference"}
             />
           </div>
+
+          {setIsApproved && (
+            <div className="flex items-center space-x-2 pt-2">
+              <Checkbox 
+                id="isApproved" 
+                checked={isApproved || false} 
+                onCheckedChange={(checked) => setIsApproved(checked === true)}
+              />
+              <Label htmlFor="isApproved" className="font-medium text-sm">
+                Payment approved
+              </Label>
+            </div>
+          )}
         </>
       )}
 
