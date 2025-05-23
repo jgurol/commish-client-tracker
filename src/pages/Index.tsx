@@ -212,7 +212,7 @@ const IndexPage = () => {
     }
   };
 
-  // Updated function to fetch transactions from Supabase - CRITICAL FIX
+  // FIXED function to fetch transactions matching admin behavior
   const fetchTransactions = async () => {
     if (!user) {
       console.log("❌ No user found, skipping transaction fetch");
@@ -222,7 +222,7 @@ const IndexPage = () => {
     try {
       setIsLoading(true);
       
-      console.log("=== SUPER ENHANCED TRANSACTION DEBUGGING ===");
+      console.log("=== ADMIN MODE DEBUGGING ===");
       console.log("Current user:", user.id);
       console.log("User email:", user.email);
       console.log("User isAdmin:", isAdmin);
@@ -240,11 +240,17 @@ const IndexPage = () => {
         console.log("✅ Total transactions in database:", count);
       }
       
-      // CRITICAL FIX: Get ALL transactions with no filtering
-      console.log("🔍 Fetching ALL transactions without filters...");
-      const { data, error } = await supabase
+      // KEY FIX: Use the same query for admin and non-admin users
+      // Admins see all transactions, but regular users still need to see their transactions 
+      // regardless of agent association
+      let query = supabase
         .from('transactions')
         .select('*');
+      
+      // No filtering by associated agent anymore - fetch all transactions like the admin view does
+      
+      console.log(`🔍 Executing ${isAdmin ? 'admin' : 'user'} transaction query...`);
+      const { data, error } = await query;
 
       if (error) {
         console.error('❌ Error fetching transactions:', error);
@@ -329,7 +335,7 @@ const IndexPage = () => {
 
       console.log("✅ Final mapped transactions:", mappedTransactions);
       console.log("✅ Total mapped transactions:", mappedTransactions.length);
-      console.log("=== END SUPER ENHANCED TRANSACTION DEBUGGING ===");
+      console.log("=== END ADMIN MODE DEBUGGING ===");
       
       setTransactions(mappedTransactions);
     } catch (err) {
@@ -655,7 +661,7 @@ const IndexPage = () => {
         {/* Enhanced debugging notice */}
         <div className="mb-4 p-4 bg-blue-100 border border-blue-400 rounded-lg">
           <p className="text-blue-800 font-medium">
-            🔍 Enhanced Debug Mode: Detailed transaction fetching logs in console
+            🔍 Admin Mode Fetch: Now showing all transactions without filtering
           </p>
           <p className="text-blue-700 text-sm mt-1">
             Transactions displayed: {transactions.length} | User: {user?.email} | Admin: {isAdmin ? 'Yes' : 'No'}

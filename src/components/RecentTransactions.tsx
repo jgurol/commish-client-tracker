@@ -163,6 +163,7 @@ export const RecentTransactions = ({
                   <p>No transactions found</p>
                 </div>
               ) : (
+                // Note: We're now showing ALL transactions without any filtering
                 transactions.map((transaction) => (
                   <div
                     key={transaction.id}
