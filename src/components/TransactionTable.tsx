@@ -1,4 +1,3 @@
-
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CheckCircle, Clock, DollarSign, Pencil, Trash2 } from "lucide-react";
@@ -133,20 +132,13 @@ export const TransactionTable = ({
                     </div>
                   )}
                   
-                  {/* Payment Status Badges - moved here from Status column */}
+                  {/* Payment Status Badges - removed Due status */}
                   <div className="flex flex-col gap-1 mt-2">
-                    {transaction.isPaid ? (
+                    {transaction.isPaid && (
                       <Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200 w-fit">
                         <CheckCircle className="w-3 h-3 mr-1" />
                         Paid
                       </Badge>
-                    ) : (
-                      isCurrentMonth(transaction.date) && (
-                        <Badge variant="outline" className="text-xs bg-amber-50 text-amber-700 border-amber-200 w-fit">
-                          <Clock className="w-3 h-3 mr-1" />
-                          Due
-                        </Badge>
-                      )
                     )}
                     {transaction.paymentMethod && transaction.isPaid && (
                       <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200 w-fit">
