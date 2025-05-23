@@ -1,4 +1,3 @@
-
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -81,7 +80,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const { data, error } = await supabase
         .from('profiles')
-        .select('role')
+        .select('role, is_associated')
         .eq('id', userId)
         .single();
 
@@ -96,11 +95,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // If the user is not an admin (i.e., they're an agent),
       // check if they're associated with an agent in the system
       if (!isUserAdmin) {
-        // We shouldn't directly query the clients table here
-        // Instead, check a flag or another field in the profile that indicates association
-        // For now, since we don't have this field, we'll set isAssociated to false for agents
-        // This will be updated when admin associates them with a client
-        setIsAssociated(false);
+        // Check the is_associated field in the profile
+        setIsAssociated(data.is_associated || false);
       } else {
         // Admins are always considered "associated"
         setIsAssociated(true);
@@ -137,7 +133,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Check if user profile exists and get role info
       const { data: profileData, error: profileError } = await supabase
         .from('profiles')
-        .select('role')
+        .select('role, is_associated')
         .eq('id', data.user.id)
         .single();
 
@@ -156,27 +152,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       // If the user is an agent, check if they're associated
       if (userRole === 'agent') {
-        // We need a reliable way to check if an agent is associated
-        // For now, we'll simply check if they have been approved/associated
-        // This should be a field in the profiles table, not a query to clients
-        const { data: agentData, error: agentError } = await supabase
-          .from('profiles')
-          .select('is_associated')
-          .eq('id', data.user.id)
-          .single();
-
-        if (agentError || !agentData) {
-          await supabase.auth.signOut();
-          toast({
-            title: "Login failed",
-            description: "Error verifying agent status",
-            variant: "destructive"
-          });
-          throw agentError || new Error("Could not verify agent status");
-        }
-
-        // If the agent is not associated, don't allow login
-        if (!agentData.is_associated) {
+        // Check if the agent is associated using the is_associated field
+        if (!profileData.is_associated) {
           await supabase.auth.signOut();
           toast({
             title: "Login failed",

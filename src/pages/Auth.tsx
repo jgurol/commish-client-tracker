@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Navigate } from "react-router-dom";
 import { z } from "zod";
@@ -24,8 +25,10 @@ import {
 } from "@/components/ui/form";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/context/AuthContext";
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, Mail } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 const loginSchema = z.object({
   email: z.string().email({ message: "Invalid email address" }),
@@ -42,13 +45,20 @@ const registerSchema = z.object({
   path: ["confirmPassword"],
 });
 
+const resetPasswordSchema = z.object({
+  email: z.string().email({ message: "Invalid email address" }),
+});
+
 type LoginFormValues = z.infer<typeof loginSchema>;
 type RegisterFormValues = z.infer<typeof registerSchema>;
+type ResetPasswordFormValues = z.infer<typeof resetPasswordSchema>;
 
 const Auth = () => {
   const [activeTab, setActiveTab] = useState<string>("login");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showResetForm, setShowResetForm] = useState(false);
   const { user, signIn, signUp } = useAuth();
+  const { toast } = useToast();
 
   const loginForm = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -65,6 +75,13 @@ const Auth = () => {
       email: "",
       password: "",
       confirmPassword: "",
+    },
+  });
+
+  const resetPasswordForm = useForm<ResetPasswordFormValues>({
+    resolver: zodResolver(resetPasswordSchema),
+    defaultValues: {
+      email: "",
     },
   });
 
@@ -91,8 +108,95 @@ const Auth = () => {
     }
   };
 
+  const handleResetPasswordSubmit = async (values: ResetPasswordFormValues) => {
+    try {
+      setIsSubmitting(true);
+      
+      const { error } = await supabase.auth.resetPasswordForEmail(values.email, {
+        redirectTo: window.location.origin + "/auth",
+      });
+      
+      if (error) {
+        toast({
+          title: "Password reset failed",
+          description: error.message,
+          variant: "destructive"
+        });
+        throw error;
+      }
+      
+      toast({
+        title: "Password Reset Email Sent",
+        description: "Check your email for a password reset link",
+      });
+      setShowResetForm(false);
+      setActiveTab("login");
+    } catch (error) {
+      console.error("Error during password reset:", error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   if (user) {
     return <Navigate to="/" />;
+  }
+
+  if (showResetForm) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-blue-50 p-4">
+        <div className="w-full max-w-md">
+          <Card className="border-0 shadow-xl">
+            <CardHeader className="text-center">
+              <CardTitle className="text-2xl font-bold">Reset Password</CardTitle>
+              <CardDescription>Enter your email to receive a password reset link</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Form {...resetPasswordForm}>
+                <form onSubmit={resetPasswordForm.handleSubmit(handleResetPasswordSubmit)} className="space-y-4">
+                  <FormField
+                    control={resetPasswordForm.control}
+                    name="email"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Email</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="email"
+                            placeholder="your.email@example.com"
+                            {...field}
+                            disabled={isSubmitting}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <div className="flex gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="flex-1"
+                      onClick={() => setShowResetForm(false)}
+                      disabled={isSubmitting}
+                    >
+                      Back to Login
+                    </Button>
+                    <Button
+                      type="submit"
+                      className="flex-1 bg-blue-600 hover:bg-blue-700"
+                      disabled={isSubmitting}
+                    >
+                      {isSubmitting ? "Sending..." : "Send Reset Link"}
+                    </Button>
+                  </div>
+                </form>
+              </Form>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -149,6 +253,14 @@ const Auth = () => {
                         </FormItem>
                       )}
                     />
+                    <Button
+                      type="button"
+                      variant="link"
+                      className="p-0 h-auto font-normal text-sm text-blue-600"
+                      onClick={() => setShowResetForm(true)}
+                    >
+                      Forgot password?
+                    </Button>
                     <Button
                       type="submit"
                       className="w-full bg-blue-600 hover:bg-blue-700"
