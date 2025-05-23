@@ -15,7 +15,7 @@ interface AddTransactionDialogProps {
   onOpenChange: (open: boolean) => void;
   onAddTransaction: (transaction: Omit<Transaction, "id">) => void;
   clients: Client[];
-  clientInfos: ClientInfo[]; // Add clientInfos prop
+  clientInfos: ClientInfo[]; 
 }
 
 export const AddTransactionDialog = ({ open, onOpenChange, onAddTransaction, clients, clientInfos }: AddTransactionDialogProps) => {
@@ -31,7 +31,7 @@ export const AddTransactionDialog = ({ open, onOpenChange, onAddTransaction, cli
   const [invoiceYear, setInvoiceYear] = useState("");
   const [invoiceNumber, setInvoiceNumber] = useState("");
   const [isPaid, setIsPaid] = useState(false);
-  const [commissionPaidDate, setCommissionPaidDate] = useState(""); // New state for commission paid date
+  const [commissionPaidDate, setCommissionPaidDate] = useState("");
   
   // Filter client infos based on selected agent
   const [filteredClientInfos, setFilteredClientInfos] = useState<ClientInfo[]>(clientInfos);
@@ -97,7 +97,7 @@ export const AddTransactionDialog = ({ open, onOpenChange, onAddTransaction, cli
           isPaid,
           clientInfoId: clientInfoId || undefined,
           clientCompanyName: selectedClientInfo?.company_name,
-          commissionPaidDate: commissionPaidDate || undefined // Add commission paid date
+          commissionPaidDate: commissionPaidDate || undefined
         });
         
         // Reset form
@@ -113,7 +113,7 @@ export const AddTransactionDialog = ({ open, onOpenChange, onAddTransaction, cli
         setInvoiceYear("");
         setInvoiceNumber("");
         setIsPaid(false);
-        setCommissionPaidDate(""); // Reset commission paid date
+        setCommissionPaidDate("");
         onOpenChange(false);
       }
     }
@@ -129,50 +129,64 @@ export const AddTransactionDialog = ({ open, onOpenChange, onAddTransaction, cli
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="clientInfo">Client Company</Label>
-              <Select value={clientInfoId} onValueChange={setClientInfoId}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a client" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">None</SelectItem>
-                  {clientInfos.map((clientInfo) => (
-                    <SelectItem key={clientInfo.id} value={clientInfo.id}>
-                      {clientInfo.company_name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {clientInfoId && clientInfoId !== "none" && (
-                <div className="text-xs text-gray-500">
-                  Contact: {clientInfos.find(ci => ci.id === clientInfoId)?.contact_name || "N/A"}
-                </div>
-              )}
-            </div>
-            
+          <div className="space-y-2">
+            <Label htmlFor="clientInfo">Client Company</Label>
+            <Select value={clientInfoId} onValueChange={setClientInfoId}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select a client" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">None</SelectItem>
+                {clientInfos.map((clientInfo) => (
+                  <SelectItem key={clientInfo.id} value={clientInfo.id}>
+                    {clientInfo.company_name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {clientInfoId && clientInfoId !== "none" && (
+              <div className="text-xs text-gray-500">
+                Contact: {clientInfos.find(ci => ci.id === clientInfoId)?.contact_name || "N/A"}
+              </div>
+            )}
+          </div>
+          
+          {/* Show agent information only when a client is assigned */}
+          {clientId && (
             <div className="space-y-2">
               <Label htmlFor="client">Agent</Label>
-              <Select value={clientId} onValueChange={setClientId} required>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select an agent" />
-                </SelectTrigger>
-                <SelectContent>
-                  {clients.map((client) => (
-                    <SelectItem key={client.id} value={client.id}>
-                      {client.companyName || client.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <div className="flex items-center gap-2">
+                <div className="border rounded-md px-3 py-2 flex-1 bg-muted text-muted-foreground">
+                  {clients.find(client => client.id === clientId)?.companyName || 
+                   clients.find(client => client.id === clientId)?.name || "Selected Agent"}
+                </div>
+                {/* Clear agent button */}
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  className="h-10"
+                  onClick={() => {
+                    if (clientInfoId && clientInfoId !== "none") {
+                      // If client is assigned, show confirmation or warning
+                      if (confirm("Clearing the agent will also clear the client company. Continue?")) {
+                        setClientId("");
+                        setClientInfoId("none");
+                      }
+                    } else {
+                      setClientId("");
+                    }
+                  }}
+                >
+                  Clear
+                </Button>
+              </div>
               {clientId && (
                 <div className="text-xs text-gray-500">
                   Contact: {clients.find(c => c.id === clientId)?.name}
                 </div>
               )}
             </div>
-          </div>
+          )}
 
           <div className="space-y-2">
             <Label>Invoice Period</Label>
@@ -207,6 +221,8 @@ export const AddTransactionDialog = ({ open, onOpenChange, onAddTransaction, cli
               </div>
             </div>
           </div>
+          
+          {/* Continue with the rest of the form */}
           <div className="space-y-2">
             <Label htmlFor="invoiceNumber">Invoice Number</Label>
             <Input
