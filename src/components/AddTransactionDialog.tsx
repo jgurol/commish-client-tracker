@@ -73,7 +73,7 @@ export const AddTransactionDialog = ({ open, onOpenChange, onAddTransaction, cli
           invoiceNumber: invoiceNumber || undefined,
           isPaid,
           clientInfoId: clientInfoId || undefined,
-          clientCompanyName: selectedClientInfo?.companyName,
+          clientCompanyName: selectedClientInfo?.company_name,
           commissionPaidDate: commissionPaidDate || undefined // Add commission paid date
         });
         
@@ -139,14 +139,14 @@ export const AddTransactionDialog = ({ open, onOpenChange, onAddTransaction, cli
                 <SelectItem value="none">None</SelectItem>
                 {clientInfos.map((clientInfo) => (
                   <SelectItem key={clientInfo.id} value={clientInfo.id}>
-                    {clientInfo.companyName}
+                    {clientInfo.company_name}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
             {clientInfoId && clientInfoId !== "none" && (
               <div className="text-sm text-gray-500">
-                Contact: {clientInfos.find(ci => ci.id === clientInfoId)?.contactName || "N/A"}
+                Contact: {clientInfos.find(ci => ci.id === clientInfoId)?.contact_name || "N/A"}
               </div>
             )}
           </div>

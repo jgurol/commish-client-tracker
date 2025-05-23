@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -210,7 +209,7 @@ export const RecentTransactions = ({
                       {transaction.clientInfoId && transaction.clientInfoId !== "none" && (
                         <div className="flex items-center gap-1 mb-1 text-sm text-gray-600">
                           <Users className="w-4 h-4" />
-                          Client: {transaction.clientCompanyName || clientInfos.find(ci => ci.id === transaction.clientInfoId)?.companyName || "N/A"}
+                          Client: {transaction.clientCompanyName || clientInfos.find(ci => ci.id === transaction.clientInfoId)?.company_name || "N/A"}
                         </div>
                       )}
                       <div className="text-sm text-gray-600 flex items-center gap-1">
