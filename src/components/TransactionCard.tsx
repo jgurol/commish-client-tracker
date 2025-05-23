@@ -137,7 +137,7 @@ export const TransactionCard = ({
           </div>
           {isAdmin && (
             <div className="flex gap-2">
-              {!transaction.isApproved && (
+              {!transaction.isApproved && transaction.isPaid && (
                 <Button 
                   size="sm" 
                   variant="outline" 
@@ -147,12 +147,34 @@ export const TransactionCard = ({
                   <CheckCircle className="w-3 h-3 mr-1" /> Approve
                 </Button>
               )}
-              {transaction.isApproved && !transaction.commissionPaidDate && onPayCommission && (
+              {!transaction.isApproved && !transaction.isPaid && (
+                <Button 
+                  size="sm" 
+                  variant="outline" 
+                  className="text-xs h-7 border-gray-200 text-gray-400 cursor-not-allowed"
+                  disabled
+                  title="Invoice must be paid before approving commission"
+                >
+                  <CheckCircle className="w-3 h-3 mr-1" /> Approve
+                </Button>
+              )}
+              {transaction.isApproved && !transaction.commissionPaidDate && transaction.isPaid && onPayCommission && (
                 <Button 
                   size="sm" 
                   variant="outline" 
                   className="text-xs h-7 border-blue-200 text-blue-700 hover:bg-blue-50"
                   onClick={handlePayCommission}
+                >
+                  <DollarSign className="w-3 h-3 mr-1" /> Mark Paid
+                </Button>
+              )}
+              {transaction.isApproved && !transaction.commissionPaidDate && !transaction.isPaid && onPayCommission && (
+                <Button 
+                  size="sm" 
+                  variant="outline" 
+                  className="text-xs h-7 border-gray-200 text-gray-400 cursor-not-allowed"
+                  disabled
+                  title="Invoice must be paid before paying commission"
                 >
                   <DollarSign className="w-3 h-3 mr-1" /> Mark Paid
                 </Button>

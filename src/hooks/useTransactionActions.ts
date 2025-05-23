@@ -150,6 +150,32 @@ export const useTransactionActions = (
     if (!user) return;
     
     try {
+      // First, check if the transaction's invoice has been paid
+      const { data: transactionData, error: fetchError } = await supabase
+        .from('transactions')
+        .select('is_paid')
+        .eq('id', transactionId)
+        .single();
+
+      if (fetchError) {
+        console.error('[approveCommission] Error fetching transaction:', fetchError);
+        toast({
+          title: "Error",
+          description: "Failed to verify transaction status",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      if (!transactionData.is_paid) {
+        toast({
+          title: "Cannot approve commission",
+          description: "The invoice must be paid before approving the commission",
+          variant: "destructive"
+        });
+        return;
+      }
+
       const { data, error } = await supabase
         .from('transactions')
         .update({
@@ -189,6 +215,32 @@ export const useTransactionActions = (
     if (!user) return;
     
     try {
+      // First, check if the transaction's invoice has been paid
+      const { data: transactionData, error: fetchError } = await supabase
+        .from('transactions')
+        .select('is_paid')
+        .eq('id', transactionId)
+        .single();
+
+      if (fetchError) {
+        console.error('[payCommission] Error fetching transaction:', fetchError);
+        toast({
+          title: "Error",
+          description: "Failed to verify transaction status",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      if (!transactionData.is_paid) {
+        toast({
+          title: "Cannot pay commission",
+          description: "The invoice must be paid before paying the commission",
+          variant: "destructive"
+        });
+        return;
+      }
+
       const { data, error } = await supabase
         .from('transactions')
         .update({

@@ -73,38 +73,22 @@ export const RecentTransactions = ({
     setIsEditTransactionOpen(true);
   };
 
-  // Function to handle commission approval with warning check
+  // Function to handle commission approval with invoice payment check
   const handleApproveCommission = (transactionId: string) => {
     const transaction = transactions.find(t => t.id === transactionId);
     
-    // If transaction exists and is not paid, show warning dialog
-    if (transaction && !transaction.isPaid) {
-      setPendingApprovalId(transactionId);
-      setApprovalWarningOpen(true);
-    } else {
-      // If paid or no transaction found, proceed with approval directly
+    // Only allow approval if the invoice has been paid
+    if (transaction && transaction.isPaid) {
       onApproveCommission(transactionId);
     }
   };
 
-  // Function to handle confirmation of approval despite warning
-  const handleConfirmApproval = () => {
-    if (pendingApprovalId) {
-      onApproveCommission(pendingApprovalId);
-      setPendingApprovalId(null);
-    }
-    setApprovalWarningOpen(false);
-  };
-
-  // Function to cancel approval
-  const handleCancelApproval = () => {
-    setPendingApprovalId(null);
-    setApprovalWarningOpen(false);
-  };
-
   // Function to handle commission payment
   const handlePayCommission = (transactionId: string) => {
-    if (onPayCommission) {
+    const transaction = transactions.find(t => t.id === transactionId);
+    
+    // Only allow payment if the invoice has been paid
+    if (transaction && transaction.isPaid && onPayCommission) {
       // Use today's date as default payment date
       const today = new Date().toISOString().split('T')[0];
       onPayCommission(transactionId, today);
@@ -140,7 +124,7 @@ export const RecentTransactions = ({
               transactions={filteredTransactions}
               clientInfos={clientInfos}
               onEditClick={isAdmin ? handleEditClick : undefined}
-              onApproveCommission={onApproveCommission}
+              onApproveCommission={handleApproveCommission}
               onPayCommission={onPayCommission ? handlePayCommission : undefined}
               onDeleteTransaction={onDeleteTransaction}
               isCurrentMonth={isCurrentMonth}
@@ -152,8 +136,8 @@ export const RecentTransactions = ({
       <ApprovalWarningDialog
         open={approvalWarningOpen}
         onOpenChange={setApprovalWarningOpen}
-        onConfirm={handleConfirmApproval}
-        onCancel={handleCancelApproval}
+        onConfirm={() => {}}
+        onCancel={() => {}}
       />
 
       {isAdmin && (

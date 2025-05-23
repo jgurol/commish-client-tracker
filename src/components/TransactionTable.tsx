@@ -1,3 +1,4 @@
+
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CheckCircle, Clock, DollarSign, Pencil, Trash2 } from "lucide-react";
@@ -164,7 +165,7 @@ export const TransactionTable = ({
                   
                   {isAdmin && (
                     <div className="flex gap-1">
-                      {!transaction.isApproved && (
+                      {!transaction.isApproved && transaction.isPaid && (
                         <Button 
                           size="sm" 
                           variant="outline" 
@@ -174,12 +175,34 @@ export const TransactionTable = ({
                           <CheckCircle className="w-3 h-3 mr-1" /> Approve
                         </Button>
                       )}
-                      {transaction.isApproved && !transaction.commissionPaidDate && onPayCommission && (
+                      {!transaction.isApproved && !transaction.isPaid && (
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          className="text-xs h-6 px-2 border-gray-200 text-gray-400 cursor-not-allowed"
+                          disabled
+                          title="Invoice must be paid before approving commission"
+                        >
+                          <CheckCircle className="w-3 h-3 mr-1" /> Approve
+                        </Button>
+                      )}
+                      {transaction.isApproved && !transaction.commissionPaidDate && transaction.isPaid && onPayCommission && (
                         <Button 
                           size="sm" 
                           variant="outline" 
                           className="text-xs h-6 px-2 border-blue-200 text-blue-700 hover:bg-blue-50"
                           onClick={() => handlePayCommission(transaction.id)}
+                        >
+                          <DollarSign className="w-3 h-3 mr-1" /> Pay
+                        </Button>
+                      )}
+                      {transaction.isApproved && !transaction.commissionPaidDate && !transaction.isPaid && onPayCommission && (
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          className="text-xs h-6 px-2 border-gray-200 text-gray-400 cursor-not-allowed"
+                          disabled
+                          title="Invoice must be paid before paying commission"
                         >
                           <DollarSign className="w-3 h-3 mr-1" /> Pay
                         </Button>
