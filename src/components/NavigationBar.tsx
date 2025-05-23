@@ -12,7 +12,7 @@ import {
   navigationMenuTriggerStyle,
 } from "@/components/ui/navigation-menu";
 import { cn } from "@/lib/utils";
-import { Settings, Users, FileText, Home } from 'lucide-react';
+import { Settings, Users, FileText, Home, UserPlus } from 'lucide-react';
 
 export function NavigationBar() {
   const { isAdmin } = useAuth();
@@ -35,29 +35,21 @@ export function NavigationBar() {
               </Link>
             </NavigationMenuItem>
 
+            {isAdmin && (
+              <NavigationMenuItem>
+                <Link to="/admin">
+                  <NavigationMenuLink className={navigationMenuTriggerStyle()}>
+                    <Users className="h-4 w-4 mr-2 inline" />
+                    User Management
+                  </NavigationMenuLink>
+                </Link>
+              </NavigationMenuItem>
+            )}
+
             <NavigationMenuItem>
               <NavigationMenuTrigger>System Settings</NavigationMenuTrigger>
               <NavigationMenuContent>
                 <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2 lg:w-[600px]">
-                  {isAdmin && (
-                    <li className="row-span-3">
-                      <NavigationMenuLink asChild>
-                        <Link
-                          to="/admin"
-                          className="flex h-full w-full select-none flex-col justify-end rounded-md bg-gradient-to-b from-blue-50 to-blue-100 p-6 no-underline outline-none focus:shadow-md"
-                        >
-                          <Users className="h-6 w-6 text-blue-600" />
-                          <div className="mb-2 mt-4 text-lg font-medium text-blue-900">
-                            User Management
-                          </div>
-                          <p className="text-sm leading-tight text-blue-800">
-                            Manage users, roles, and permissions across the system
-                          </p>
-                        </Link>
-                      </NavigationMenuLink>
-                    </li>
-                  )}
-
                   <ListItem href="/settings/profile" title="Profile Settings" Icon={Settings}>
                     Manage your account preferences and personal information
                   </ListItem>
