@@ -16,8 +16,8 @@ interface PaymentTabProps {
   setReferenceNumber: (value: string) => void;
   commissionPaidDate: string;
   setCommissionPaidDate: (value: string) => void;
-  isApproved?: boolean;
-  setIsApproved?: (value: boolean) => void;
+  isApproved: boolean;
+  setIsApproved: (value: boolean) => void;
 }
 
 export const PaymentTab = ({
@@ -78,18 +78,16 @@ export const PaymentTab = ({
             />
           </div>
 
-          {setIsApproved && (
-            <div className="flex items-center space-x-2 pt-2">
-              <Checkbox 
-                id="isApproved" 
-                checked={isApproved || false} 
-                onCheckedChange={(checked) => setIsApproved(checked === true)}
-              />
-              <Label htmlFor="isApproved" className="font-medium text-sm">
-                Payment approved
-              </Label>
-            </div>
-          )}
+          <div className="flex items-center space-x-2 pt-2">
+            <Checkbox 
+              id="isApproved" 
+              checked={isApproved} 
+              onCheckedChange={(checked) => setIsApproved(checked === true)}
+            />
+            <Label htmlFor="isApproved" className="font-medium text-sm">
+              Payment approved
+            </Label>
+          </div>
         </>
       )}
 
