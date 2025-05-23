@@ -1,3 +1,4 @@
+
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -89,17 +90,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return;
       }
 
-      const isUserAdmin = data.role === 'admin';
-      setIsAdmin(isUserAdmin);
+      if (data) {
+        const isUserAdmin = data.role === 'admin';
+        setIsAdmin(isUserAdmin);
 
-      // If the user is not an admin (i.e., they're an agent),
-      // check if they're associated with an agent in the system
-      if (!isUserAdmin) {
-        // Check the is_associated field in the profile
-        setIsAssociated(data.is_associated || false);
-      } else {
-        // Admins are always considered "associated"
-        setIsAssociated(true);
+        // If the user is not an admin (i.e., they're an agent),
+        // check if they're associated with an agent in the system
+        if (!isUserAdmin) {
+          // Check the is_associated field in the profile
+          setIsAssociated(data.is_associated || false);
+        } else {
+          // Admins are always considered "associated"
+          setIsAssociated(true);
+        }
       }
     } catch (error) {
       console.error('Error in profile fetch:', error);
@@ -148,19 +151,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         throw profileError;
       }
 
-      const userRole = profileData.role;
-      
-      // If the user is an agent, check if they're associated
-      if (userRole === 'agent') {
-        // Check if the agent is associated using the is_associated field
-        if (!profileData.is_associated) {
-          await supabase.auth.signOut();
-          toast({
-            title: "Login failed",
-            description: "Your account is not yet associated with an agent in the system. Please contact an administrator.",
-            variant: "destructive"
-          });
-          throw new Error("Agent not associated");
+      if (profileData) {
+        const userRole = profileData.role;
+        
+        // If the user is an agent, check if they're associated
+        if (userRole === 'agent') {
+          // Check if the agent is associated using the is_associated field
+          if (!profileData.is_associated) {
+            await supabase.auth.signOut();
+            toast({
+              title: "Login failed",
+              description: "Your account is not yet associated with an agent in the system. Please contact an administrator.",
+              variant: "destructive"
+            });
+            throw new Error("Agent not associated");
+          }
         }
       }
       
