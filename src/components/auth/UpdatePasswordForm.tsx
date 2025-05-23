@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useEffect } from "react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -15,6 +15,8 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { AlertTriangle } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 const updatePasswordSchema = z.object({
   password: z.string().min(6, { message: "Password must be at least 6 characters" }),
@@ -41,6 +43,7 @@ export const UpdatePasswordForm: React.FC<UpdatePasswordFormProps> = ({
   tokenError,
   isCheckingSession,
 }) => {
+  const { toast } = useToast();
   const form = useForm<UpdatePasswordFormValues>({
     resolver: zodResolver(updatePasswordSchema),
     defaultValues: {
@@ -49,7 +52,21 @@ export const UpdatePasswordForm: React.FC<UpdatePasswordFormProps> = ({
     },
   });
 
+  // Log the current form state for debugging
+  useEffect(() => {
+    console.log("UpdatePasswordForm rendered");
+    console.log("isCheckingSession:", isCheckingSession);
+    console.log("tokenError:", tokenError);
+    console.log("isSubmitting:", isSubmitting);
+    
+    // Check current user session to verify
+    supabase.auth.getSession().then(({ data }) => {
+      console.log("Current session data:", data.session);
+    });
+  }, [isCheckingSession, tokenError, isSubmitting]);
+
   const handleSubmit = async (values: UpdatePasswordFormValues) => {
+    console.log("Password update submitted with:", values.password);
     await onUpdatePassword(values.password);
   };
 

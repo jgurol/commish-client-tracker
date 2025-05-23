@@ -28,13 +28,24 @@ const Auth = () => {
   const { user, signIn, signUp } = useAuth();
   const { toast } = useToast();
 
+  // Debug the current URL and hash
+  useEffect(() => {
+    console.log('Current URL:', window.location.href);
+    console.log('Current URL hash:', window.location.hash);
+    
+    // Log session information
+    supabase.auth.getSession().then(({ data }) => {
+      console.log('Initial session check:', data.session);
+    });
+  }, []);
+  
   // Check if we have a password reset token in the URL
   useEffect(() => {
     const checkForPasswordReset = async () => {
       // When a user clicks the reset password link in their email,
       // they will be redirected to this page with a special hash parameter
       const hash = window.location.hash;
-      console.log('Current URL hash:', hash);
+      console.log('Checking for password reset. Hash:', hash);
       
       if (hash && hash.includes('type=recovery')) {
         console.log('Password reset flow detected');
@@ -49,6 +60,9 @@ const Auth = () => {
           // Parse the URL hash to get access token
           const accessToken = new URLSearchParams(hash.substring(1)).get('access_token');
           const refreshToken = new URLSearchParams(hash.substring(1)).get('refresh_token');
+          
+          console.log('Access token found:', accessToken ? 'yes' : 'no');
+          console.log('Refresh token found:', refreshToken ? 'yes' : 'no');
           
           if (!accessToken) {
             console.error('No access token found in URL');
@@ -72,7 +86,11 @@ const Auth = () => {
               variant: "destructive"
             });
           } else {
-            console.log('Successfully set session for password reset');
+            console.log('Successfully set session for password reset:', data);
+            toast({
+              title: "Reset Link Valid",
+              description: "Please enter your new password",
+            });
           }
         } catch (err) {
           console.error('Error during recovery flow:', err);
@@ -85,6 +103,7 @@ const Auth = () => {
       }
     };
     
+    // Run the password reset check
     checkForPasswordReset();
   }, [toast]);
 
@@ -150,13 +169,28 @@ const Auth = () => {
   
   const handleUpdatePasswordSubmit = async (password: string) => {
     try {
+      console.log("Update password flow started");
       setIsSubmitting(true);
+      
+      // Get the current session to verify we have the right context
+      const { data: sessionData } = await supabase.auth.getSession();
+      console.log("Current session before password update:", sessionData.session);
+      
+      if (!sessionData.session) {
+        toast({
+          title: "Session Error",
+          description: "No active session found. Please try the reset link again.",
+          variant: "destructive"
+        });
+        throw new Error("No active session");
+      }
       
       const { error } = await supabase.auth.updateUser({
         password: password
       });
       
       if (error) {
+        console.error("Password update error:", error);
         toast({
           title: "Failed to update password",
           description: error.message,
@@ -165,6 +199,7 @@ const Auth = () => {
         throw error;
       }
       
+      console.log("Password updated successfully");
       toast({
         title: "Password Updated",
         description: "Your password has been successfully updated. You can now log in with your new password.",
