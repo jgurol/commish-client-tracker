@@ -146,7 +146,7 @@ export const useIndexData = () => {
     }
   };
 
-  // Fixed transaction fetch function with debugging
+  // Function to fetch transactions from Supabase
   const fetchTransactions = async () => {
     if (!user) {
       return;
@@ -155,37 +155,17 @@ export const useIndexData = () => {
     try {
       setIsLoading(true);
       
-      // First, let's check if the specific transaction exists
-      console.log('[DEBUG] Checking for specific transaction d0b91f93-75fd-4d3c-8c8c-b41c86f05eb1');
-      const { data: specificTransaction, error: specificError } = await supabase
-        .from('transactions')
-        .select('*')
-        .eq('id', 'd0b91f93-75fd-4d3c-8c8c-b41c86f05eb1')
-        .single();
-      
-      if (specificError) {
-        console.log('[DEBUG] Specific transaction not found:', specificError);
-      } else {
-        console.log('[DEBUG] Found specific transaction:', specificTransaction);
-      }
-      
       // Build the query with filtering logic
       let query = supabase.from('transactions').select('*');
       
-      console.log('[DEBUG] User isAdmin:', isAdmin);
-      console.log('[DEBUG] associatedAgentId:', associatedAgentId);
-      
       // ADMIN USERS: See ALL transactions with NO filtering whatsoever
       if (isAdmin) {
-        console.log('[DEBUG] Admin user - fetching all transactions');
         // Admins see everything - absolutely no WHERE clauses
       } else {
         // NON-ADMIN USERS: Only see transactions where client_id matches their associated agent
         if (associatedAgentId) {
-          console.log('[DEBUG] Non-admin user with agent ID - filtering by client_id =', associatedAgentId);
           query = query.eq('client_id', associatedAgentId);
         } else {
-          console.log('[DEBUG] Non-admin user without agent ID - returning empty results');
           // For non-admin users without agent ID, return empty results
           setTransactions([]);
           setIsLoading(false);
@@ -198,9 +178,6 @@ export const useIndexData = () => {
       
       // Execute the query
       const { data, error } = await query;
-
-      console.log('[DEBUG] Query executed, results count:', data?.length || 0);
-      console.log('[DEBUG] First few transactions:', data?.slice(0, 3));
 
       if (error) {
         console.error('Error fetching transactions:', error);
@@ -247,10 +224,6 @@ export const useIndexData = () => {
         
         return mappedTransaction;
       }) || []);
-      
-      console.log('[DEBUG] Final mapped transactions count:', mappedTransactions.length);
-      console.log('[DEBUG] Looking for specific transaction in results:', 
-        mappedTransactions.find(t => t.id === 'd0b91f93-75fd-4d3c-8c8c-b41c86f05eb1') ? 'FOUND' : 'NOT FOUND');
       
       setTransactions(mappedTransactions);
     } catch (err) {
