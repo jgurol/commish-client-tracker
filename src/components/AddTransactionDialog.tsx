@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -36,6 +35,10 @@ export const AddTransactionDialog = ({ open, onOpenChange, onAddTransaction, cli
   
   // Filter client infos based on selected agent
   const [filteredClientInfos, setFilteredClientInfos] = useState<ClientInfo[]>(clientInfos);
+  
+  // Debug logging
+  console.log("[AddTransactionDialog] Available clients (agents):", clients);
+  console.log("[AddTransactionDialog] Available client infos:", clientInfos);
   
   // Array for month names - needed for display
   const months = [
@@ -138,15 +141,45 @@ export const AddTransactionDialog = ({ open, onOpenChange, onAddTransaction, cli
             </TabsList>
             
             <TabsContent value="basic" className="space-y-4">
+              {/* Debug info */}
+              <div className="mb-4 p-2 bg-blue-50 border border-blue-200 rounded text-xs text-blue-700">
+                <p>DEBUG: Available agents: {clients.length}</p>
+                {clients.map(client => (
+                  <p key={client.id}>- {client.name} (ID: {client.id})</p>
+                ))}
+              </div>
+
+              {/* Agent Selection - Make this the primary selection */}
               <div className="space-y-2">
-                <Label htmlFor="clientInfo">Client Company</Label>
+                <Label htmlFor="agent">Agent (Required)</Label>
+                <Select value={clientId} onValueChange={setClientId} required>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select an agent" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {clients.map((client) => (
+                      <SelectItem key={client.id} value={client.id}>
+                        {client.name} {client.companyName && `(${client.companyName})`}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {clientId && (
+                  <div className="text-xs text-gray-500">
+                    Selected: {clients.find(c => c.id === clientId)?.name}
+                  </div>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="clientInfo">Client Company (Optional)</Label>
                 <Select value={clientInfoId} onValueChange={setClientInfoId}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select a client" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">None</SelectItem>
-                    {clientInfos.map((clientInfo) => (
+                    {filteredClientInfos.map((clientInfo) => (
                       <SelectItem key={clientInfo.id} value={clientInfo.id}>
                         {clientInfo.company_name}
                       </SelectItem>
@@ -159,43 +192,6 @@ export const AddTransactionDialog = ({ open, onOpenChange, onAddTransaction, cli
                   </div>
                 )}
               </div>
-              
-              {/* Show agent information only when a client is assigned */}
-              {clientId && (
-                <div className="space-y-2">
-                  <Label htmlFor="client">Agent</Label>
-                  <div className="flex items-center gap-2">
-                    <div className="border rounded-md px-3 py-2 flex-1 bg-muted text-muted-foreground">
-                      {clients.find(client => client.id === clientId)?.companyName || 
-                       clients.find(client => client.id === clientId)?.name || "Selected Agent"}
-                    </div>
-                    {/* Clear agent button */}
-                    <Button 
-                      type="button" 
-                      variant="outline" 
-                      className="h-10"
-                      onClick={() => {
-                        if (clientInfoId && clientInfoId !== "none") {
-                          // If client is assigned, show confirmation or warning
-                          if (confirm("Clearing the agent will also clear the client company. Continue?")) {
-                            setClientId("");
-                            setClientInfoId("none");
-                          }
-                        } else {
-                          setClientId("");
-                        }
-                      }}
-                    >
-                      Clear
-                    </Button>
-                  </div>
-                  {clientId && (
-                    <div className="text-xs text-gray-500">
-                      Contact: {clients.find(c => c.id === clientId)?.name}
-                    </div>
-                  )}
-                </div>
-              )}
 
               <div className="space-y-2">
                 <Label htmlFor="amount">Amount ($)</Label>
