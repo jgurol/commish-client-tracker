@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -240,7 +241,7 @@ export const EditUserDialog = ({
                       {agents.length > 0 ? (
                         agents.map((agent) => (
                           <SelectItem key={agent.id} value={agent.id}>
-                            {agent.first_name} {agent.last_name} ({agent.email})
+                            {agent.first_name} {agent.last_name} - {agent.company_name || 'No Company'} ({agent.email})
                           </SelectItem>
                         ))
                       ) : (
