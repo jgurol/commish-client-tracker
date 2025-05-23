@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Transaction, Client } from "@/pages/Index";
 
 interface AddTransactionDialogProps {
@@ -21,6 +22,8 @@ export const AddTransactionDialog = ({ open, onOpenChange, onAddTransaction, cli
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [description, setDescription] = useState("");
   const [datePaid, setDatePaid] = useState("");
+  const [paymentMethod, setPaymentMethod] = useState("check");
+  const [referenceNumber, setReferenceNumber] = useState("");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,13 +36,17 @@ export const AddTransactionDialog = ({ open, onOpenChange, onAddTransaction, cli
           amount: parseFloat(amount),
           date,
           description,
-          datePaid: datePaid || undefined
+          datePaid: datePaid || undefined,
+          paymentMethod,
+          referenceNumber: referenceNumber || undefined
         });
         setClientId("");
         setAmount("");
         setDate(new Date().toISOString().split('T')[0]);
         setDescription("");
         setDatePaid("");
+        setPaymentMethod("check");
+        setReferenceNumber("");
         onOpenChange(false);
       }
     }
@@ -100,6 +107,34 @@ export const AddTransactionDialog = ({ open, onOpenChange, onAddTransaction, cli
               type="date"
               value={datePaid}
               onChange={(e) => setDatePaid(e.target.value)}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label>Payment Method</Label>
+            <RadioGroup 
+              value={paymentMethod} 
+              onValueChange={setPaymentMethod}
+              className="flex gap-6"
+            >
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="check" id="check" />
+                <Label htmlFor="check">Check</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="zelle" id="zelle" />
+                <Label htmlFor="zelle">Zelle</Label>
+              </div>
+            </RadioGroup>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="referenceNumber">
+              {paymentMethod === "check" ? "Check Number" : "Zelle Reference"}
+            </Label>
+            <Input
+              id="referenceNumber"
+              value={referenceNumber}
+              onChange={(e) => setReferenceNumber(e.target.value)}
+              placeholder={paymentMethod === "check" ? "Enter check number" : "Enter Zelle reference"}
             />
           </div>
           <div className="space-y-2">

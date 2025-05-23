@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Transaction, Client } from "@/pages/Index";
 
 interface EditTransactionDialogProps {
@@ -22,6 +23,8 @@ export const EditTransactionDialog = ({ transaction, open, onOpenChange, onUpdat
   const [date, setDate] = useState("");
   const [description, setDescription] = useState("");
   const [datePaid, setDatePaid] = useState("");
+  const [paymentMethod, setPaymentMethod] = useState("check");
+  const [referenceNumber, setReferenceNumber] = useState("");
 
   // Update form values when transaction changes
   useEffect(() => {
@@ -31,6 +34,8 @@ export const EditTransactionDialog = ({ transaction, open, onOpenChange, onUpdat
       setDate(transaction.date);
       setDescription(transaction.description);
       setDatePaid(transaction.datePaid || "");
+      setPaymentMethod(transaction.paymentMethod || "check");
+      setReferenceNumber(transaction.referenceNumber || "");
     }
   }, [transaction]);
 
@@ -46,7 +51,9 @@ export const EditTransactionDialog = ({ transaction, open, onOpenChange, onUpdat
           amount: parseFloat(amount),
           date,
           description,
-          datePaid: datePaid || undefined
+          datePaid: datePaid || undefined,
+          paymentMethod,
+          referenceNumber: referenceNumber || undefined
         });
         onOpenChange(false);
       }
@@ -109,6 +116,34 @@ export const EditTransactionDialog = ({ transaction, open, onOpenChange, onUpdat
                 type="date"
                 value={datePaid}
                 onChange={(e) => setDatePaid(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Payment Method</Label>
+              <RadioGroup 
+                value={paymentMethod} 
+                onValueChange={setPaymentMethod}
+                className="flex gap-6"
+              >
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="check" id="edit-check" />
+                  <Label htmlFor="edit-check">Check</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="zelle" id="edit-zelle" />
+                  <Label htmlFor="edit-zelle">Zelle</Label>
+                </div>
+              </RadioGroup>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="referenceNumber">
+                {paymentMethod === "check" ? "Check Number" : "Zelle Reference"}
+              </Label>
+              <Input
+                id="referenceNumber"
+                value={referenceNumber}
+                onChange={(e) => setReferenceNumber(e.target.value)}
+                placeholder={paymentMethod === "check" ? "Enter check number" : "Enter Zelle reference"}
               />
             </div>
             <div className="space-y-2">

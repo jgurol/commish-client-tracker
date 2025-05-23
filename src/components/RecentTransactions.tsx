@@ -88,14 +88,25 @@ export const RecentTransactions = ({
                           </Badge>
                         )
                       )}
+                      {transaction.paymentMethod && (
+                        <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200">
+                          {transaction.paymentMethod === "check" ? "Check" : "Zelle"}
+                        </Badge>
+                      )}
                     </div>
                     <div className="text-sm text-gray-600">
                       {transaction.description}
                     </div>
-                    <div className="text-xs text-gray-500 mt-1 flex gap-2">
+                    <div className="text-xs text-gray-500 mt-1 flex flex-wrap gap-2">
                       <span>Date: {new Date(transaction.date).toLocaleDateString()}</span>
                       {transaction.datePaid && (
                         <span>Paid: {new Date(transaction.datePaid).toLocaleDateString()}</span>
+                      )}
+                      {transaction.referenceNumber && (
+                        <span>
+                          {transaction.paymentMethod === "check" ? "Check #: " : "Ref #: "}
+                          {transaction.referenceNumber}
+                        </span>
                       )}
                     </div>
                   </div>
