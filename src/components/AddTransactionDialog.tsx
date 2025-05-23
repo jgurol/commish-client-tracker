@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Transaction, Client, ClientInfo } from "@/pages/Index";
 
 interface AddTransactionDialogProps {
@@ -121,223 +122,243 @@ export const AddTransactionDialog = ({ open, onOpenChange, onAddTransaction, cli
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[550px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Add Transaction</DialogTitle>
           <DialogDescription>
             Record a new commission payment.
           </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="clientInfo">Client Company</Label>
-            <Select value={clientInfoId} onValueChange={setClientInfoId}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select a client" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="none">None</SelectItem>
-                {clientInfos.map((clientInfo) => (
-                  <SelectItem key={clientInfo.id} value={clientInfo.id}>
-                    {clientInfo.company_name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {clientInfoId && clientInfoId !== "none" && (
-              <div className="text-xs text-gray-500">
-                Contact: {clientInfos.find(ci => ci.id === clientInfoId)?.contact_name || "N/A"}
+        <form onSubmit={handleSubmit}>
+          <Tabs defaultValue="basic" className="w-full">
+            <TabsList className="grid grid-cols-3 mb-4">
+              <TabsTrigger value="basic">Basic Info</TabsTrigger>
+              <TabsTrigger value="invoice">Invoice Details</TabsTrigger>
+              <TabsTrigger value="payment">Payment</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="basic" className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="clientInfo">Client Company</Label>
+                <Select value={clientInfoId} onValueChange={setClientInfoId}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a client" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">None</SelectItem>
+                    {clientInfos.map((clientInfo) => (
+                      <SelectItem key={clientInfo.id} value={clientInfo.id}>
+                        {clientInfo.company_name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {clientInfoId && clientInfoId !== "none" && (
+                  <div className="text-xs text-gray-500">
+                    Contact: {clientInfos.find(ci => ci.id === clientInfoId)?.contact_name || "N/A"}
+                  </div>
+                )}
               </div>
-            )}
-          </div>
-          
-          {/* Show agent information only when a client is assigned */}
-          {clientId && (
-            <div className="space-y-2">
-              <Label htmlFor="client">Agent</Label>
-              <div className="flex items-center gap-2">
-                <div className="border rounded-md px-3 py-2 flex-1 bg-muted text-muted-foreground">
-                  {clients.find(client => client.id === clientId)?.companyName || 
-                   clients.find(client => client.id === clientId)?.name || "Selected Agent"}
-                </div>
-                {/* Clear agent button */}
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  className="h-10"
-                  onClick={() => {
-                    if (clientInfoId && clientInfoId !== "none") {
-                      // If client is assigned, show confirmation or warning
-                      if (confirm("Clearing the agent will also clear the client company. Continue?")) {
-                        setClientId("");
-                        setClientInfoId("none");
-                      }
-                    } else {
-                      setClientId("");
-                    }
-                  }}
-                >
-                  Clear
-                </Button>
-              </div>
+              
+              {/* Show agent information only when a client is assigned */}
               {clientId && (
-                <div className="text-xs text-gray-500">
-                  Contact: {clients.find(c => c.id === clientId)?.name}
+                <div className="space-y-2">
+                  <Label htmlFor="client">Agent</Label>
+                  <div className="flex items-center gap-2">
+                    <div className="border rounded-md px-3 py-2 flex-1 bg-muted text-muted-foreground">
+                      {clients.find(client => client.id === clientId)?.companyName || 
+                       clients.find(client => client.id === clientId)?.name || "Selected Agent"}
+                    </div>
+                    {/* Clear agent button */}
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      className="h-10"
+                      onClick={() => {
+                        if (clientInfoId && clientInfoId !== "none") {
+                          // If client is assigned, show confirmation or warning
+                          if (confirm("Clearing the agent will also clear the client company. Continue?")) {
+                            setClientId("");
+                            setClientInfoId("none");
+                          }
+                        } else {
+                          setClientId("");
+                        }
+                      }}
+                    >
+                      Clear
+                    </Button>
+                  </div>
+                  {clientId && (
+                    <div className="text-xs text-gray-500">
+                      Contact: {clients.find(c => c.id === clientId)?.name}
+                    </div>
+                  )}
                 </div>
               )}
-            </div>
-          )}
 
-          <div className="space-y-2">
-            <Label>Invoice Period</Label>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Select value={invoiceMonth} onValueChange={setInvoiceMonth}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Month" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {months.map((month) => (
-                      <SelectItem key={month.value} value={month.value}>
-                        {month.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Select value={invoiceYear} onValueChange={setInvoiceYear}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Year" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {years.map((year) => (
-                      <SelectItem key={year} value={year.toString()}>
-                        {year}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          </div>
-          
-          {/* Continue with the rest of the form */}
-          <div className="space-y-2">
-            <Label htmlFor="invoiceNumber">Invoice Number</Label>
-            <Input
-              id="invoiceNumber"
-              value={invoiceNumber}
-              onChange={(e) => setInvoiceNumber(e.target.value)}
-              placeholder="Enter invoice number"
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="amount">Amount ($)</Label>
-            <Input
-              id="amount"
-              type="number"
-              step="0.01"
-              min="0"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-              placeholder="Enter amount"
-              required
-            />
-          </div>
-          <div className="flex items-center space-x-2 pt-2">
-            <Checkbox 
-              id="isPaid" 
-              checked={isPaid} 
-              onCheckedChange={(checked) => {
-                setIsPaid(checked === true);
-                if (checked === true && !datePaid) {
-                  setDatePaid(new Date().toISOString().split('T')[0]);
-                }
-              }}
-            />
-            <Label htmlFor="isPaid" className="font-medium text-sm">
-              Invoice has been paid
-            </Label>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="date">Transaction Date</Label>
-            <Input
-              id="date"
-              type="date"
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
-              required
-            />
-          </div>
-          {isPaid && (
-            <div className="space-y-2">
-              <Label htmlFor="datePaid">Date Paid</Label>
-              <Input
-                id="datePaid"
-                type="date"
-                value={datePaid}
-                onChange={(e) => setDatePaid(e.target.value)}
-                required={isPaid}
-              />
-            </div>
-          )}
-          {isPaid && (
-            <>
               <div className="space-y-2">
-                <Label>Payment Method</Label>
-                <RadioGroup 
-                  value={paymentMethod} 
-                  onValueChange={setPaymentMethod}
-                  className="flex gap-6"
-                >
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="check" id="check" />
-                    <Label htmlFor="check">Check</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="zelle" id="zelle" />
-                    <Label htmlFor="zelle">Zelle</Label>
-                  </div>
-                </RadioGroup>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="referenceNumber">
-                  {paymentMethod === "check" ? "Check Number" : "Zelle Reference"}
-                </Label>
+                <Label htmlFor="amount">Amount ($)</Label>
                 <Input
-                  id="referenceNumber"
-                  value={referenceNumber}
-                  onChange={(e) => setReferenceNumber(e.target.value)}
-                  placeholder={paymentMethod === "check" ? "Enter check number" : "Enter Zelle reference"}
+                  id="amount"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value)}
+                  placeholder="Enter amount"
+                  required
                 />
               </div>
-            </>
-          )}
-          <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
-            <Textarea
-              id="description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="Enter transaction description"
-              required
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="commissionPaidDate">Commission Paid Date</Label>
-            <Input
-              id="commissionPaidDate"
-              type="date"
-              value={commissionPaidDate}
-              onChange={(e) => setCommissionPaidDate(e.target.value)}
-              placeholder="Leave blank if not yet paid"
-            />
-            <div className="text-xs text-gray-500">
-              Leave blank if the commission has not been paid yet
-            </div>
-          </div>
-          <div className="flex justify-end space-x-2">
+              
+              <div className="space-y-2">
+                <Label htmlFor="date">Transaction Date</Label>
+                <Input
+                  id="date"
+                  type="date"
+                  value={date}
+                  onChange={(e) => setDate(e.target.value)}
+                  required
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="description">Description</Label>
+                <Textarea
+                  id="description"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  placeholder="Enter transaction description"
+                  required
+                />
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="invoice" className="space-y-4">
+              <div className="space-y-2">
+                <Label>Invoice Period</Label>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Select value={invoiceMonth} onValueChange={setInvoiceMonth}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Month" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {months.map((month) => (
+                          <SelectItem key={month.value} value={month.value}>
+                            {month.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Select value={invoiceYear} onValueChange={setInvoiceYear}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Year" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {years.map((year) => (
+                          <SelectItem key={year} value={year.toString()}>
+                            {year}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="invoiceNumber">Invoice Number</Label>
+                <Input
+                  id="invoiceNumber"
+                  value={invoiceNumber}
+                  onChange={(e) => setInvoiceNumber(e.target.value)}
+                  placeholder="Enter invoice number"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="commissionPaidDate">Commission Paid Date</Label>
+                <Input
+                  id="commissionPaidDate"
+                  type="date"
+                  value={commissionPaidDate}
+                  onChange={(e) => setCommissionPaidDate(e.target.value)}
+                  placeholder="Leave blank if not yet paid"
+                />
+                <div className="text-xs text-gray-500">
+                  Leave blank if the commission has not been paid yet
+                </div>
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="payment" className="space-y-4">
+              <div className="flex items-center space-x-2 pt-2">
+                <Checkbox 
+                  id="isPaid" 
+                  checked={isPaid} 
+                  onCheckedChange={(checked) => {
+                    setIsPaid(checked === true);
+                    if (checked === true && !datePaid) {
+                      setDatePaid(new Date().toISOString().split('T')[0]);
+                    }
+                  }}
+                />
+                <Label htmlFor="isPaid" className="font-medium text-sm">
+                  Invoice has been paid
+                </Label>
+              </div>
+              
+              {isPaid && (
+                <>
+                  <div className="space-y-2">
+                    <Label htmlFor="datePaid">Date Paid</Label>
+                    <Input
+                      id="datePaid"
+                      type="date"
+                      value={datePaid}
+                      onChange={(e) => setDatePaid(e.target.value)}
+                      required={isPaid}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Payment Method</Label>
+                    <RadioGroup 
+                      value={paymentMethod} 
+                      onValueChange={setPaymentMethod}
+                      className="flex gap-6"
+                    >
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="check" id="check" />
+                        <Label htmlFor="check">Check</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="zelle" id="zelle" />
+                        <Label htmlFor="zelle">Zelle</Label>
+                      </div>
+                    </RadioGroup>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="referenceNumber">
+                      {paymentMethod === "check" ? "Check Number" : "Zelle Reference"}
+                    </Label>
+                    <Input
+                      id="referenceNumber"
+                      value={referenceNumber}
+                      onChange={(e) => setReferenceNumber(e.target.value)}
+                      placeholder={paymentMethod === "check" ? "Enter check number" : "Enter Zelle reference"}
+                    />
+                  </div>
+                </>
+              )}
+            </TabsContent>
+          </Tabs>
+          
+          <div className="flex justify-end space-x-2 mt-6">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
