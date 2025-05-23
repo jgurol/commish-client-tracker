@@ -67,38 +67,12 @@ export const AssociateUserDialog = ({
         return;
       }
 
-      // Look for a profile with the same email as the selected agent
-      const { data: agentProfileData, error: agentProfileError } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('email', selectedAgent.email)
-        .maybeSingle();
-
-      if (agentProfileError) {
-        console.error("Error finding agent profile:", agentProfileError);
-        toast({
-          title: "Association failed",
-          description: "Error looking up agent profile",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      // If no profile found with that email, we can't associate
-      if (!agentProfileData) {
-        toast({
-          title: "Association failed",
-          description: "No profile found for the selected agent. The agent may need to sign up first.",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      // Now update the user's profile with the agent's profile ID
+      // Update the user's profile with the agent ID directly
+      // We'll store the agent's ID, not a profile ID
       const { error } = await supabase
         .from('profiles')
         .update({ 
-          associated_agent_id: agentProfileData.id,
+          associated_agent_id: selectedAgentId, // Use the agent ID directly
           is_associated: true
         })
         .eq('id', user.id);
@@ -118,7 +92,7 @@ export const AssociateUserDialog = ({
 
       const updatedUser = {
         ...user,
-        associated_agent_id: agentProfileData.id,
+        associated_agent_id: selectedAgentId,
         associated_agent_name: associatedAgentName,
         is_associated: true,
       };
@@ -164,7 +138,7 @@ export const AssociateUserDialog = ({
                 {agents.length > 0 ? (
                   agents.map((agent) => (
                     <SelectItem key={agent.id} value={agent.id}>
-                      {agent.company_name || 'No Company'}
+                      {agent.first_name} {agent.last_name} - {agent.company_name || 'No Company'}
                     </SelectItem>
                   ))
                 ) : (
