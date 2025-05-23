@@ -14,6 +14,7 @@ export interface Client {
   firstName: string;
   lastName: string;
   name: string; // Keeping for compatibility
+  companyName?: string; // Added company name field
   email: string;
   commissionRate: number;
   totalEarnings: number;
@@ -36,6 +37,7 @@ const Index = () => {
       firstName: "Acme",
       lastName: "Corporation",
       name: "Acme Corporation",
+      companyName: "Acme Inc.",
       email: "contact@acme.com",
       commissionRate: 5,
       totalEarnings: 12500,
@@ -46,6 +48,7 @@ const Index = () => {
       firstName: "Tech",
       lastName: "Solutions",
       name: "Tech Solutions Ltd",
+      companyName: "TechSol Group",
       email: "admin@techsolutions.com",
       commissionRate: 7.5,
       totalEarnings: 18750,
@@ -56,6 +59,7 @@ const Index = () => {
       firstName: "Global",
       lastName: "Enterprises",
       name: "Global Enterprises",
+      companyName: "Global Holdings",
       email: "info@globalent.com",
       commissionRate: 6,
       totalEarnings: 9200,

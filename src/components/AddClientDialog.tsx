@@ -15,6 +15,7 @@ interface AddClientDialogProps {
 export const AddClientDialog = ({ open, onOpenChange, onAddClient }: AddClientDialogProps) => {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
+  const [companyName, setCompanyName] = useState("");
   const [email, setEmail] = useState("");
   const [commissionRate, setCommissionRate] = useState("");
 
@@ -25,6 +26,7 @@ export const AddClientDialog = ({ open, onOpenChange, onAddClient }: AddClientDi
         firstName,
         lastName,
         name: `${firstName} ${lastName}`, // Generate full name from first and last name
+        companyName,
         email,
         commissionRate: parseFloat(commissionRate),
         totalEarnings: 0,
@@ -32,6 +34,7 @@ export const AddClientDialog = ({ open, onOpenChange, onAddClient }: AddClientDi
       });
       setFirstName("");
       setLastName("");
+      setCompanyName("");
       setEmail("");
       setCommissionRate("");
       onOpenChange(false);
@@ -66,6 +69,15 @@ export const AddClientDialog = ({ open, onOpenChange, onAddClient }: AddClientDi
               onChange={(e) => setLastName(e.target.value)}
               placeholder="Enter last name"
               required
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="companyName">Company Name</Label>
+            <Input
+              id="companyName"
+              value={companyName}
+              onChange={(e) => setCompanyName(e.target.value)}
+              placeholder="Enter company name (optional)"
             />
           </div>
           <div className="space-y-2">

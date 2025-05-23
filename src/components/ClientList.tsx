@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Edit, Trash2, Mail, Percent, DollarSign, Users } from "lucide-react";
+import { Edit, Trash2, Mail, Percent, DollarSign, Users, Building } from "lucide-react";
 import { Client } from "@/pages/Index";
 import { EditClientDialog } from "@/components/EditClientDialog";
 
@@ -43,6 +43,12 @@ export const ClientList = ({ clients, onUpdateClient, onDeleteClient }: ClientLi
                         {client.commissionRate}% commission
                       </Badge>
                     </div>
+                    {client.companyName && (
+                      <div className="flex items-center gap-1 mb-1 text-sm text-gray-600">
+                        <Building className="w-4 h-4" />
+                        {client.companyName}
+                      </div>
+                    )}
                     <div className="flex flex-col sm:flex-row gap-4 text-sm text-gray-600">
                       <div className="flex items-center gap-1">
                         <Mail className="w-4 h-4" />

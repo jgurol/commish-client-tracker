@@ -16,12 +16,14 @@ interface EditClientDialogProps {
 export const EditClientDialog = ({ client, open, onOpenChange, onUpdateClient }: EditClientDialogProps) => {
   const [firstName, setFirstName] = useState(client.firstName || "");
   const [lastName, setLastName] = useState(client.lastName || "");
+  const [companyName, setCompanyName] = useState(client.companyName || "");
   const [email, setEmail] = useState(client.email);
   const [commissionRate, setCommissionRate] = useState(client.commissionRate.toString());
 
   useEffect(() => {
     setFirstName(client.firstName || "");
     setLastName(client.lastName || "");
+    setCompanyName(client.companyName || "");
     setEmail(client.email);
     setCommissionRate(client.commissionRate.toString());
   }, [client]);
@@ -34,6 +36,7 @@ export const EditClientDialog = ({ client, open, onOpenChange, onUpdateClient }:
         firstName,
         lastName,
         name: `${firstName} ${lastName}`, // Update full name from first and last name
+        companyName,
         email,
         commissionRate: parseFloat(commissionRate),
       });
@@ -69,6 +72,15 @@ export const EditClientDialog = ({ client, open, onOpenChange, onUpdateClient }:
               onChange={(e) => setLastName(e.target.value)}
               placeholder="Enter last name"
               required
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="edit-companyName">Company Name</Label>
+            <Input
+              id="edit-companyName"
+              value={companyName}
+              onChange={(e) => setCompanyName(e.target.value)}
+              placeholder="Enter company name (optional)"
             />
           </div>
           <div className="space-y-2">
