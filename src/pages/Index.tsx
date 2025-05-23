@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -26,17 +25,18 @@ export interface Client {
   clients?: ClientInfo[]; // Linked clients to this agent
 }
 
-// New interface for client information
+// Update the ClientInfo type to match the database schema
 export interface ClientInfo {
   id: string;
-  companyName: string;
-  contactName?: string;
-  email?: string;
-  phone?: string;
-  address?: string;
-  notes?: string;
-  createdAt: string;
-  updatedAt: string;
+  user_id: string;
+  company_name: string;
+  contact_name: string | null;
+  email: string | null;
+  phone: string | null;
+  address: string | null;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface Transaction {

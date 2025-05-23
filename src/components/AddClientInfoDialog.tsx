@@ -10,7 +10,7 @@ import { ClientInfo } from "@/pages/Index";
 interface AddClientInfoDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onAddClientInfo: (clientInfo: Omit<ClientInfo, "id" | "createdAt" | "updatedAt">) => void;
+  onAddClientInfo: (clientInfo: Omit<ClientInfo, "id" | "created_at" | "updated_at" | "user_id">) => void;
 }
 
 export const AddClientInfoDialog = ({ open, onOpenChange, onAddClientInfo }: AddClientInfoDialogProps) => {

@@ -60,7 +60,7 @@ const ClientManagement = () => {
   }, [user, toast]);
 
   // Function to add client info
-  const addClientInfo = async (newClientInfo: Omit<ClientInfo, "id" | "createdAt" | "updatedAt">) => {
+  const addClientInfo = async (newClientInfo: Omit<ClientInfo, "id" | "created_at" | "updated_at" | "user_id">) => {
     if (!user) return;
 
     const clientInfoToInsert = {
@@ -103,6 +103,12 @@ const ClientManagement = () => {
   // Function to update client info
   const updateClientInfo = async (updatedClientInfo: ClientInfo) => {
     if (!user) return;
+
+    // Check if this is a delete operation (special case)
+    if ((updatedClientInfo as any)._delete) {
+      setClientInfos(clientInfos.filter(ci => ci.id !== updatedClientInfo.id));
+      return;
+    }
 
     try {
       const { data, error } = await supabase
