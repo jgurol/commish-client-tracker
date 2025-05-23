@@ -2,6 +2,8 @@
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Button } from "@/components/ui/button";
+import { X } from "lucide-react";
 
 interface PaymentTabProps {
   isPaid: boolean;
@@ -75,13 +77,28 @@ export const PaymentTab = ({
 
       <div className="space-y-2">
         <Label htmlFor="commissionPaidDate">Commission Paid Date</Label>
-        <Input
-          id="commissionPaidDate"
-          type="date"
-          value={commissionPaidDate}
-          onChange={(e) => setCommissionPaidDate(e.target.value)}
-          placeholder="Leave blank if not yet paid"
-        />
+        <div className="flex gap-2">
+          <Input
+            id="commissionPaidDate"
+            type="date"
+            value={commissionPaidDate}
+            onChange={(e) => setCommissionPaidDate(e.target.value)}
+            placeholder="Leave blank if not yet paid"
+            className="flex-1"
+          />
+          {commissionPaidDate && (
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              onClick={() => setCommissionPaidDate("")}
+              className="shrink-0"
+              title="Clear commission paid date"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          )}
+        </div>
         <div className="text-xs text-gray-500">
           Leave blank if the commission has not been paid yet
         </div>
