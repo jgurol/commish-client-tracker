@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, TrendingUp, DollarSign, Calendar, CheckCircle, Clock, AlertCircle } from "lucide-react";
 import { Client, Transaction } from "@/pages/Index";
@@ -85,7 +84,7 @@ export const StatsCards = ({ clients, transactions }: StatsCardsProps) => {
           <Calendar className="h-4 w-4 text-orange-600" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold text-gray-900">${qualifiedCommissions.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
+          <div className="text-2xl font-bold text-red-600">${qualifiedCommissions.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
           <p className="text-xs text-gray-500">Paid invoices with unapproved commissions</p>
         </CardContent>
       </Card>
