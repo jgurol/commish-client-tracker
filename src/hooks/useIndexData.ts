@@ -160,6 +160,23 @@ export const useIndexData = () => {
       console.log('[DEBUG] - associatedAgentId:', associatedAgentId);
       console.log('[DEBUG] - user.id:', user.id);
       
+      // First, let's check the actual client_id of our target transaction
+      console.log('[DEBUG] Checking actual client_id of target transaction...');
+      const { data: targetTx, error: targetError } = await supabase
+        .from('transactions')
+        .select('id, client_id, user_id')
+        .eq('id', 'd0b91f93-75fd-4d3c-8c8c-b41c86f05eb1')
+        .single();
+      
+      if (targetError) {
+        console.log('[DEBUG] Target transaction query error:', targetError);
+      } else {
+        console.log('[DEBUG] Target transaction actual data:', targetTx);
+        console.log('[DEBUG] Target client_id:', targetTx?.client_id);
+        console.log('[DEBUG] Expected client_id:', associatedAgentId);
+        console.log('[DEBUG] Client IDs match:', targetTx?.client_id === associatedAgentId);
+      }
+      
       // Build the query with filtering logic
       let query = supabase.from('transactions').select('*');
       
@@ -171,9 +188,7 @@ export const useIndexData = () => {
         // NON-ADMIN USERS: Only see transactions where client_id matches their associated agent
         if (associatedAgentId) {
           console.log('[DEBUG] Non-admin user - filtering by client_id =', associatedAgentId);
-          console.log('[DEBUG] Query before filter:', query);
           query = query.eq('client_id', associatedAgentId);
-          console.log('[DEBUG] Query after filter:', query);
         } else {
           console.log('[DEBUG] Non-admin user without agent ID - returning empty results');
           // For non-admin users without agent ID, return empty results
