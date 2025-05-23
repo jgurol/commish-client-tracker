@@ -1,3 +1,4 @@
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, TrendingUp, DollarSign, Calendar, CheckCircle, Clock, AlertCircle } from "lucide-react";
 import { Client, Transaction } from "@/pages/Index";
@@ -39,7 +40,7 @@ export const StatsCards = ({ clients, transactions }: StatsCardsProps) => {
     
   const unapprovedCommissions = transactions && transactions.length > 0
     ? transactions
-        .filter(t => !t.isApproved && t.commission)
+        .filter(t => !t.isApproved && !t.isPaid && t.commission)
         .reduce((sum, t) => sum + (t.commission || 0), 0)
     : 0;
 
