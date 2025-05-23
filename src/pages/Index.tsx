@@ -212,86 +212,24 @@ const IndexPage = () => {
     }
   };
 
-  // Function to fetch transactions from Supabase
+  // Function to fetch transactions from Supabase - SHOWING ALL TRANSACTIONS
   const fetchTransactions = async () => {
     if (!user) return;
     
     try {
       setIsLoading(true);
       
-      console.log("=== TRANSACTION DEBUGGING ===");
-      console.log("Fetching transactions for user:", user.id);
+      console.log("=== FETCHING ALL TRANSACTIONS (NO FILTERING) ===");
+      console.log("Current user:", user.id);
       console.log("User email:", user.email);
       console.log("User isAdmin:", isAdmin);
       console.log("Associated agent ID:", associatedAgentId);
       
-      // Check all tables for debugging
-      console.log("=== CHECKING ALL RELEVANT TABLES ===");
-      
-      // Check agents table
-      const { data: allAgents, error: agentsError } = await supabase
-        .from('agents')
-        .select('*');
-      console.log("ALL agents in database:", allAgents);
-      
-      // Check client_info table
-      const { data: allClientInfos, error: clientInfoError } = await supabase
-        .from('client_info')
-        .select('*');
-      console.log("ALL client_info in database:", allClientInfos);
-      
-      // Check ALL transactions in the database
-      const { data: allTransactions, error: allError } = await supabase
+      // Get ALL transactions without any filtering
+      const { data, error } = await supabase
         .from('transactions')
         .select('*')
         .order('date', { ascending: false });
-      
-      console.log("ALL transactions in database:", allTransactions);
-      console.log("Number of total transactions:", allTransactions?.length || 0);
-      
-      if (allTransactions && allTransactions.length > 0) {
-        console.log("=== TRANSACTION DETAILS ===");
-        allTransactions.forEach((trans, index) => {
-          console.log(`Transaction ${index + 1}:`, {
-            id: trans.id,
-            client_id: trans.client_id,
-            amount: trans.amount,
-            description: trans.description,
-            user_id: trans.user_id,
-            date: trans.date
-          });
-        });
-        
-        console.log("=== FILTERING LOGIC ===");
-        console.log("Looking for transactions with client_id matching:", associatedAgentId);
-        
-        const matchingTransactions = allTransactions.filter(t => t.client_id === associatedAgentId);
-        console.log("Matching transactions found:", matchingTransactions.length);
-        console.log("Matching transactions:", matchingTransactions);
-      } else {
-        console.log("❌ NO TRANSACTIONS FOUND IN DATABASE!");
-        console.log("This means the $2000 transaction hasn't been created yet.");
-      }
-      
-      let query = supabase.from('transactions').select('*');
-      
-      // If user is not admin and has an associated agent, filter by that agent's ID
-      if (!isAdmin && associatedAgentId) {
-        console.log("Filtering transactions for associated agent ID:", associatedAgentId);
-        query = query.eq('client_id', associatedAgentId);
-      } else if (!isAdmin) {
-        // If user is not admin but has no associated agent, show no transactions
-        console.log("User is not admin and has no associated agent, showing no transactions");
-        setTransactions([]);
-        setIsLoading(false);
-        return;
-      } else {
-        console.log("User is admin, showing all transactions");
-      }
-      
-      query = query.order('date', { ascending: false });
-      
-      const { data, error } = await query;
 
       if (error) {
         console.error('Error fetching transactions:', error);
@@ -303,8 +241,24 @@ const IndexPage = () => {
         return;
       }
 
-      console.log("Fetched transactions after filtering:", data);
-      console.log("Number of filtered transactions:", data?.length || 0);
+      console.log("ALL TRANSACTIONS IN DATABASE:", data);
+      console.log("Total number of transactions:", data?.length || 0);
+
+      // Log each transaction in detail
+      if (data && data.length > 0) {
+        console.log("=== TRANSACTION DETAILS ===");
+        data.forEach((trans, index) => {
+          console.log(`Transaction ${index + 1}:`, {
+            id: trans.id,
+            client_id: trans.client_id,
+            amount: trans.amount,
+            description: trans.description,
+            user_id: trans.user_id,
+            date: trans.date,
+            client_info_id: trans.client_info_id
+          });
+        });
+      }
 
       // Map database transactions to our Transaction interface
       const mappedTransactions = await Promise.all(data?.map(async (transaction) => {
@@ -665,6 +619,16 @@ const IndexPage = () => {
       <div className="container mx-auto px-4 py-8 max-w-7xl">
         {/* Header */}
         <Header />
+
+        {/* Add a notice that we're showing all transactions */}
+        <div className="mb-4 p-4 bg-yellow-100 border border-yellow-400 rounded-lg">
+          <p className="text-yellow-800 font-medium">
+            🔍 Debug Mode: Showing ALL transactions in the database (no filtering applied)
+          </p>
+          <p className="text-yellow-700 text-sm mt-1">
+            Total transactions found: {transactions.length}
+          </p>
+        </div>
 
         {/* Stats Cards */}
         <StatsCards 
