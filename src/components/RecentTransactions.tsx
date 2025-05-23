@@ -44,26 +44,14 @@ export const RecentTransactions = ({
   // State for the approval warning dialog
   const [approvalWarningOpen, setApprovalWarningOpen] = useState(false);
   const [pendingApprovalId, setPendingApprovalId] = useState<string | null>(null);
-  // Changed default value to false for includePaidCommissions
+  
+  // These states are kept for UI functionality but no longer filter transactions
   const [includePaidCommissions, setIncludePaidCommissions] = useState(false);
-  // Keep showOnlyPaidInvoices as true
   const [showOnlyPaidInvoices, setShowOnlyPaidInvoices] = useState(true);
 
-  // Filter transactions based on the checkbox states
-  const filteredTransactions = transactions
-    .filter(transaction => {
-      // Filter by paid commissions
-      if (!includePaidCommissions && transaction.commissionPaidDate) {
-        return false;
-      }
-      
-      // Filter by paid invoices
-      if (showOnlyPaidInvoices && !transaction.isPaid) {
-        return false;
-      }
-      
-      return true;
-    });
+  // Using all transactions without filtering
+  // This is the only change needed - remove the filtering logic and use the transactions array directly
+  const filteredTransactions = transactions;
 
   const handleEditClick = (transaction: Transaction) => {
     setCurrentTransaction(transaction);
