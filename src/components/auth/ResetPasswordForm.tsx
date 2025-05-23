@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { InfoCircle } from "lucide-react";
+import { InfoIcon } from "lucide-react";
 
 const resetPasswordSchema = z.object({
   email: z.string().email({ message: "Invalid email address" }),
@@ -47,7 +47,7 @@ export const ResetPasswordForm: React.FC<ResetPasswordFormProps> = ({
     <>
       <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-md">
         <div className="flex items-start gap-2">
-          <InfoCircle className="h-5 w-5 text-blue-500 mt-0.5" />
+          <InfoIcon className="h-5 w-5 text-blue-500 mt-0.5" />
           <p className="text-sm text-blue-700">
             Enter your email address below and we'll send you a password reset link.
             Make sure to check your spam folder if you don't see the email.
