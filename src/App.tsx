@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -24,11 +25,6 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
     return <Navigate to="/auth" />;
   }
 
-  // If the user is an admin, they always have access
-  if (isAdmin) {
-    return <>{children}</>;
-  }
-
   // If the user is logged in but not associated (i.e., an agent without association)
   if (!isAssociated) {
     return <Navigate to="/fix-account" />;
@@ -38,8 +34,6 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 };
 
 const AppRoutes = () => {
-  const { isAdmin } = useAuth();
-  
   return (
     <Routes>
       <Route path="/auth" element={<Auth />} />
