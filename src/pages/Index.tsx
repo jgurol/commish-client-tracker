@@ -212,27 +212,49 @@ const IndexPage = () => {
     }
   };
 
-  // Function to fetch transactions from Supabase - SHOWING ALL TRANSACTIONS
+  // Function to fetch transactions from Supabase - ENHANCED DEBUGGING
   const fetchTransactions = async () => {
-    if (!user) return;
+    if (!user) {
+      console.log("❌ No user found, skipping transaction fetch");
+      return;
+    }
     
     try {
       setIsLoading(true);
       
-      console.log("=== FETCHING ALL TRANSACTIONS (NO FILTERING) ===");
+      console.log("=== ENHANCED TRANSACTION DEBUGGING ===");
       console.log("Current user:", user.id);
       console.log("User email:", user.email);
       console.log("User isAdmin:", isAdmin);
       console.log("Associated agent ID:", associatedAgentId);
       
+      // Test basic database connection first
+      console.log("🔍 Testing basic database connection...");
+      const { count, error: countError } = await supabase
+        .from('transactions')
+        .select('*', { count: 'exact', head: true });
+        
+      if (countError) {
+        console.error("❌ Error getting transaction count:", countError);
+      } else {
+        console.log("✅ Total transactions in database:", count);
+      }
+      
       // Get ALL transactions without any filtering - REMOVED ALL FILTERS
+      console.log("🔍 Fetching ALL transactions...");
       const { data, error } = await supabase
         .from('transactions')
         .select('*')
         .order('date', { ascending: false });
 
       if (error) {
-        console.error('Error fetching transactions:', error);
+        console.error('❌ Error fetching transactions:', error);
+        console.error('Error details:', {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code
+        });
         toast({
           title: "Failed to load transactions",
           description: error.message,
@@ -241,12 +263,12 @@ const IndexPage = () => {
         return;
       }
 
-      console.log("ALL TRANSACTIONS IN DATABASE:", data);
-      console.log("Total number of transactions:", data?.length || 0);
+      console.log("✅ Raw transaction data from database:", data);
+      console.log("✅ Number of transactions fetched:", data?.length || 0);
 
       // Log each transaction in detail
       if (data && data.length > 0) {
-        console.log("=== TRANSACTION DETAILS ===");
+        console.log("=== INDIVIDUAL TRANSACTION DETAILS ===");
         data.forEach((trans, index) => {
           console.log(`Transaction ${index + 1}:`, {
             id: trans.id,
@@ -255,26 +277,32 @@ const IndexPage = () => {
             description: trans.description,
             user_id: trans.user_id,
             date: trans.date,
-            client_info_id: trans.client_info_id
+            client_info_id: trans.client_info_id,
+            is_paid: trans.is_paid,
+            commission: trans.commission
           });
         });
       }
 
       // Map database transactions to our Transaction interface
+      console.log("🔄 Mapping transactions...");
+      console.log("Available clients for mapping:", clients.map(c => ({ id: c.id, name: c.name })));
+      
       const mappedTransactions = await Promise.all(data?.map(async (transaction) => {
-        console.log("Processing transaction:", transaction.id, "for client_id:", transaction.client_id);
+        console.log(`🔄 Processing transaction ${transaction.id} for client_id: ${transaction.client_id}`);
         
         // Find client for this transaction
         const client = clients.find(c => c.id === transaction.client_id);
-        console.log("Found client for transaction:", client?.name || "Not found");
+        console.log(`Client found for transaction ${transaction.id}:`, client?.name || "❌ NOT FOUND");
         
         // Find client info for this transaction if available
         let clientInfo = null;
         if (transaction.client_info_id) {
           clientInfo = clientInfos.find(ci => ci.id === transaction.client_info_id);
+          console.log(`Client info found for transaction ${transaction.id}:`, clientInfo?.company_name || "❌ NOT FOUND");
         }
 
-        return {
+        const mappedTransaction = {
           id: transaction.id,
           clientId: transaction.client_id,
           clientName: client?.name || "Unknown Agent",
@@ -295,13 +323,18 @@ const IndexPage = () => {
           clientCompanyName: clientInfo?.company_name,
           commissionPaidDate: transaction.commission_paid_date
         };
+        
+        console.log(`✅ Mapped transaction ${transaction.id}:`, mappedTransaction);
+        return mappedTransaction;
       }) || []);
 
-      console.log("Final mapped transactions:", mappedTransactions);
-      console.log("=== END TRANSACTION DEBUGGING ===");
+      console.log("✅ Final mapped transactions:", mappedTransactions);
+      console.log("✅ Total mapped transactions:", mappedTransactions.length);
+      console.log("=== END ENHANCED TRANSACTION DEBUGGING ===");
+      
       setTransactions(mappedTransactions);
     } catch (err) {
-      console.error('Error in transaction fetch:', err);
+      console.error('💥 Exception in transaction fetch:', err);
       toast({
         title: "Error",
         description: "Failed to load transaction data",
@@ -620,13 +653,13 @@ const IndexPage = () => {
         {/* Header */}
         <Header />
 
-        {/* Add a notice that we're showing all transactions */}
-        <div className="mb-4 p-4 bg-yellow-100 border border-yellow-400 rounded-lg">
-          <p className="text-yellow-800 font-medium">
-            🔍 Debug Mode: Showing ALL transactions in the database (no filtering applied)
+        {/* Enhanced debugging notice */}
+        <div className="mb-4 p-4 bg-blue-100 border border-blue-400 rounded-lg">
+          <p className="text-blue-800 font-medium">
+            🔍 Enhanced Debug Mode: Detailed transaction fetching logs in console
           </p>
-          <p className="text-yellow-700 text-sm mt-1">
-            Total transactions found: {transactions.length}
+          <p className="text-blue-700 text-sm mt-1">
+            Transactions displayed: {transactions.length} | User: {user?.email} | Admin: {isAdmin ? 'Yes' : 'No'}
           </p>
         </div>
 
