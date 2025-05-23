@@ -103,6 +103,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          associated_agent_id: string | null
           avatar_url: string | null
           created_at: string
           email: string
@@ -113,6 +114,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          associated_agent_id?: string | null
           avatar_url?: string | null
           created_at?: string
           email: string
@@ -123,6 +125,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          associated_agent_id?: string | null
           avatar_url?: string | null
           created_at?: string
           email?: string
@@ -132,7 +135,15 @@ export type Database = {
           role?: Database["public"]["Enums"]["user_role"]
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_associated_agent_id_fkey"
+            columns: ["associated_agent_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       transactions: {
         Row: {
@@ -229,6 +240,7 @@ export type Database = {
           role: string
           is_associated: boolean
           created_at: string
+          associated_agent_name: string
         }[]
       }
       get_current_user_role: {

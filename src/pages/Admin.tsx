@@ -24,6 +24,8 @@ interface UserProfile {
   role: string; // This is a string type from the RPC function
   is_associated: boolean;
   created_at: string;
+  associated_agent_name: string | null;
+  associated_agent_id: string | null;
 }
 
 export default function Admin() {
@@ -32,6 +34,7 @@ export default function Admin() {
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingUser, setEditingUser] = useState<UserProfile | null>(null);
+  const [agents, setAgents] = useState<UserProfile[]>([]);
 
   // Redirect non-admin users
   if (!isAdmin) {
@@ -51,6 +54,10 @@ export default function Admin() {
 
       if (error) throw error;
       setUsers(data || []);
+      
+      // Filter out agents for the association dropdown
+      const agentsList = data?.filter(u => u.role === 'agent') || [];
+      setAgents(agentsList);
     } catch (error: any) {
       console.error('Error fetching users:', error);
       toast({
@@ -65,16 +72,23 @@ export default function Admin() {
 
   const updateUserAssociation = async (userId: string, associate: boolean) => {
     try {
+      // If we're disassociating, also remove the associated_agent_id
+      const updates = associate 
+        ? { is_associated: associate }
+        : { is_associated: associate, associated_agent_id: null };
+        
       const { error } = await supabase
         .from('profiles')
-        .update({ is_associated: associate })
+        .update(updates)
         .eq('id', userId);
 
       if (error) throw error;
 
       // Update local state
       setUsers(users.map(u => 
-        u.id === userId ? { ...u, is_associated: associate } : u
+        u.id === userId 
+          ? { ...u, is_associated: associate, associated_agent_id: associate ? u.associated_agent_id : null } 
+          : u
       ));
 
       toast({
@@ -95,36 +109,11 @@ export default function Admin() {
     setEditingUser(user);
   };
 
-  const handleUpdateUser = async (updatedUser: UserProfile) => {
-    try {
-      // Use the new RPC function instead of directly updating the profiles table
-      const { error } = await supabase
-        .rpc('update_user_profile', {
-          _user_id: updatedUser.id,
-          _email: updatedUser.email,
-          _full_name: updatedUser.full_name || '',
-          _role: updatedUser.role
-        });
-
-      if (error) throw error;
-
-      // Update local state
-      setUsers(users.map(u => 
-        u.id === updatedUser.id ? updatedUser : u
-      ));
-
-      toast({
-        title: "Success",
-        description: "User updated successfully",
-      });
-    } catch (error: any) {
-      console.error('Error updating user:', error);
-      toast({
-        title: "Error",
-        description: `Failed to update user: ${error.message}`,
-        variant: "destructive"
-      });
-    }
+  const handleUpdateUser = (updatedUser: UserProfile) => {
+    // Update local state
+    setUsers(users.map(u => 
+      u.id === updatedUser.id ? updatedUser : u
+    ));
 
     // Close the dialog
     setEditingUser(null);
@@ -152,13 +141,14 @@ export default function Admin() {
                 <TableHead>Email</TableHead>
                 <TableHead>Role</TableHead>
                 <TableHead>Status</TableHead>
+                <TableHead>Associated With</TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {users.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center py-8">
+                  <TableCell colSpan={6} className="text-center py-8">
                     No users found
                   </TableCell>
                 </TableRow>
@@ -190,6 +180,15 @@ export default function Admin() {
                           <UserX className="w-3 h-3" />
                           Not Associated
                         </span>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {userProfile.associated_agent_name ? (
+                        <span className="px-2 py-1 bg-blue-50 text-blue-700 rounded text-xs">
+                          {userProfile.associated_agent_name}
+                        </span>
+                      ) : (
+                        <span className="text-gray-500 text-xs">-</span>
                       )}
                     </TableCell>
                     <TableCell>
@@ -242,6 +241,7 @@ export default function Admin() {
       {editingUser && (
         <EditUserDialog
           user={editingUser}
+          agents={agents}
           open={!!editingUser}
           onOpenChange={(open) => {
             if (!open) setEditingUser(null);
