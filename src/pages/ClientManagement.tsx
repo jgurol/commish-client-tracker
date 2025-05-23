@@ -33,7 +33,7 @@ const ClientManagement = () => {
         setIsLoading(true);
         console.log("Fetching all client info for user:", user.id);
         
-        // Fetch all clients without any filtering
+        // Always fetch all clients without any filtering - important for both admin and agent views
         const { data, error } = await supabase
           .from('client_info')
           .select('*')
@@ -48,6 +48,7 @@ const ClientManagement = () => {
           });
         } else {
           console.log("Fetched client data:", data);
+          // Ensure we're setting all client data regardless of user role
           setClientInfos(data || []);
           await fetchAgentNames();
         }

@@ -45,7 +45,6 @@ export const ClientInfoList = ({ clientInfos, onUpdateClientInfo, agentMapping =
           variant: "destructive"
         });
       } else {
-        // Filter out the deleted client from the local state
         toast({
           title: "Client deleted",
           description: "Client has been deleted successfully.",
@@ -53,8 +52,6 @@ export const ClientInfoList = ({ clientInfos, onUpdateClientInfo, agentMapping =
         });
         
         // Update the client list in the parent component
-        const updatedClients = clientInfos.filter(client => client.id !== clientId);
-        // We're indirectly updating by passing filtered data back up to the parent
         onUpdateClientInfo({
           ...clientInfos.find(client => client.id === clientId)!, 
           _delete: true
