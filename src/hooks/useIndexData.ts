@@ -201,6 +201,15 @@ export const useIndexData = () => {
 
       console.log('[DEBUG] Raw transaction data from DB:', data);
       console.log('[DEBUG] Number of transactions returned:', data?.length || 0);
+      
+      // Log all transaction IDs and their client_ids for debugging
+      if (data && data.length > 0) {
+        console.log('[DEBUG] All transaction IDs and client_ids returned:');
+        data.forEach((transaction, index) => {
+          console.log(`[DEBUG] Transaction ${index + 1}: ID=${transaction.id}, client_id=${transaction.client_id}`);
+        });
+      }
+      
       console.log('[DEBUG] Looking for transaction d0b91f93-75fd-4d3c-8c8c-b41c86f05eb1 in raw data:', 
         data?.find(t => t.id === 'd0b91f93-75fd-4d3c-8c8c-b41c86f05eb1'));
 
