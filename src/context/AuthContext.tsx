@@ -1,4 +1,3 @@
-
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -84,7 +83,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       console.log("Fetching user profile for ID:", userId);
       
-      // Use a more reliable direct RPC call instead of querying the profiles table
+      // Use the security definer RPC function we just created
       const { data, error } = await supabase.rpc('get_user_profile', {
         user_id: userId
       });
@@ -113,14 +112,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const profileData = data[0];
         const isUserAdmin = profileData.role === 'admin';
         setIsAdmin(isUserAdmin);
-
-        // If the user is an admin, they're always considered "associated"
-        if (isUserAdmin) {
-          setIsAssociated(true);
-        } else {
-          // For regular agents, check the is_associated flag
-          setIsAssociated(profileData.is_associated || false);
-        }
+        setIsAssociated(profileData.is_associated || false);
       } else {
         console.log("No profile data found for user", userId);
         // No profile data found, set safe defaults
@@ -135,7 +127,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  // New function to refresh user profile data
+  // Function to refresh user profile data
   const refreshUserProfile = async () => {
     if (user?.id) {
       return await fetchUserProfile(user.id);

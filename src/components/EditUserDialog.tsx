@@ -3,12 +3,13 @@ import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Form, FormControl, FormField, FormItem, FormLabel } from "@/components/ui/form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 interface UserProfile {
   id: string;
@@ -43,6 +44,7 @@ export const EditUserDialog = ({
   onOpenChange, 
   onUpdateUser 
 }: EditUserDialogProps) => {
+  const { toast } = useToast();
   
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -62,15 +64,48 @@ export const EditUserDialog = ({
     });
   }, [user, form]);
 
-  const onSubmit = (data: FormValues) => {
-    const updatedUser = {
-      ...user,
-      full_name: data.full_name,
-      email: data.email,
-      role: data.role,
-    };
-    
-    onUpdateUser(updatedUser);
+  const onSubmit = async (data: FormValues) => {
+    try {
+      // Update user profile in Supabase using the RPC function
+      const { error } = await supabase.rpc('update_user_profile', {
+        _user_id: user.id,
+        _email: data.email,
+        _full_name: data.full_name,
+        _role: data.role
+      });
+
+      if (error) {
+        console.error("Error updating user profile:", error);
+        toast({
+          title: "Update failed",
+          description: error.message,
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const updatedUser = {
+        ...user,
+        full_name: data.full_name,
+        email: data.email,
+        role: data.role,
+      };
+      
+      toast({
+        title: "User updated",
+        description: "User profile has been updated successfully",
+      });
+
+      onUpdateUser(updatedUser);
+      onOpenChange(false);
+    } catch (error: any) {
+      console.error("Exception updating user:", error);
+      toast({
+        title: "Update error",
+        description: error.message || "An unexpected error occurred",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -124,11 +159,11 @@ export const EditUserDialog = ({
                     >
                       <div className="flex items-center space-x-2">
                         <RadioGroupItem value="admin" id="admin" />
-                        <Label htmlFor="admin" className="cursor-pointer">Admin</Label>
+                        <FormLabel htmlFor="admin" className="cursor-pointer">Admin</FormLabel>
                       </div>
                       <div className="flex items-center space-x-2">
                         <RadioGroupItem value="agent" id="agent" />
-                        <Label htmlFor="agent" className="cursor-pointer">Agent</Label>
+                        <FormLabel htmlFor="agent" className="cursor-pointer">Agent</FormLabel>
                       </div>
                     </RadioGroup>
                   </FormControl>

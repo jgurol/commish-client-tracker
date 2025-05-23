@@ -5,7 +5,7 @@ import { useAuth } from '@/context/AuthContext';
 import { LogOut, User, Shield } from 'lucide-react';
 
 export const Header = () => {
-  const { user, signOut, isAdmin } = useAuth();
+  const { user, signOut, isAdmin, refreshUserProfile } = useAuth();
   
   return (
     <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
@@ -33,7 +33,10 @@ export const Header = () => {
         </div>
         
         <Button 
-          onClick={() => signOut()}
+          onClick={() => {
+            // Refresh user profile before signing out to ensure up-to-date permissions
+            refreshUserProfile().then(() => signOut());
+          }}
           variant="outline"
           className="flex items-center gap-2"
         >
