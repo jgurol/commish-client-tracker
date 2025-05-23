@@ -212,7 +212,7 @@ const IndexPage = () => {
     }
   };
 
-  // FIXED function to properly filter transactions based on user role
+  // FIXED function to properly filter transactions based on user role and agent association
   const fetchTransactions = async () => {
     if (!user) {
       console.log("❌ No user found, skipping transaction fetch");
@@ -250,7 +250,7 @@ const IndexPage = () => {
         console.log("🔍 Agent user - filtering by associated agent");
         if (associatedAgentId) {
           console.log("🔍 Filtering transactions for agent ID:", associatedAgentId);
-          // Filter transactions where client_id matches the associated agent ID
+          // FIXED: Filter transactions where client_id matches the associated agent ID
           query = query.eq('client_id', associatedAgentId);
         } else {
           console.log("❌ No associated agent ID found for user");
