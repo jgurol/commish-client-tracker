@@ -24,6 +24,27 @@ export const AddTransactionDialog = ({ open, onOpenChange, onAddTransaction, cli
   const [datePaid, setDatePaid] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("check");
   const [referenceNumber, setReferenceNumber] = useState("");
+  const [invoiceMonth, setInvoiceMonth] = useState("");
+  const [invoiceYear, setInvoiceYear] = useState("");
+
+  // Generate arrays for month and year options
+  const months = [
+    { value: "1", label: "January" },
+    { value: "2", label: "February" },
+    { value: "3", label: "March" },
+    { value: "4", label: "April" },
+    { value: "5", label: "May" },
+    { value: "6", label: "June" },
+    { value: "7", label: "July" },
+    { value: "8", label: "August" },
+    { value: "9", label: "September" },
+    { value: "10", label: "October" },
+    { value: "11", label: "November" },
+    { value: "12", label: "December" },
+  ];
+  
+  const currentYear = new Date().getFullYear();
+  const years = Array.from({ length: 5 }, (_, i) => currentYear - 2 + i);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,7 +60,9 @@ export const AddTransactionDialog = ({ open, onOpenChange, onAddTransaction, cli
           description,
           datePaid: datePaid || undefined,
           paymentMethod,
-          referenceNumber: referenceNumber || undefined
+          referenceNumber: referenceNumber || undefined,
+          invoiceMonth: invoiceMonth || undefined,
+          invoiceYear: invoiceYear || undefined
         });
         setClientId("");
         setAmount("");
@@ -48,15 +71,11 @@ export const AddTransactionDialog = ({ open, onOpenChange, onAddTransaction, cli
         setDatePaid("");
         setPaymentMethod("check");
         setReferenceNumber("");
+        setInvoiceMonth("");
+        setInvoiceYear("");
         onOpenChange(false);
       }
     }
-  };
-
-  // Find the client's company name based on clientId
-  const getClientCompanyName = (clientId: string) => {
-    const client = clients.find(c => c.id === clientId);
-    return client ? (client.companyName || client.name) : "";
   };
 
   return (
@@ -88,6 +107,39 @@ export const AddTransactionDialog = ({ open, onOpenChange, onAddTransaction, cli
                 Contact: {clients.find(c => c.id === clientId)?.name}
               </div>
             )}
+          </div>
+          <div className="space-y-2">
+            <Label>Invoice Period</Label>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Select value={invoiceMonth} onValueChange={setInvoiceMonth}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Month" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {months.map((month) => (
+                      <SelectItem key={month.value} value={month.value}>
+                        {month.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Select value={invoiceYear} onValueChange={setInvoiceYear}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Year" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {years.map((year) => (
+                      <SelectItem key={year} value={year.toString()}>
+                        {year}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
           </div>
           <div className="space-y-2">
             <Label htmlFor="amount">Amount ($)</Label>
