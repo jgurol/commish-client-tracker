@@ -1,3 +1,4 @@
+
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -12,6 +13,7 @@ interface AuthContextType {
   signOut: () => Promise<void>;
   isAdmin: boolean;
   isAssociated: boolean; // Added to track if an agent is associated
+  refreshUserProfile: () => Promise<void>; // New function to refresh user profile
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -46,6 +48,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, currentSession) => {
+        console.log("Auth state change event:", event);
         setSession(currentSession);
         setUser(currentSession?.user ?? null);
         
@@ -63,6 +66,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     // THEN check for existing session
     supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
+      console.log("Initial session check:", currentSession ? "Session exists" : "No session");
       setSession(currentSession);
       setUser(currentSession?.user ?? null);
       
@@ -141,6 +145,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  // New function to refresh user profile data
+  const refreshUserProfile = async () => {
+    if (user?.id) {
+      return await fetchUserProfile(user.id);
+    }
+  };
+
   const signIn = async (email: string, password: string) => {
     try {
       // Clean up existing auth state before signing in
@@ -154,7 +165,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         console.log('Sign out before login failed, continuing anyway');
       }
 
-      const { error, data } = await supabase.auth.signInWithPassword({ email, password });
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
       
       if (error) {
         toast({
@@ -164,9 +175,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         });
         throw error;
       }
-      
-      // Remove force set to true - let the fetchUserProfile determine association
-      // setIsAssociated(true);
       
       toast({
         title: "Login successful",
@@ -253,6 +261,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     signOut,
     isAdmin,
     isAssociated,
+    refreshUserProfile, // Add the new function to the context
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

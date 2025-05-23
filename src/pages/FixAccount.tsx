@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { Navigate } from "react-router-dom";
+import { Navigate, useNavigate } from "react-router-dom";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { AlertTriangle } from "lucide-react";
 
@@ -14,6 +14,7 @@ export default function FixAccount() {
   const [updating, setUpdating] = useState(false);
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const navigate = useNavigate();
   
   useEffect(() => {
     if (user?.email) {
@@ -39,6 +40,9 @@ export default function FixAccount() {
         title: "Success",
         description: "Your account has been updated to admin. Please sign out and back in.",
       });
+      
+      // Sign out and redirect to auth page after successful update
+      await signOut();
     } catch (error: any) {
       console.error("Error updating user:", error);
       setError(`Failed to update account: ${error.message}`);
@@ -70,6 +74,9 @@ export default function FixAccount() {
         title: "Success",
         description: "Your account has been associated. Please sign out and back in.",
       });
+      
+      // Sign out and redirect to auth page after successful update
+      await signOut();
     } catch (error: any) {
       console.error("Error updating user:", error);
       setError(`Failed to update account: ${error.message}`);
