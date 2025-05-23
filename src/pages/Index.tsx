@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -196,13 +195,20 @@ const Index = () => {
   };
 
   const addTransaction = (transaction: Omit<Transaction, "id">) => {
+    // Find the client to get their commission rate
+    const client = clients.find(c => c.id === transaction.clientId);
+    
+    // Calculate commission based on client's commission rate
+    const commissionRate = client ? client.commissionRate : 0;
+    const commissionAmount = transaction.amount * (commissionRate / 100);
+    
     // Process clientInfoId to handle the "none" value
     const processedTransaction = {
       ...transaction,
       clientInfoId: transaction.clientInfoId === "none" ? undefined : transaction.clientInfoId,
       id: Date.now().toString(),
-      // Calculate commission based on client's commission rate
-      commission: transaction.amount * (clients.find(c => c.id === transaction.clientId)?.commissionRate || 0) / 100,
+      // Set calculated commission based on client's rate
+      commission: commissionAmount,
       isApproved: false, // Default to not approved
     };
     
@@ -228,10 +234,13 @@ const Index = () => {
       clientInfoId: updatedTransaction.clientInfoId === "none" ? undefined : updatedTransaction.clientInfoId,
     };
     
-    // If commission is not set, calculate it based on client rate
-    if (processedTransaction.commission === undefined) {
-      processedTransaction.commission = processedTransaction.amount * 
-        (clients.find(c => c.id === processedTransaction.clientId)?.commissionRate || 0) / 100;
+    // If we need to recalculate the commission (e.g., if amount or client changed)
+    if (updatedTransaction.clientId) {
+      const client = clients.find(c => c.id === updatedTransaction.clientId);
+      if (client) {
+        // Recalculate commission based on the client's rate and new amount
+        processedTransaction.commission = updatedTransaction.amount * (client.commissionRate / 100);
+      }
     }
     
     setTransactions(transactions.map(transaction => {

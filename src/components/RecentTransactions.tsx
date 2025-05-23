@@ -138,7 +138,7 @@ export const RecentTransactions = ({
                       )}
                     </div>
                     
-                    {/* New commission section */}
+                    {/* Commission section with proper styling based on approval status */}
                     <div className="flex items-center justify-between mt-3 pt-2 border-t border-gray-100">
                       <div className={`font-medium ${transaction.isApproved ? 'text-green-600' : 'text-gray-500'}`}>
                         Commission: ${transaction.commission?.toFixed(2) || '0.00'}
