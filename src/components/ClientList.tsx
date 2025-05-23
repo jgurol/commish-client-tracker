@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Edit, Trash2, Mail, Percent, DollarSign } from "lucide-react";
+import { Edit, Trash2, Mail, Percent, DollarSign, Users } from "lucide-react";
 import { Client } from "@/pages/Index";
 import { EditClientDialog } from "@/components/EditClientDialog";
 

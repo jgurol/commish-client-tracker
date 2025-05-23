@@ -13,21 +13,25 @@ interface AddClientDialogProps {
 }
 
 export const AddClientDialog = ({ open, onOpenChange, onAddClient }: AddClientDialogProps) => {
-  const [name, setName] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [commissionRate, setCommissionRate] = useState("");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (name && email && commissionRate) {
+    if (firstName && lastName && email && commissionRate) {
       onAddClient({
-        name,
+        firstName,
+        lastName,
+        name: `${firstName} ${lastName}`, // Generate full name from first and last name
         email,
         commissionRate: parseFloat(commissionRate),
         totalEarnings: 0,
         lastPayment: new Date().toISOString().split('T')[0]
       });
-      setName("");
+      setFirstName("");
+      setLastName("");
       setEmail("");
       setCommissionRate("");
       onOpenChange(false);
@@ -45,12 +49,22 @@ export const AddClientDialog = ({ open, onOpenChange, onAddClient }: AddClientDi
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="name">Client Name</Label>
+            <Label htmlFor="firstName">First Name</Label>
             <Input
-              id="name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Enter client name"
+              id="firstName"
+              value={firstName}
+              onChange={(e) => setFirstName(e.target.value)}
+              placeholder="Enter first name"
+              required
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="lastName">Last Name</Label>
+            <Input
+              id="lastName"
+              value={lastName}
+              onChange={(e) => setLastName(e.target.value)}
+              placeholder="Enter last name"
               required
             />
           </div>

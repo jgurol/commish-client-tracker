@@ -14,22 +14,26 @@ interface EditClientDialogProps {
 }
 
 export const EditClientDialog = ({ client, open, onOpenChange, onUpdateClient }: EditClientDialogProps) => {
-  const [name, setName] = useState(client.name);
+  const [firstName, setFirstName] = useState(client.firstName || "");
+  const [lastName, setLastName] = useState(client.lastName || "");
   const [email, setEmail] = useState(client.email);
   const [commissionRate, setCommissionRate] = useState(client.commissionRate.toString());
 
   useEffect(() => {
-    setName(client.name);
+    setFirstName(client.firstName || "");
+    setLastName(client.lastName || "");
     setEmail(client.email);
     setCommissionRate(client.commissionRate.toString());
   }, [client]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (name && email && commissionRate) {
+    if (firstName && lastName && email && commissionRate) {
       onUpdateClient({
         ...client,
-        name,
+        firstName,
+        lastName,
+        name: `${firstName} ${lastName}`, // Update full name from first and last name
         email,
         commissionRate: parseFloat(commissionRate),
       });
@@ -48,12 +52,22 @@ export const EditClientDialog = ({ client, open, onOpenChange, onUpdateClient }:
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="edit-name">Client Name</Label>
+            <Label htmlFor="edit-firstName">First Name</Label>
             <Input
-              id="edit-name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Enter client name"
+              id="edit-firstName"
+              value={firstName}
+              onChange={(e) => setFirstName(e.target.value)}
+              placeholder="Enter first name"
+              required
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="edit-lastName">Last Name</Label>
+            <Input
+              id="edit-lastName"
+              value={lastName}
+              onChange={(e) => setLastName(e.target.value)}
+              placeholder="Enter last name"
               required
             />
           </div>

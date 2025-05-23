@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -10,7 +11,9 @@ import { StatsCards } from "@/components/StatsCards";
 
 export interface Client {
   id: string;
-  name: string;
+  firstName: string;
+  lastName: string;
+  name: string; // Keeping for compatibility
   email: string;
   commissionRate: number;
   totalEarnings: number;
@@ -30,6 +33,8 @@ const Index = () => {
   const [clients, setClients] = useState<Client[]>([
     {
       id: "1",
+      firstName: "Acme",
+      lastName: "Corporation",
       name: "Acme Corporation",
       email: "contact@acme.com",
       commissionRate: 5,
@@ -38,6 +43,8 @@ const Index = () => {
     },
     {
       id: "2",
+      firstName: "Tech",
+      lastName: "Solutions",
       name: "Tech Solutions Ltd",
       email: "admin@techsolutions.com",
       commissionRate: 7.5,
@@ -46,6 +53,8 @@ const Index = () => {
     },
     {
       id: "3",
+      firstName: "Global",
+      lastName: "Enterprises",
       name: "Global Enterprises",
       email: "info@globalent.com",
       commissionRate: 6,
