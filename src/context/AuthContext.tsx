@@ -94,22 +94,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setIsAdmin(isUserAdmin);
 
       // If the user is not an admin (i.e., they're an agent),
-      // check if they're associated with an agent in the clients table
+      // check if they're associated with an agent in the system
       if (!isUserAdmin) {
-        const { data: clientData, error: clientError } = await supabase
-          .from('clients')
-          .select('id')
-          .eq('agent_id', userId)
-          .limit(1);
-
-        if (clientError) {
-          console.error('Error checking agent association:', clientError);
-          setIsAssociated(false);
-          return;
-        }
-
-        // If there's at least one record, the agent is associated
-        setIsAssociated(clientData && clientData.length > 0);
+        // We shouldn't directly query the clients table here
+        // Instead, check a flag or another field in the profile that indicates association
+        // For now, since we don't have this field, we'll set isAssociated to false for agents
+        // This will be updated when admin associates them with a client
+        setIsAssociated(false);
       } else {
         // Admins are always considered "associated"
         setIsAssociated(true);
@@ -165,26 +156,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       // If the user is an agent, check if they're associated
       if (userRole === 'agent') {
-        const { data: clientData, error: clientError } = await supabase
-          .from('clients')
-          .select('id')
-          .eq('agent_id', data.user.id)
-          .limit(1);
+        // We need a reliable way to check if an agent is associated
+        // For now, we'll simply check if they have been approved/associated
+        // This should be a field in the profiles table, not a query to clients
+        const { data: agentData, error: agentError } = await supabase
+          .from('profiles')
+          .select('is_associated')
+          .eq('id', data.user.id)
+          .single();
 
-        if (clientError) {
-          console.error('Error checking agent association:', clientError);
-          // Sign out the user
+        if (agentError || !agentData) {
           await supabase.auth.signOut();
           toast({
             title: "Login failed",
-            description: "Error verifying agent association",
+            description: "Error verifying agent status",
             variant: "destructive"
           });
-          throw clientError;
+          throw agentError || new Error("Could not verify agent status");
         }
 
         // If the agent is not associated, don't allow login
-        if (!clientData || clientData.length === 0) {
+        if (!agentData.is_associated) {
           await supabase.auth.signOut();
           toast({
             title: "Login failed",
