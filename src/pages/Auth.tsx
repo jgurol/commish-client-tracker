@@ -112,11 +112,12 @@ const Auth = () => {
     try {
       setIsSubmitting(true);
       
-      // Get the current origin for correct redirect URL
-      const origin = window.location.origin;
+      // Get the current URL for proper redirect
+      const redirectUrl = window.location.href.split('/').slice(0, 3).join('/') + '/auth';
+      console.log('Reset password redirect URL:', redirectUrl);
       
       const { error } = await supabase.auth.resetPasswordForEmail(values.email, {
-        redirectTo: `${origin}/auth`,
+        redirectTo: redirectUrl,
       });
       
       if (error) {
