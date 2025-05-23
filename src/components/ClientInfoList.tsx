@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Edit, Mail, Phone, MapPin, Trash2 } from "lucide-react";
+import { Edit, MapPin, Trash2 } from "lucide-react";
 import { ClientInfo } from "@/pages/Index";
 import { EditClientInfoDialog } from "@/components/EditClientInfoDialog";
 import { supabase } from "@/integrations/supabase/client";
@@ -80,9 +80,7 @@ export const ClientInfoList = ({ clientInfos, onUpdateClientInfo }: ClientInfoLi
             <TableHeader>
               <TableRow>
                 <TableHead>Company Name</TableHead>
-                <TableHead>Contact</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Phone</TableHead>
+                <TableHead>Address</TableHead>
                 <TableHead>Last Updated</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
@@ -91,23 +89,7 @@ export const ClientInfoList = ({ clientInfos, onUpdateClientInfo }: ClientInfoLi
               {clientInfos.map((clientInfo) => (
                 <TableRow key={clientInfo.id}>
                   <TableCell className="font-medium">{clientInfo.company_name}</TableCell>
-                  <TableCell>{clientInfo.contact_name || "-"}</TableCell>
-                  <TableCell>
-                    {clientInfo.email ? (
-                      <div className="flex items-center gap-1">
-                        <Mail className="w-4 h-4 text-gray-500" />
-                        {clientInfo.email}
-                      </div>
-                    ) : "-"}
-                  </TableCell>
-                  <TableCell>
-                    {clientInfo.phone ? (
-                      <div className="flex items-center gap-1">
-                        <Phone className="w-4 h-4 text-gray-500" />
-                        {clientInfo.phone}
-                      </div>
-                    ) : "-"}
-                  </TableCell>
+                  <TableCell>{clientInfo.address || "-"}</TableCell>
                   <TableCell>{new Date(clientInfo.updated_at).toLocaleDateString()}</TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">

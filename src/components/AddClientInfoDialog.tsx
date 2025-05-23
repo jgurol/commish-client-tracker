@@ -15,9 +15,6 @@ interface AddClientInfoDialogProps {
 
 export const AddClientInfoDialog = ({ open, onOpenChange, onAddClientInfo }: AddClientInfoDialogProps) => {
   const [companyName, setCompanyName] = useState("");
-  const [contactName, setContactName] = useState("");
-  const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
   const [address, setAddress] = useState("");
   const [notes, setNotes] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -29,9 +26,9 @@ export const AddClientInfoDialog = ({ open, onOpenChange, onAddClientInfo }: Add
       try {
         await onAddClientInfo({
           company_name: companyName,
-          contact_name: contactName || null,
-          email: email || null,
-          phone: phone || null,
+          contact_name: null,
+          email: null,
+          phone: null,
           address: address || null,
           notes: notes || null,
         });
@@ -47,9 +44,6 @@ export const AddClientInfoDialog = ({ open, onOpenChange, onAddClientInfo }: Add
 
   const resetForm = () => {
     setCompanyName("");
-    setContactName("");
-    setEmail("");
-    setPhone("");
     setAddress("");
     setNotes("");
   };
@@ -76,36 +70,6 @@ export const AddClientInfoDialog = ({ open, onOpenChange, onAddClientInfo }: Add
               placeholder="Enter company name"
               required
             />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="contactName">Contact Name</Label>
-            <Input
-              id="contactName"
-              value={contactName}
-              onChange={(e) => setContactName(e.target.value)}
-              placeholder="Enter contact person's name"
-            />
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="Enter email address"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="phone">Phone</Label>
-              <Input
-                id="phone"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                placeholder="Enter phone number"
-              />
-            </div>
           </div>
           <div className="space-y-2">
             <Label htmlFor="address">Address</Label>

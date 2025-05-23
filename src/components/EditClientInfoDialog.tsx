@@ -21,9 +21,6 @@ export const EditClientInfoDialog = ({
   onUpdateClientInfo 
 }: EditClientInfoDialogProps) => {
   const [companyName, setCompanyName] = useState(clientInfo.company_name);
-  const [contactName, setContactName] = useState(clientInfo.contact_name || "");
-  const [email, setEmail] = useState(clientInfo.email || "");
-  const [phone, setPhone] = useState(clientInfo.phone || "");
   const [address, setAddress] = useState(clientInfo.address || "");
   const [notes, setNotes] = useState(clientInfo.notes || "");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -31,9 +28,6 @@ export const EditClientInfoDialog = ({
   // Update form when clientInfo changes
   useEffect(() => {
     setCompanyName(clientInfo.company_name);
-    setContactName(clientInfo.contact_name || "");
-    setEmail(clientInfo.email || "");
-    setPhone(clientInfo.phone || "");
     setAddress(clientInfo.address || "");
     setNotes(clientInfo.notes || "");
   }, [clientInfo]);
@@ -46,9 +40,9 @@ export const EditClientInfoDialog = ({
         await onUpdateClientInfo({
           ...clientInfo,
           company_name: companyName,
-          contact_name: contactName || null,
-          email: email || null,
-          phone: phone || null,
+          contact_name: null,
+          email: null,
+          phone: null,
           address: address || null,
           notes: notes || null,
         });
@@ -80,36 +74,6 @@ export const EditClientInfoDialog = ({
               placeholder="Enter company name"
               required
             />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="edit-contactName">Contact Name</Label>
-            <Input
-              id="edit-contactName"
-              value={contactName}
-              onChange={(e) => setContactName(e.target.value)}
-              placeholder="Enter contact person's name"
-            />
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="edit-email">Email</Label>
-              <Input
-                id="edit-email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="Enter email address"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="edit-phone">Phone</Label>
-              <Input
-                id="edit-phone"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                placeholder="Enter phone number"
-              />
-            </div>
           </div>
           <div className="space-y-2">
             <Label htmlFor="edit-address">Address</Label>
