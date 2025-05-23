@@ -12,11 +12,12 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useAuth } from "@/context/AuthContext";
 
 interface TransactionTableProps {
   transactions: Transaction[];
   clientInfos: ClientInfo[];
-  onEditClick: (transaction: Transaction) => void;
+  onEditClick?: (transaction: Transaction) => void;
   onApproveCommission: (transactionId: string) => void;
   onPayCommission?: (transactionId: string) => void;
   isCurrentMonth: (dateStr: string) => boolean;
@@ -46,6 +47,8 @@ export const TransactionTable = ({
   onPayCommission,
   isCurrentMonth
 }: TransactionTableProps) => {
+  const { isAdmin } = useAuth();
+
   const handlePayCommission = (transactionId: string) => {
     if (onPayCommission) {
       onPayCommission(transactionId);
@@ -64,7 +67,7 @@ export const TransactionTable = ({
             <TableHead className="font-semibold">Invoice</TableHead>
             <TableHead className="font-semibold">Status</TableHead>
             <TableHead className="font-semibold">Commission</TableHead>
-            <TableHead className="font-semibold">Actions</TableHead>
+            {isAdmin && <TableHead className="font-semibold">Actions</TableHead>}
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -158,41 +161,45 @@ export const TransactionTable = ({
                       </div>
                     )}
                   </div>
-                  <div className="flex gap-1">
-                    {!transaction.isApproved && (
-                      <Button 
-                        size="sm" 
-                        variant="outline" 
-                        className="text-xs h-6 px-2 border-green-200 text-green-700 hover:bg-green-50"
-                        onClick={() => onApproveCommission(transaction.id)}
-                      >
-                        <CheckCircle className="w-3 h-3 mr-1" /> Approve
-                      </Button>
-                    )}
-                    {transaction.isApproved && !transaction.commissionPaidDate && onPayCommission && (
-                      <Button 
-                        size="sm" 
-                        variant="outline" 
-                        className="text-xs h-6 px-2 border-blue-200 text-blue-700 hover:bg-blue-50"
-                        onClick={() => handlePayCommission(transaction.id)}
-                      >
-                        <DollarSign className="w-3 h-3 mr-1" /> Pay
-                      </Button>
-                    )}
-                  </div>
+                  {isAdmin && (
+                    <div className="flex gap-1">
+                      {!transaction.isApproved && (
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          className="text-xs h-6 px-2 border-green-200 text-green-700 hover:bg-green-50"
+                          onClick={() => onApproveCommission(transaction.id)}
+                        >
+                          <CheckCircle className="w-3 h-3 mr-1" /> Approve
+                        </Button>
+                      )}
+                      {transaction.isApproved && !transaction.commissionPaidDate && onPayCommission && (
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          className="text-xs h-6 px-2 border-blue-200 text-blue-700 hover:bg-blue-50"
+                          onClick={() => handlePayCommission(transaction.id)}
+                        >
+                          <DollarSign className="w-3 h-3 mr-1" /> Pay
+                        </Button>
+                      )}
+                    </div>
+                  )}
                 </div>
               </TableCell>
               
-              <TableCell>
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  className="text-gray-500 hover:text-blue-600 h-8 w-8 p-0"
-                  onClick={() => onEditClick(transaction)}
-                >
-                  <Pencil className="w-4 h-4" />
-                </Button>
-              </TableCell>
+              {isAdmin && (
+                <TableCell>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="text-gray-500 hover:text-blue-600 h-8 w-8 p-0"
+                    onClick={() => onEditClick && onEditClick(transaction)}
+                  >
+                    <Pencil className="w-4 h-4" />
+                  </Button>
+                </TableCell>
+              )}
             </TableRow>
           ))}
         </TableBody>

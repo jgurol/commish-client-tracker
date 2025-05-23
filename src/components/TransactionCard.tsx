@@ -3,11 +3,12 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CheckCircle, Clock, Building, FileText, Users, Pencil, DollarSign } from "lucide-react";
 import { Transaction, ClientInfo } from "@/pages/Index";
+import { useAuth } from "@/context/AuthContext";
 
 interface TransactionCardProps {
   transaction: Transaction;
   clientInfos: ClientInfo[];
-  onEditClick: (transaction: Transaction) => void;
+  onEditClick?: (transaction: Transaction) => void;
   onApproveCommission: (transactionId: string) => void;
   onPayCommission?: (transactionId: string) => void;
   isCurrentMonth: (dateStr: string) => boolean;
@@ -37,6 +38,8 @@ export const TransactionCard = ({
   onPayCommission,
   isCurrentMonth
 }: TransactionCardProps) => {
+  const { isAdmin } = useAuth();
+
   const handlePayCommission = () => {
     if (onPayCommission) {
       onPayCommission(transaction.id);
@@ -124,38 +127,42 @@ export const TransactionCard = ({
               </span>
             )}
           </div>
-          <div className="flex gap-2">
-            {!transaction.isApproved && (
-              <Button 
-                size="sm" 
-                variant="outline" 
-                className="text-xs h-7 border-green-200 text-green-700 hover:bg-green-50"
-                onClick={() => onApproveCommission(transaction.id)}
-              >
-                <CheckCircle className="w-3 h-3 mr-1" /> Approve
-              </Button>
-            )}
-            {transaction.isApproved && !transaction.commissionPaidDate && onPayCommission && (
-              <Button 
-                size="sm" 
-                variant="outline" 
-                className="text-xs h-7 border-blue-200 text-blue-700 hover:bg-blue-50"
-                onClick={handlePayCommission}
-              >
-                <DollarSign className="w-3 h-3 mr-1" /> Mark Paid
-              </Button>
-            )}
-          </div>
+          {isAdmin && (
+            <div className="flex gap-2">
+              {!transaction.isApproved && (
+                <Button 
+                  size="sm" 
+                  variant="outline" 
+                  className="text-xs h-7 border-green-200 text-green-700 hover:bg-green-50"
+                  onClick={() => onApproveCommission(transaction.id)}
+                >
+                  <CheckCircle className="w-3 h-3 mr-1" /> Approve
+                </Button>
+              )}
+              {transaction.isApproved && !transaction.commissionPaidDate && onPayCommission && (
+                <Button 
+                  size="sm" 
+                  variant="outline" 
+                  className="text-xs h-7 border-blue-200 text-blue-700 hover:bg-blue-50"
+                  onClick={handlePayCommission}
+                >
+                  <DollarSign className="w-3 h-3 mr-1" /> Mark Paid
+                </Button>
+              )}
+            </div>
+          )}
         </div>
       </div>
-      <Button 
-        variant="ghost" 
-        size="sm" 
-        className="text-gray-500 hover:text-blue-600"
-        onClick={() => onEditClick(transaction)}
-      >
-        <Pencil className="w-4 h-4" />
-      </Button>
+      {isAdmin && onEditClick && (
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          className="text-gray-500 hover:text-blue-600"
+          onClick={() => onEditClick(transaction)}
+        >
+          <Pencil className="w-4 h-4" />
+        </Button>
+      )}
     </div>
   );
 };
