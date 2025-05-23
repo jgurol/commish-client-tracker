@@ -160,20 +160,6 @@ export const useIndexData = () => {
       console.log('[DEBUG] - associatedAgentId:', associatedAgentId);
       console.log('[DEBUG] - user.id:', user.id);
       
-      // Let's try a direct query for the specific transaction first
-      console.log('[DEBUG] Checking if specific transaction exists...');
-      const { data: specificTransaction, error: specificError } = await supabase
-        .from('transactions')
-        .select('*')
-        .eq('id', 'd0b91f93-75fd-4d3c-8c8c-b41c86f05eb1')
-        .single();
-      
-      if (specificError) {
-        console.log('[DEBUG] Specific transaction query error:', specificError);
-      } else {
-        console.log('[DEBUG] Specific transaction found:', specificTransaction);
-      }
-      
       // Build the query with filtering logic
       let query = supabase.from('transactions').select('*');
       
@@ -185,7 +171,9 @@ export const useIndexData = () => {
         // NON-ADMIN USERS: Only see transactions where client_id matches their associated agent
         if (associatedAgentId) {
           console.log('[DEBUG] Non-admin user - filtering by client_id =', associatedAgentId);
+          console.log('[DEBUG] Query before filter:', query);
           query = query.eq('client_id', associatedAgentId);
+          console.log('[DEBUG] Query after filter:', query);
         } else {
           console.log('[DEBUG] Non-admin user without agent ID - returning empty results');
           // For non-admin users without agent ID, return empty results
@@ -219,6 +207,15 @@ export const useIndexData = () => {
       // Check if our target transaction is in the results
       const targetTransaction = data?.find(t => t.id === 'd0b91f93-75fd-4d3c-8c8c-b41c86f05eb1');
       console.log('[DEBUG] Target transaction in main query results:', targetTransaction ? 'FOUND' : 'NOT FOUND');
+      
+      if (targetTransaction) {
+        console.log('[DEBUG] Target transaction details:', targetTransaction);
+      } else {
+        console.log('[DEBUG] Target transaction missing - checking all returned IDs:');
+        data?.forEach((t, i) => {
+          console.log(`[DEBUG] Transaction ${i + 1}: ${t.id} (client_id: ${t.client_id})`);
+        });
+      }
 
       // Map database transactions to our Transaction interface
       const mappedTransactions = await Promise.all(data?.map(async (transaction) => {
