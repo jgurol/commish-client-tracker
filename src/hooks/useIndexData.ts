@@ -146,7 +146,7 @@ export const useIndexData = () => {
     }
   };
 
-  // CLEANED UP transaction fetch function (removed all debugging logs)
+  // Fixed transaction fetch function
   const fetchTransactions = async () => {
     if (!user) {
       return;
@@ -166,8 +166,10 @@ export const useIndexData = () => {
         if (associatedAgentId) {
           query = query.eq('client_id', associatedAgentId);
         } else {
-          // For non-admin users without agent ID, use a condition that will never match
-          query = query.eq('id', '00000000-0000-0000-0000-000000000000');
+          // For non-admin users without agent ID, return empty results
+          setTransactions([]);
+          setIsLoading(false);
+          return;
         }
       }
       
