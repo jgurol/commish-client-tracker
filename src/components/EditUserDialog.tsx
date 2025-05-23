@@ -1,5 +1,4 @@
 
-
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -127,7 +126,9 @@ export const EditUserDialog = ({
 
       // Find the associated agent name if an agent is selected
       const associatedAgent = agents.find(agent => agent.id === agentIdToStore);
-      const associatedAgentName = associatedAgent ? `${associatedAgent.first_name} ${associatedAgent.last_name}` : null;
+      const associatedAgentName = associatedAgent ? 
+        `${associatedAgent.first_name} ${associatedAgent.last_name} (${associatedAgent.company_name || 'No Company'})` : 
+        null;
 
       const updatedUser = {
         ...user,
@@ -154,9 +155,6 @@ export const EditUserDialog = ({
       });
     }
   };
-
-  console.log("Agents from agents table:", agents);
-  console.log("Available agents count:", agents.length);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -221,7 +219,7 @@ export const EditUserDialog = ({
               )}
             />
 
-            {/* Show agent association field for all users */}
+            {/* Show agent association field for all users with improved display */}
             <FormField
               control={form.control}
               name="associated_agent_id"
@@ -242,7 +240,7 @@ export const EditUserDialog = ({
                       {agents.length > 0 ? (
                         agents.map((agent) => (
                           <SelectItem key={agent.id} value={agent.id}>
-                            {agent.company_name || 'No Company'}
+                            {`${agent.first_name} ${agent.last_name} (${agent.company_name || 'No Company'})`}
                           </SelectItem>
                         ))
                       ) : (
@@ -269,4 +267,3 @@ export const EditUserDialog = ({
     </Dialog>
   );
 };
-

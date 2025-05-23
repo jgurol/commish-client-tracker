@@ -68,11 +68,10 @@ export const AssociateUserDialog = ({
       }
 
       // Update the user's profile with the agent ID directly
-      // We'll store the agent's ID, not a profile ID
       const { error } = await supabase
         .from('profiles')
         .update({ 
-          associated_agent_id: selectedAgentId, // Use the agent ID directly
+          associated_agent_id: selectedAgentId,
           is_associated: true
         })
         .eq('id', user.id);
@@ -87,8 +86,8 @@ export const AssociateUserDialog = ({
         return;
       }
 
-      // Use the company name as the associated agent name
-      const associatedAgentName = selectedAgent.company_name || 'No Company';
+      // Create a more detailed agent name that includes company name
+      const associatedAgentName = `${selectedAgent.first_name} ${selectedAgent.last_name} (${selectedAgent.company_name || 'No Company'})`;
 
       const updatedUser = {
         ...user,
@@ -138,7 +137,7 @@ export const AssociateUserDialog = ({
                 {agents.length > 0 ? (
                   agents.map((agent) => (
                     <SelectItem key={agent.id} value={agent.id}>
-                      {agent.company_name || 'No Company'}
+                      {`${agent.first_name} ${agent.last_name} (${agent.company_name || 'No Company'})`}
                     </SelectItem>
                   ))
                 ) : (
