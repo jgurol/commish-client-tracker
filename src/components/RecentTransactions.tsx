@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -28,6 +29,7 @@ interface RecentTransactionsProps {
   onUpdateTransaction: (transaction: Transaction) => void;
   onApproveCommission: (transactionId: string) => void;
   onPayCommission?: (transactionId: string, paidDate: string) => void;
+  associatedAgentId?: string | null;
 }
 
 export const RecentTransactions = ({ 
@@ -37,7 +39,8 @@ export const RecentTransactions = ({
   onAddTransaction, 
   onUpdateTransaction,
   onApproveCommission,
-  onPayCommission
+  onPayCommission,
+  associatedAgentId
 }: RecentTransactionsProps) => {
   const [isAddTransactionOpen, setIsAddTransactionOpen] = useState(false);
   const [isEditTransactionOpen, setIsEditTransactionOpen] = useState(false);

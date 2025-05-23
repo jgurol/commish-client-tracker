@@ -690,6 +690,7 @@ const IndexPage = () => {
               onUpdateTransaction={updateTransaction}
               onApproveCommission={approveCommission}
               onPayCommission={payCommission}
+              associatedAgentId={associatedAgentId}
             />
 
             {/* Commission Chart */}
