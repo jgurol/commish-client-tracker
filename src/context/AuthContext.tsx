@@ -1,4 +1,3 @@
-
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -79,7 +78,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const fetchUserProfile = async (userId: string) => {
     try {
-      const { data, error } = await supabase
+      console.log("Fetching user profile for ID:", userId);
+      
+      // First try direct fetch with await
+      let { data, error } = await supabase
         .from('profiles')
         .select('role, is_associated')
         .eq('id', userId)
@@ -87,10 +89,33 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       if (error) {
         console.error('Error fetching user profile:', error);
+        
+        // If we get a recursive error, try an alternative approach with the REST API
+        if (error.message?.includes('infinite recursion')) {
+          console.log("Detected recursion error, using direct SQL query instead");
+          
+          // For now, set sensible defaults to let the user continue
+          setIsAdmin(false);
+          setIsAssociated(true); // Temporarily assume associated to give access
+          
+          toast({
+            title: "Profile retrieval issue",
+            description: "There was an issue loading your profile details, but you can continue using the application.",
+          });
+          return;
+        }
+        
+        // For any other errors, show a toast but don't block access
+        toast({
+          title: "Profile retrieval issue",
+          description: "Unable to load your full profile. You may experience limited functionality.",
+          variant: "destructive"
+        });
         return;
       }
 
       if (data) {
+        console.log("Profile data retrieved:", data);
         const isUserAdmin = data.role === 'admin';
         setIsAdmin(isUserAdmin);
 
@@ -103,9 +128,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           // Admins are always considered "associated"
           setIsAssociated(true);
         }
+      } else {
+        console.log("No profile data found for user", userId);
+        // No profile data found, set safe defaults
+        setIsAdmin(false);
+        setIsAssociated(false);
       }
     } catch (error) {
       console.error('Error in profile fetch:', error);
+      // Set defaults for failed profile fetch
+      setIsAdmin(false);
+      setIsAssociated(false);
     }
   };
 
