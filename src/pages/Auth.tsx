@@ -66,6 +66,7 @@ const Auth = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showResetForm, setShowResetForm] = useState(false);
   const [showUpdatePasswordForm, setShowUpdatePasswordForm] = useState(false);
+  const [tokenError, setTokenError] = useState<string | null>(null);
   const { user, signIn, signUp } = useAuth();
   const { toast } = useToast();
   const location = useLocation();
@@ -76,22 +77,34 @@ const Auth = () => {
       // When a user clicks the reset password link in their email,
       // they will be redirected to this page with a special hash parameter
       const hash = window.location.hash;
+      console.log('Current URL hash:', hash);
+      
       if (hash && hash.includes('type=recovery')) {
-        console.log('Password reset flow detected:', hash);
+        console.log('Password reset flow detected');
         setShowUpdatePasswordForm(true);
         
-        // Check if we have a valid session
-        const { data, error } = await supabase.auth.getSession();
-        if (error) {
-          console.error('Error getting session:', error);
-          toast({
-            title: "Session Error",
-            description: "Unable to verify your password reset link. Please try again.",
-            variant: "destructive"
-          });
-          setShowUpdatePasswordForm(false);
-        } else {
-          console.log('Session detected during password reset:', data.session);
+        try {
+          // Check if we have a valid session
+          const { data, error } = await supabase.auth.getSession();
+          
+          if (error) {
+            console.error('Error getting session:', error);
+            setTokenError("Invalid or expired password reset link. Please try again.");
+            toast({
+              title: "Session Error",
+              description: "Unable to verify your password reset link. Please try again.",
+              variant: "destructive"
+            });
+          } else if (data.session) {
+            console.log('Valid session detected during password reset');
+            setTokenError(null);
+          } else {
+            console.log('No session found for password reset');
+            setTokenError("Invalid or expired password reset link. Please try again.");
+          }
+        } catch (err) {
+          console.error('Unexpected error during session check:', err);
+          setTokenError("An unexpected error occurred. Please try again.");
         }
       }
     };
@@ -212,13 +225,18 @@ const Auth = () => {
       
       toast({
         title: "Password Updated",
-        description: "Your password has been successfully updated",
+        description: "Your password has been successfully updated. You can now log in with your new password.",
       });
       
       // Clear the hash from URL
-      window.location.hash = '';
+      window.history.replaceState(null, '', window.location.pathname);
+      
       setShowUpdatePasswordForm(false);
       setActiveTab("login");
+      
+      // Force user to log in with new password
+      await supabase.auth.signOut();
+      
     } catch (error) {
       console.error("Error updating password:", error);
     } finally {
@@ -240,53 +258,82 @@ const Auth = () => {
               <CardDescription>Please enter your new password</CardDescription>
             </CardHeader>
             <CardContent>
-              <Form {...updatePasswordForm}>
-                <form onSubmit={updatePasswordForm.handleSubmit(handleUpdatePasswordSubmit)} className="space-y-4">
-                  <FormField
-                    control={updatePasswordForm.control}
-                    name="password"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>New Password</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="password"
-                            placeholder="••••••••"
-                            {...field}
-                            disabled={isSubmitting}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={updatePasswordForm.control}
-                    name="confirmPassword"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Confirm New Password</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="password"
-                            placeholder="••••••••"
-                            {...field}
-                            disabled={isSubmitting}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+              {tokenError && (
+                <Alert variant="destructive" className="mb-4">
+                  <AlertTriangle className="h-4 w-4" />
+                  <AlertTitle>Error</AlertTitle>
+                  <AlertDescription>{tokenError}</AlertDescription>
+                </Alert>
+              )}
+              
+              {!tokenError && (
+                <Form {...updatePasswordForm}>
+                  <form onSubmit={updatePasswordForm.handleSubmit(handleUpdatePasswordSubmit)} className="space-y-4">
+                    <FormField
+                      control={updatePasswordForm.control}
+                      name="password"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>New Password</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="password"
+                              placeholder="••••••••"
+                              {...field}
+                              disabled={isSubmitting}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={updatePasswordForm.control}
+                      name="confirmPassword"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Confirm New Password</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="password"
+                              placeholder="••••••••"
+                              {...field}
+                              disabled={isSubmitting}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <Button
+                      type="submit"
+                      className="w-full bg-blue-600 hover:bg-blue-700"
+                      disabled={isSubmitting || !!tokenError}
+                    >
+                      {isSubmitting ? "Updating..." : "Update Password"}
+                    </Button>
+                  </form>
+                </Form>
+              )}
+              
+              {tokenError && (
+                <div className="mt-4">
                   <Button
-                    type="submit"
-                    className="w-full bg-blue-600 hover:bg-blue-700"
-                    disabled={isSubmitting}
+                    type="button"
+                    variant="outline"
+                    className="w-full"
+                    onClick={() => {
+                      setTokenError(null);
+                      setShowUpdatePasswordForm(false);
+                      setActiveTab("login");
+                      // Clear the hash from URL
+                      window.history.replaceState(null, '', window.location.pathname);
+                    }}
                   >
-                    {isSubmitting ? "Updating..." : "Update Password"}
+                    Back to Login
                   </Button>
-                </form>
-              </Form>
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>
