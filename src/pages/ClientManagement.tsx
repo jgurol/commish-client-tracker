@@ -29,6 +29,7 @@ const ClientManagement = () => {
       
       try {
         setIsLoading(true);
+        // Remove agent-based filtering to show all clients consistently
         const { data, error } = await supabase
           .from('client_info')
           .select('*')
