@@ -13,14 +13,15 @@ import {
   TableCell 
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { Shield, UserCheck, UserX } from 'lucide-react';
+import { Shield, UserCheck, UserX, PencilIcon } from 'lucide-react';
 import { Navigate } from 'react-router-dom';
+import { EditUserDialog } from '@/components/EditUserDialog';
 
 interface UserProfile {
   id: string;
   email: string;
   full_name: string | null;
-  role: 'admin' | 'agent';
+  role: string; // Changed from 'admin' | 'agent' to string to match the RPC function return type
   is_associated: boolean;
   created_at: string;
 }
@@ -30,6 +31,7 @@ export default function Admin() {
   const { toast } = useToast();
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [loading, setLoading] = useState(true);
+  const [editingUser, setEditingUser] = useState<UserProfile | null>(null);
 
   // Redirect non-admin users
   if (!isAdmin) {
@@ -87,6 +89,45 @@ export default function Admin() {
         variant: "destructive"
       });
     }
+  };
+
+  const handleEditUser = (user: UserProfile) => {
+    setEditingUser(user);
+  };
+
+  const handleUpdateUser = async (updatedUser: UserProfile) => {
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          email: updatedUser.email,
+          full_name: updatedUser.full_name,
+          role: updatedUser.role
+        })
+        .eq('id', updatedUser.id);
+
+      if (error) throw error;
+
+      // Update local state
+      setUsers(users.map(u => 
+        u.id === updatedUser.id ? updatedUser : u
+      ));
+
+      toast({
+        title: "Success",
+        description: "User updated successfully",
+      });
+    } catch (error: any) {
+      console.error('Error updating user:', error);
+      toast({
+        title: "Error",
+        description: `Failed to update user: ${error.message}`,
+        variant: "destructive"
+      });
+    }
+
+    // Close the dialog
+    setEditingUser(null);
   };
 
   return (
@@ -152,31 +193,43 @@ export default function Admin() {
                       )}
                     </TableCell>
                     <TableCell>
-                      {userProfile.role === 'agent' && userProfile.id !== user?.id && (
-                        <>
-                          {userProfile.is_associated ? (
-                            <Button 
-                              variant="outline" 
-                              size="sm" 
-                              onClick={() => updateUserAssociation(userProfile.id, false)}
-                              className="text-red-600 border-red-200 hover:bg-red-50"
-                            >
-                              <UserX className="w-4 h-4 mr-1" />
-                              Disassociate
-                            </Button>
-                          ) : (
-                            <Button 
-                              variant="outline" 
-                              size="sm" 
-                              onClick={() => updateUserAssociation(userProfile.id, true)}
-                              className="text-green-600 border-green-200 hover:bg-green-50"
-                            >
-                              <UserCheck className="w-4 h-4 mr-1" />
-                              Associate
-                            </Button>
-                          )}
-                        </>
-                      )}
+                      <div className="flex space-x-2">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleEditUser(userProfile)}
+                          className="text-blue-600 hover:bg-blue-50"
+                        >
+                          <PencilIcon className="w-4 h-4 mr-1" />
+                          Edit
+                        </Button>
+                        
+                        {userProfile.role === 'agent' && userProfile.id !== user?.id && (
+                          <>
+                            {userProfile.is_associated ? (
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                onClick={() => updateUserAssociation(userProfile.id, false)}
+                                className="text-red-600 border-red-200 hover:bg-red-50"
+                              >
+                                <UserX className="w-4 h-4 mr-1" />
+                                Disassociate
+                              </Button>
+                            ) : (
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                onClick={() => updateUserAssociation(userProfile.id, true)}
+                                className="text-green-600 border-green-200 hover:bg-green-50"
+                              >
+                                <UserCheck className="w-4 h-4 mr-1" />
+                                Associate
+                              </Button>
+                            )}
+                          </>
+                        )}
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))
@@ -185,6 +238,17 @@ export default function Admin() {
           </Table>
         )}
       </div>
+
+      {editingUser && (
+        <EditUserDialog
+          user={editingUser}
+          open={!!editingUser}
+          onOpenChange={(open) => {
+            if (!open) setEditingUser(null);
+          }}
+          onUpdateUser={handleUpdateUser}
+        />
+      )}
     </div>
   );
 }
