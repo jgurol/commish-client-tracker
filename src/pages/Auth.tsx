@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Navigate } from "react-router-dom";
+import { Navigate, useLocation } from "react-router-dom";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -48,16 +48,56 @@ const resetPasswordSchema = z.object({
   email: z.string().email({ message: "Invalid email address" }),
 });
 
+const updatePasswordSchema = z.object({
+  password: z.string().min(6, { message: "Password must be at least 6 characters" }),
+  confirmPassword: z.string().min(6, { message: "Password must be at least 6 characters" }),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Passwords do not match",
+  path: ["confirmPassword"],
+});
+
 type LoginFormValues = z.infer<typeof loginSchema>;
 type RegisterFormValues = z.infer<typeof registerSchema>;
 type ResetPasswordFormValues = z.infer<typeof resetPasswordSchema>;
+type UpdatePasswordFormValues = z.infer<typeof updatePasswordSchema>;
 
 const Auth = () => {
   const [activeTab, setActiveTab] = useState<string>("login");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showResetForm, setShowResetForm] = useState(false);
+  const [showUpdatePasswordForm, setShowUpdatePasswordForm] = useState(false);
   const { user, signIn, signUp } = useAuth();
   const { toast } = useToast();
+  const location = useLocation();
+
+  // Check if we have a password reset token in the URL
+  useEffect(() => {
+    const checkForPasswordReset = async () => {
+      // When a user clicks the reset password link in their email,
+      // they will be redirected to this page with a special hash parameter
+      const hash = window.location.hash;
+      if (hash && hash.includes('type=recovery')) {
+        console.log('Password reset flow detected:', hash);
+        setShowUpdatePasswordForm(true);
+        
+        // Check if we have a valid session
+        const { data, error } = await supabase.auth.getSession();
+        if (error) {
+          console.error('Error getting session:', error);
+          toast({
+            title: "Session Error",
+            description: "Unable to verify your password reset link. Please try again.",
+            variant: "destructive"
+          });
+          setShowUpdatePasswordForm(false);
+        } else {
+          console.log('Session detected during password reset:', data.session);
+        }
+      }
+    };
+    
+    checkForPasswordReset();
+  }, [toast]);
 
   const loginForm = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -81,6 +121,14 @@ const Auth = () => {
     resolver: zodResolver(resetPasswordSchema),
     defaultValues: {
       email: "",
+    },
+  });
+  
+  const updatePasswordForm = useForm<UpdatePasswordFormValues>({
+    resolver: zodResolver(updatePasswordSchema),
+    defaultValues: {
+      password: "",
+      confirmPassword: "",
     },
   });
 
@@ -144,9 +192,106 @@ const Auth = () => {
       setIsSubmitting(false);
     }
   };
+  
+  const handleUpdatePasswordSubmit = async (values: UpdatePasswordFormValues) => {
+    try {
+      setIsSubmitting(true);
+      
+      const { error } = await supabase.auth.updateUser({
+        password: values.password
+      });
+      
+      if (error) {
+        toast({
+          title: "Failed to update password",
+          description: error.message,
+          variant: "destructive"
+        });
+        throw error;
+      }
+      
+      toast({
+        title: "Password Updated",
+        description: "Your password has been successfully updated",
+      });
+      
+      // Clear the hash from URL
+      window.location.hash = '';
+      setShowUpdatePasswordForm(false);
+      setActiveTab("login");
+    } catch (error) {
+      console.error("Error updating password:", error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   if (user) {
     return <Navigate to="/" />;
+  }
+
+  if (showUpdatePasswordForm) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-blue-50 p-4">
+        <div className="w-full max-w-md">
+          <Card className="border-0 shadow-xl">
+            <CardHeader className="text-center">
+              <CardTitle className="text-2xl font-bold">Set New Password</CardTitle>
+              <CardDescription>Please enter your new password</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Form {...updatePasswordForm}>
+                <form onSubmit={updatePasswordForm.handleSubmit(handleUpdatePasswordSubmit)} className="space-y-4">
+                  <FormField
+                    control={updatePasswordForm.control}
+                    name="password"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>New Password</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="password"
+                            placeholder="••••••••"
+                            {...field}
+                            disabled={isSubmitting}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={updatePasswordForm.control}
+                    name="confirmPassword"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Confirm New Password</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="password"
+                            placeholder="••••••••"
+                            {...field}
+                            disabled={isSubmitting}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <Button
+                    type="submit"
+                    className="w-full bg-blue-600 hover:bg-blue-700"
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting ? "Updating..." : "Update Password"}
+                  </Button>
+                </form>
+              </Form>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
   }
 
   if (showResetForm) {
