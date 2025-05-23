@@ -19,9 +19,10 @@ import { useToast } from "@/components/ui/use-toast";
 interface ClientInfoListProps {
   clientInfos: ClientInfo[];
   onUpdateClientInfo: (clientInfo: ClientInfo) => void;
+  agentMapping?: Record<string, string>;
 }
 
-export const ClientInfoList = ({ clientInfos, onUpdateClientInfo }: ClientInfoListProps) => {
+export const ClientInfoList = ({ clientInfos, onUpdateClientInfo, agentMapping = {} }: ClientInfoListProps) => {
   const [editingClientInfo, setEditingClientInfo] = useState<ClientInfo | null>(null);
   const [deletingClientId, setDeletingClientId] = useState<string | null>(null);
   const { toast } = useToast();
@@ -81,6 +82,7 @@ export const ClientInfoList = ({ clientInfos, onUpdateClientInfo }: ClientInfoLi
               <TableRow>
                 <TableHead>Company Name</TableHead>
                 <TableHead>Address</TableHead>
+                <TableHead>Associated Agent</TableHead>
                 <TableHead>Last Updated</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
@@ -90,6 +92,7 @@ export const ClientInfoList = ({ clientInfos, onUpdateClientInfo }: ClientInfoLi
                 <TableRow key={clientInfo.id}>
                   <TableCell className="font-medium">{clientInfo.company_name}</TableCell>
                   <TableCell>{clientInfo.address || "-"}</TableCell>
+                  <TableCell>{clientInfo.agent_id ? (agentMapping[clientInfo.agent_id] || "Unknown agent") : "-"}</TableCell>
                   <TableCell>{new Date(clientInfo.updated_at).toLocaleDateString()}</TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
