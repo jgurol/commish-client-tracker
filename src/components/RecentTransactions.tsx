@@ -18,6 +18,7 @@ interface RecentTransactionsProps {
   onUpdateTransaction: (transaction: Transaction) => void;
   onApproveCommission: (transactionId: string) => void;
   onPayCommission?: (transactionId: string, paidDate: string) => void;
+  onDeleteTransaction?: (transactionId: string) => void;
   associatedAgentId?: string | null;
 }
 
@@ -29,6 +30,7 @@ export const RecentTransactions = ({
   onUpdateTransaction,
   onApproveCommission,
   onPayCommission,
+  onDeleteTransaction,
   associatedAgentId
 }: RecentTransactionsProps) => {
   const [isAddTransactionOpen, setIsAddTransactionOpen] = useState(false);
@@ -119,6 +121,7 @@ export const RecentTransactions = ({
               onEditClick={isAdmin ? handleEditClick : undefined}
               onApproveCommission={onApproveCommission}
               onPayCommission={onPayCommission ? handlePayCommission : undefined}
+              onDeleteTransaction={onDeleteTransaction}
               isCurrentMonth={isCurrentMonth}
             />
           )}
