@@ -7,17 +7,19 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Transaction, Client } from "@/pages/Index";
+import { Transaction, Client, ClientInfo } from "@/pages/Index";
 
 interface AddTransactionDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onAddTransaction: (transaction: Omit<Transaction, "id">) => void;
   clients: Client[];
+  clientInfos: ClientInfo[]; // Add clientInfos prop
 }
 
-export const AddTransactionDialog = ({ open, onOpenChange, onAddTransaction, clients }: AddTransactionDialogProps) => {
+export const AddTransactionDialog = ({ open, onOpenChange, onAddTransaction, clients, clientInfos }: AddTransactionDialogProps) => {
   const [clientId, setClientId] = useState("");
+  const [clientInfoId, setClientInfoId] = useState("");
   const [amount, setAmount] = useState("");
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [description, setDescription] = useState("");
@@ -52,6 +54,8 @@ export const AddTransactionDialog = ({ open, onOpenChange, onAddTransaction, cli
     e.preventDefault();
     if (clientId && amount && date && description) {
       const selectedClient = clients.find(client => client.id === clientId);
+      const selectedClientInfo = clientInfoId ? clientInfos.find(info => info.id === clientInfoId) : null;
+      
       if (selectedClient) {
         onAddTransaction({
           clientId,
@@ -66,9 +70,14 @@ export const AddTransactionDialog = ({ open, onOpenChange, onAddTransaction, cli
           invoiceMonth: invoiceMonth || undefined,
           invoiceYear: invoiceYear || undefined,
           invoiceNumber: invoiceNumber || undefined,
-          isPaid
+          isPaid,
+          clientInfoId: clientInfoId || undefined,
+          clientCompanyName: selectedClientInfo?.companyName
         });
+        
+        // Reset form
         setClientId("");
+        setClientInfoId("");
         setAmount("");
         setDate(new Date().toISOString().split('T')[0]);
         setDescription("");
@@ -114,6 +123,30 @@ export const AddTransactionDialog = ({ open, onOpenChange, onAddTransaction, cli
               </div>
             )}
           </div>
+
+          {/* New Client Info selection */}
+          <div className="space-y-2">
+            <Label htmlFor="clientInfo">Client Company</Label>
+            <Select value={clientInfoId} onValueChange={setClientInfoId}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select a client (optional)" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">None</SelectItem>
+                {clientInfos.map((clientInfo) => (
+                  <SelectItem key={clientInfo.id} value={clientInfo.id}>
+                    {clientInfo.companyName}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {clientInfoId && (
+              <div className="text-sm text-gray-500">
+                Contact: {clientInfos.find(ci => ci.id === clientInfoId)?.contactName || "N/A"}
+              </div>
+            )}
+          </div>
+
           <div className="space-y-2">
             <Label>Invoice Period</Label>
             <div className="grid grid-cols-2 gap-4">

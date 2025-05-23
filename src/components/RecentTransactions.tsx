@@ -3,14 +3,15 @@ import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Plus, DollarSign, Pencil, CheckCircle, Clock, Building, FileText } from "lucide-react";
-import { Transaction, Client } from "@/pages/Index";
+import { Plus, DollarSign, Pencil, CheckCircle, Clock, Building, FileText, Users } from "lucide-react";
+import { Transaction, Client, ClientInfo } from "@/pages/Index";
 import { AddTransactionDialog } from "@/components/AddTransactionDialog";
 import { EditTransactionDialog } from "@/components/EditTransactionDialog";
 
 interface RecentTransactionsProps {
   transactions: Transaction[];
   clients: Client[];
+  clientInfos: ClientInfo[]; // Add clientInfos prop
   onAddTransaction: (transaction: Omit<Transaction, "id">) => void;
   onUpdateTransaction: (transaction: Transaction) => void;
 }
@@ -18,6 +19,7 @@ interface RecentTransactionsProps {
 export const RecentTransactions = ({ 
   transactions, 
   clients, 
+  clientInfos, // Add clientInfos
   onAddTransaction, 
   onUpdateTransaction 
 }: RecentTransactionsProps) => {
@@ -98,6 +100,13 @@ export const RecentTransactions = ({
                       <Building className="w-4 h-4" />
                       {transaction.companyName}
                     </div>
+                    {/* Display client company if available */}
+                    {transaction.clientInfoId && (
+                      <div className="flex items-center gap-1 mb-1 text-sm text-gray-600">
+                        <Users className="w-4 h-4" />
+                        Client: {transaction.clientCompanyName || clientInfos.find(ci => ci.id === transaction.clientInfoId)?.companyName || "N/A"}
+                      </div>
+                    )}
                     <div className="text-sm text-gray-600 flex items-center gap-1">
                       {transaction.invoiceNumber && (
                         <>
@@ -154,6 +163,7 @@ export const RecentTransactions = ({
         onOpenChange={setIsAddTransactionOpen}
         onAddTransaction={onAddTransaction}
         clients={clients}
+        clientInfos={clientInfos}
       />
 
       <EditTransactionDialog
@@ -162,6 +172,7 @@ export const RecentTransactions = ({
         onOpenChange={setIsEditTransactionOpen}
         onUpdateTransaction={onUpdateTransaction}
         clients={clients}
+        clientInfos={clientInfos}
       />
     </>
   );

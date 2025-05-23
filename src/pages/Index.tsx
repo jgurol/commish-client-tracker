@@ -283,6 +283,7 @@ const Index = () => {
           <RecentTransactions 
             transactions={transactions} 
             clients={clients}
+            clientInfos={clientInfos}
             onAddTransaction={addTransaction}
             onUpdateTransaction={updateTransaction}
           />

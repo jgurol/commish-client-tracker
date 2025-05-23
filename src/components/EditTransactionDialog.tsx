@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Transaction, Client } from "@/pages/Index";
+import { Transaction, Client, ClientInfo } from "@/pages/Index";
 
 interface EditTransactionDialogProps {
   transaction: Transaction | null;
@@ -15,10 +15,12 @@ interface EditTransactionDialogProps {
   onOpenChange: (open: boolean) => void;
   onUpdateTransaction: (transaction: Transaction) => void;
   clients: Client[];
+  clientInfos: ClientInfo[]; // Add clientInfos prop
 }
 
-export const EditTransactionDialog = ({ transaction, open, onOpenChange, onUpdateTransaction, clients }: EditTransactionDialogProps) => {
+export const EditTransactionDialog = ({ transaction, open, onOpenChange, onUpdateTransaction, clients, clientInfos }: EditTransactionDialogProps) => {
   const [clientId, setClientId] = useState("");
+  const [clientInfoId, setClientInfoId] = useState("");
   const [amount, setAmount] = useState("");
   const [date, setDate] = useState("");
   const [description, setDescription] = useState("");
@@ -53,6 +55,7 @@ export const EditTransactionDialog = ({ transaction, open, onOpenChange, onUpdat
   useEffect(() => {
     if (transaction) {
       setClientId(transaction.clientId);
+      setClientInfoId(transaction.clientInfoId || "");
       setAmount(transaction.amount.toString());
       setDate(transaction.date);
       setDescription(transaction.description);
@@ -70,6 +73,8 @@ export const EditTransactionDialog = ({ transaction, open, onOpenChange, onUpdat
     e.preventDefault();
     if (transaction && clientId && amount && date && description) {
       const selectedClient = clients.find(client => client.id === clientId);
+      const selectedClientInfo = clientInfoId ? clientInfos.find(info => info.id === clientInfoId) : null;
+      
       if (selectedClient) {
         onUpdateTransaction({
           id: transaction.id,
@@ -85,7 +90,9 @@ export const EditTransactionDialog = ({ transaction, open, onOpenChange, onUpdat
           invoiceMonth: invoiceMonth || undefined,
           invoiceYear: invoiceYear || undefined,
           invoiceNumber: invoiceNumber || undefined,
-          isPaid
+          isPaid,
+          clientInfoId: clientInfoId || undefined,
+          clientCompanyName: selectedClientInfo?.companyName
         });
         onOpenChange(false);
       }
@@ -123,6 +130,30 @@ export const EditTransactionDialog = ({ transaction, open, onOpenChange, onUpdat
                 </div>
               )}
             </div>
+
+            {/* New Client Info selection */}
+            <div className="space-y-2">
+              <Label htmlFor="clientInfo">Client Company</Label>
+              <Select value={clientInfoId} onValueChange={setClientInfoId}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a client (optional)" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">None</SelectItem>
+                  {clientInfos.map((clientInfo) => (
+                    <SelectItem key={clientInfo.id} value={clientInfo.id}>
+                      {clientInfo.companyName}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {clientInfoId && (
+                <div className="text-sm text-gray-500">
+                  Contact: {clientInfos.find(ci => ci.id === clientInfoId)?.contactName || "N/A"}
+                </div>
+              )}
+            </div>
+
             <div className="space-y-2">
               <Label>Invoice Period</Label>
               <div className="grid grid-cols-2 gap-4">
