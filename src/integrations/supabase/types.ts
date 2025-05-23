@@ -9,6 +9,48 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      agents: {
+        Row: {
+          commission_rate: number
+          company_name: string | null
+          created_at: string | null
+          email: string
+          first_name: string
+          id: string
+          last_name: string
+          last_payment: string | null
+          total_earnings: number | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          commission_rate: number
+          company_name?: string | null
+          created_at?: string | null
+          email: string
+          first_name: string
+          id?: string
+          last_name: string
+          last_payment?: string | null
+          total_earnings?: number | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          commission_rate?: number
+          company_name?: string | null
+          created_at?: string | null
+          email?: string
+          first_name?: string
+          id?: string
+          last_name?: string
+          last_payment?: string | null
+          total_earnings?: number | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null

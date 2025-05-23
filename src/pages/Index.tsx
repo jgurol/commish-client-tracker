@@ -1,4 +1,5 @@
-import { useState } from "react";
+
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
@@ -10,6 +11,8 @@ import { StatsCards } from "@/components/StatsCards";
 import { ClientInfoList } from "@/components/ClientInfoList";
 import { AddClientInfoDialog } from "@/components/AddClientInfoDialog";
 import { Header } from "@/components/Header";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 export interface Client {
   id: string;
@@ -61,41 +64,9 @@ export interface Transaction {
 }
 
 const Index = () => {
-  const [clients, setClients] = useState<Client[]>([
-    {
-      id: "1",
-      firstName: "Acme",
-      lastName: "Corporation",
-      name: "Acme Corporation",
-      companyName: "Acme Inc.",
-      email: "contact@acme.com",
-      commissionRate: 5,
-      totalEarnings: 12500,
-      lastPayment: "2024-05-20"
-    },
-    {
-      id: "2",
-      firstName: "Tech",
-      lastName: "Solutions",
-      name: "Tech Solutions Ltd",
-      companyName: "TechSol Group",
-      email: "admin@techsolutions.com",
-      commissionRate: 7.5,
-      totalEarnings: 18750,
-      lastPayment: "2024-05-18"
-    },
-    {
-      id: "3",
-      firstName: "Global",
-      lastName: "Enterprises",
-      name: "Global Enterprises",
-      companyName: "Global Holdings",
-      email: "info@globalent.com",
-      commissionRate: 6,
-      totalEarnings: 9200,
-      lastPayment: "2024-05-15"
-    }
-  ]);
+  const [clients, setClients] = useState<Client[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
 
   // New state for client information
   const [clientInfos, setClientInfos] = useState<ClientInfo[]>([
@@ -157,21 +128,66 @@ const Index = () => {
   // New state for client info dialog
   const [isAddClientInfoOpen, setIsAddClientInfoOpen] = useState(false);
 
+  // Fetch agents from the database
+  useEffect(() => {
+    fetchAgents();
+  }, []);
+
+  const fetchAgents = async () => {
+    setLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('agents')
+        .select('*');
+
+      if (error) throw error;
+
+      if (data) {
+        // Transform data to match Client interface
+        const formattedClients: Client[] = data.map(agent => ({
+          id: agent.id,
+          firstName: agent.first_name,
+          lastName: agent.last_name,
+          name: `${agent.first_name} ${agent.last_name}`,
+          companyName: agent.company_name || '',
+          email: agent.email,
+          commissionRate: Number(agent.commission_rate),
+          totalEarnings: Number(agent.total_earnings || 0),
+          lastPayment: agent.last_payment || new Date().toISOString().split('T')[0]
+        }));
+
+        setClients(formattedClients);
+      }
+    } catch (error: any) {
+      console.error('Error fetching agents:', error);
+      toast({
+        title: "Error",
+        description: `Failed to fetch agents: ${error.message}`,
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const addClient = (newClient: Omit<Client, "id">) => {
+    // Local state update is now handled after DB insert in AddClientDialog
     const client: Client = {
       ...newClient,
-      id: Date.now().toString(),
+      id: Date.now().toString(), // This ID will be replaced by the DB-generated one
     };
     setClients([...clients, client]);
   };
 
   const updateClient = (updatedClient: Client) => {
+    // Local state update - database update is handled in ClientList component
     setClients(clients.map(client => 
       client.id === updatedClient.id ? updatedClient : client
     ));
   };
 
   const deleteClient = (clientId: string) => {
+    // Local state update - database deletion is handled in ClientList component
     setClients(clients.filter(client => client.id !== clientId));
     setTransactions(transactions.filter(transaction => transaction.clientId !== clientId));
   };
@@ -324,7 +340,7 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
       <div className="container mx-auto px-4 py-8 max-w-7xl">
-        {/* Replace the old header with our new component */}
+        {/* Header */}
         <Header />
 
         {/* Stats Cards */}
@@ -340,24 +356,41 @@ const Index = () => {
             onAddTransaction={addTransaction}
             onUpdateTransaction={updateTransaction}
             onApproveCommission={approveCommission}
-            onPayCommission={payCommission} // Add the new handler
+            onPayCommission={payCommission}
           />
         </div>
 
         {/* Client List */}
-        <ClientList 
-          clients={clients} 
-          transactions={transactions}
-          onUpdateClient={updateClient}
-          onDeleteClient={deleteClient}
-          onUpdateTransactions={updateTransactions}
-        />
+        <div className="mb-6 flex justify-between items-center">
+          <h2 className="text-xl font-bold">Agents</h2>
+          <Button 
+            onClick={() => setIsAddClientOpen(true)}
+            className="bg-blue-600 hover:bg-blue-700 text-white shadow-lg hover:shadow-xl transition-all duration-200"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Add Agent
+          </Button>
+        </div>
+        
+        {loading ? (
+          <div className="text-center py-8">Loading agents...</div>
+        ) : (
+          <ClientList 
+            clients={clients} 
+            transactions={transactions}
+            onUpdateClient={updateClient}
+            onDeleteClient={deleteClient}
+            onUpdateTransactions={updateTransactions}
+            onFetchClients={fetchAgents}
+          />
+        )}
 
         {/* Add Client Dialog */}
         <AddClientDialog 
           open={isAddClientOpen}
           onOpenChange={setIsAddClientOpen}
           onAddClient={addClient}
+          onFetchClients={fetchAgents}
         />
 
         {/* Client info management UI */}

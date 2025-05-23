@@ -6,13 +6,16 @@ import { Badge } from "@/components/ui/badge";
 import { Edit, Trash2, Mail, Percent, DollarSign, Users, Building, CheckCircle, Clock, AlertCircle } from "lucide-react";
 import { Client, Transaction } from "@/pages/Index";
 import { EditClientDialog } from "@/components/EditClientDialog";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 interface ClientListProps {
   clients: Client[];
   transactions: Transaction[];
   onUpdateClient: (client: Client) => void;
   onDeleteClient: (clientId: string) => void;
-  onUpdateTransactions: (transactions: Transaction[]) => void; // Add callback to update transactions
+  onUpdateTransactions: (transactions: Transaction[]) => void;
+  onFetchClients: () => void; // Add this to refresh clients list after DB operations
 }
 
 export const ClientList = ({ 
@@ -20,10 +23,12 @@ export const ClientList = ({
   transactions, 
   onUpdateClient, 
   onDeleteClient,
-  onUpdateTransactions
+  onUpdateTransactions,
+  onFetchClients
 }: ClientListProps) => {
   const [editingClient, setEditingClient] = useState<Client | null>(null);
-
+  const { toast } = useToast();
+  
   // Updated function to calculate commission totals for a specific client
   const calculateClientCommissions = (clientId: string) => {
     const clientTransactions = transactions.filter(t => t.clientId === clientId);
@@ -46,6 +51,69 @@ export const ClientList = ({
       unapproved: unapprovedCommissions,
       total: paidCommissions + approvedUnpaidCommissions + unapprovedCommissions
     };
+  };
+
+  // New function to handle updating agents in Supabase
+  const handleUpdateAgentInDb = async (updatedClient: Client) => {
+    try {
+      const { error } = await supabase
+        .from('agents')
+        .update({
+          first_name: updatedClient.firstName,
+          last_name: updatedClient.lastName,
+          company_name: updatedClient.companyName,
+          email: updatedClient.email,
+          commission_rate: updatedClient.commissionRate
+        })
+        .eq('id', updatedClient.id);
+
+      if (error) throw error;
+      
+      // Update local state
+      onUpdateClient(updatedClient);
+      
+      toast({
+        title: "Success",
+        description: "Agent updated successfully in the database",
+      });
+      
+      // Refresh clients list to get the latest data
+      onFetchClients();
+    } catch (error: any) {
+      console.error('Error updating agent in database:', error);
+      toast({
+        title: "Error",
+        description: `Failed to update agent in database: ${error.message}`,
+        variant: "destructive"
+      });
+    }
+  };
+
+  // New function to handle agent deletion in Supabase
+  const handleDeleteAgentFromDb = async (clientId: string) => {
+    try {
+      const { error } = await supabase
+        .from('agents')
+        .delete()
+        .eq('id', clientId);
+
+      if (error) throw error;
+      
+      // Remove from local state
+      onDeleteClient(clientId);
+      
+      toast({
+        title: "Success",
+        description: "Agent deleted successfully from the database",
+      });
+    } catch (error: any) {
+      console.error('Error deleting agent from database:', error);
+      toast({
+        title: "Error",
+        description: `Failed to delete agent from database: ${error.message}`,
+        variant: "destructive"
+      });
+    }
   };
 
   return (
@@ -111,7 +179,7 @@ export const ClientList = ({
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => onDeleteClient(client.id)}
+                          onClick={() => handleDeleteAgentFromDb(client.id)}
                           className="hover:bg-red-50 hover:border-red-300 text-red-600"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -177,7 +245,7 @@ export const ClientList = ({
           client={editingClient}
           open={!!editingClient}
           onOpenChange={(open) => !open && setEditingClient(null)}
-          onUpdateClient={onUpdateClient}
+          onUpdateClient={handleUpdateAgentInDb}
           transactions={transactions}
           onUpdateTransactions={onUpdateTransactions}
         />

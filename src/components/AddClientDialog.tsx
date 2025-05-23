@@ -5,39 +5,112 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Client } from "@/pages/Index";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/context/AuthContext";
 
 interface AddClientDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onAddClient: (client: Omit<Client, "id">) => void;
+  onFetchClients: () => void; // Add this to refresh clients after DB insert
 }
 
-export const AddClientDialog = ({ open, onOpenChange, onAddClient }: AddClientDialogProps) => {
+export const AddClientDialog = ({ 
+  open, 
+  onOpenChange, 
+  onAddClient,
+  onFetchClients
+}: AddClientDialogProps) => {
   const [companyName, setCompanyName] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [commissionRate, setCommissionRate] = useState("");
+  const { toast } = useToast();
+  const { user } = useAuth();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (firstName && lastName && email && commissionRate) {
-      onAddClient({
-        firstName,
-        lastName,
-        name: `${firstName} ${lastName}`, // Generate full name from first and last name
-        companyName,
-        email,
-        commissionRate: parseFloat(commissionRate),
-        totalEarnings: 0,
-        lastPayment: new Date().toISOString().split('T')[0]
+      const parsedRate = parseFloat(commissionRate);
+      
+      if (isNaN(parsedRate) || parsedRate < 0 || parsedRate > 100) {
+        toast({
+          title: "Invalid Commission Rate",
+          description: "Commission rate must be between 0 and 100",
+          variant: "destructive"
+        });
+        return;
+      }
+      
+      try {
+        // Insert into database
+        const { data, error } = await supabase
+          .from('agents')
+          .insert({
+            user_id: user?.id, // Link to current user
+            first_name: firstName,
+            last_name: lastName,
+            company_name: companyName,
+            email,
+            commission_rate: parsedRate,
+            total_earnings: 0,
+            last_payment: new Date().toISOString().split('T')[0]
+          })
+          .select();
+
+        if (error) throw error;
+
+        if (data && data[0]) {
+          // Format for local state
+          const newClientData = {
+            id: data[0].id,
+            firstName,
+            lastName,
+            name: `${firstName} ${lastName}`,
+            companyName,
+            email,
+            commissionRate: parsedRate,
+            totalEarnings: 0,
+            lastPayment: new Date().toISOString().split('T')[0]
+          };
+          
+          // Update local state
+          onAddClient(newClientData);
+          
+          // Reset form
+          setCompanyName("");
+          setFirstName("");
+          setLastName("");
+          setEmail("");
+          setCommissionRate("");
+          
+          toast({
+            title: "Success",
+            description: "Agent added successfully to the database",
+          });
+          
+          // Refresh clients list to get the latest data
+          onFetchClients();
+          
+          // Close dialog
+          onOpenChange(false);
+        }
+      } catch (error: any) {
+        console.error('Error adding agent to database:', error);
+        toast({
+          title: "Error",
+          description: `Failed to add agent to database: ${error.message}`,
+          variant: "destructive"
+        });
+      }
+    } else {
+      toast({
+        title: "Missing Information",
+        description: "Please fill out all required fields",
+        variant: "destructive"
       });
-      setCompanyName("");
-      setFirstName("");
-      setLastName("");
-      setEmail("");
-      setCommissionRate("");
-      onOpenChange(false);
     }
   };
 

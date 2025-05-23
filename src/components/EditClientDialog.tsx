@@ -5,14 +5,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Client, Transaction } from "@/pages/Index";
+import { useToast } from "@/hooks/use-toast";
 
 interface EditClientDialogProps {
   client: Client;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onUpdateClient: (client: Client) => void;
-  transactions?: Transaction[]; // Add transactions prop
-  onUpdateTransactions?: (transactions: Transaction[]) => void; // Add callback to update transactions
+  transactions?: Transaction[];
+  onUpdateTransactions?: (transactions: Transaction[]) => void;
 }
 
 export const EditClientDialog = ({ 
@@ -20,7 +21,7 @@ export const EditClientDialog = ({
   open, 
   onOpenChange, 
   onUpdateClient, 
-  transactions = [], // Default to empty array
+  transactions = [], 
   onUpdateTransactions 
 }: EditClientDialogProps) => {
   const [companyName, setCompanyName] = useState(client.companyName || "");
@@ -28,6 +29,7 @@ export const EditClientDialog = ({
   const [lastName, setLastName] = useState(client.lastName || "");
   const [email, setEmail] = useState(client.email);
   const [commissionRate, setCommissionRate] = useState(client.commissionRate.toString());
+  const { toast } = useToast();
 
   useEffect(() => {
     setCompanyName(client.companyName || "");
@@ -39,7 +41,19 @@ export const EditClientDialog = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
     if (firstName && lastName && email && commissionRate) {
+      const parsedRate = parseFloat(commissionRate);
+      
+      if (isNaN(parsedRate) || parsedRate < 0 || parsedRate > 100) {
+        toast({
+          title: "Invalid Commission Rate",
+          description: "Commission rate must be between 0 and 100",
+          variant: "destructive"
+        });
+        return;
+      }
+      
       const updatedClient = {
         ...client,
         firstName,
@@ -47,14 +61,15 @@ export const EditClientDialog = ({
         name: `${firstName} ${lastName}`, // Update full name from first and last name
         companyName,
         email,
-        commissionRate: parseFloat(commissionRate),
+        commissionRate: parsedRate,
       };
       
+      // Call the update function which will handle the database update
       onUpdateClient(updatedClient);
       
       // Update commission calculations for unpaid commissions
       if (onUpdateTransactions && transactions.length > 0) {
-        const newRate = parseFloat(commissionRate);
+        const newRate = parsedRate;
         // Only recalculate for transactions that belong to this client and don't have paid commissions
         const updatedTransactions = transactions.map(transaction => {
           if (transaction.clientId === client.id && !transaction.commissionPaidDate) {
@@ -71,6 +86,12 @@ export const EditClientDialog = ({
       }
       
       onOpenChange(false);
+    } else {
+      toast({
+        title: "Missing Information",
+        description: "Please fill out all required fields",
+        variant: "destructive"
+      });
     }
   };
 
