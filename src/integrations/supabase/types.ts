@@ -54,6 +54,7 @@ export type Database = {
       client_info: {
         Row: {
           address: string | null
+          agent_id: string | null
           company_name: string
           contact_name: string | null
           created_at: string
@@ -66,6 +67,7 @@ export type Database = {
         }
         Insert: {
           address?: string | null
+          agent_id?: string | null
           company_name: string
           contact_name?: string | null
           created_at?: string
@@ -78,6 +80,7 @@ export type Database = {
         }
         Update: {
           address?: string | null
+          agent_id?: string | null
           company_name?: string
           contact_name?: string | null
           created_at?: string
@@ -88,7 +91,15 @@ export type Database = {
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "client_info_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {

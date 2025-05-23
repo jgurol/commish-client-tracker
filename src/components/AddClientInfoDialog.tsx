@@ -70,7 +70,7 @@ export const AddClientInfoDialog = ({ open, onOpenChange, onAddClientInfo }: Add
           phone: null,
           address: address || null,
           notes: notes || null,
-          agent_id: agentId
+          agent_id: agentId === "none" ? null : agentId
         });
         resetForm();
         onOpenChange(false);

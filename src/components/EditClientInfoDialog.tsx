@@ -80,12 +80,12 @@ export const EditClientInfoDialog = ({
         await onUpdateClientInfo({
           ...clientInfo,
           company_name: companyName,
-          contact_name: null,
-          email: null,
-          phone: null,
+          contact_name: clientInfo.contact_name,
+          email: clientInfo.email,
+          phone: clientInfo.phone,
           address: address || null,
           notes: notes || null,
-          agent_id: agentId
+          agent_id: agentId === "none" ? null : agentId
         });
         onOpenChange(false);
       } catch (err) {

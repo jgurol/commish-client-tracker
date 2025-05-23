@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -35,6 +36,7 @@ export interface ClientInfo {
   phone: string | null;
   address: string | null;
   notes: string | null;
+  agent_id: string | null; // Added this field to match the database column
   created_at: string;
   updated_at: string;
 }
