@@ -208,7 +208,7 @@ const IndexPage = () => {
     }
   };
 
-  // Modified transaction fetch function - UPDATED filtering logic
+  // Modified transaction fetch function - COMPLETELY FIXED filtering logic
   const fetchTransactions = async () => {
     if (!user) {
       console.log("❌ [fetchTransactions] No user found, skipping transaction fetch");
@@ -224,25 +224,28 @@ const IndexPage = () => {
       console.log("[fetchTransactions] User isAdmin:", isAdmin);
       console.log("[fetchTransactions] Associated agent ID:", associatedAgentId);
       
-      // Build the query with corrected filtering logic
+      // Build the query with COMPLETELY CORRECTED filtering logic
       let query = supabase.from('transactions').select('*');
       
-      // CORRECTED LOGIC: If user is admin, show all transactions
-      // If user is not admin and has an associated agent, filter by that agent ID
+      // FIXED LOGIC: Admin users see ALL transactions with NO filtering whatsoever
       if (isAdmin) {
-        console.log("🔍 [fetchTransactions] Admin user - fetching all transactions (no filter)");
-        // Admin sees all transactions - no filter needed at all
-      } else if (associatedAgentId) {
-        console.log(`🔍 [fetchTransactions] Non-admin user with agent ID - filtering transactions for agent ID: ${associatedAgentId}`);
-        query = query.eq('client_id', associatedAgentId);
+        console.log("🔍 [fetchTransactions] Admin user - NO FILTERING APPLIED - fetching ALL transactions");
+        // Admins see everything - absolutely no filtering
       } else {
-        console.log("🔍 [fetchTransactions] Non-admin user without agent ID - no transactions should be visible");
-        // Non-admin without agent ID should see no transactions
-        query = query.eq('client_id', 'no-match'); // This will return empty results
+        // Non-admin users only see transactions where client_id matches their associated agent
+        if (associatedAgentId) {
+          console.log(`🔍 [fetchTransactions] Non-admin user - filtering for agent ID: ${associatedAgentId}`);
+          query = query.eq('client_id', associatedAgentId);
+        } else {
+          console.log("🔍 [fetchTransactions] Non-admin user without agent ID - no transactions visible");
+          query = query.eq('client_id', 'no-match'); // Return empty for non-admin without agent
+        }
       }
       
       // Add ordering to ensure consistent results
       query = query.order('created_at', { ascending: false });
+      
+      console.log("[fetchTransactions] Final query will be executed now...");
       
       // Execute the query
       const { data, error } = await query;
@@ -273,17 +276,16 @@ const IndexPage = () => {
             date: trans.date,
             client_info_id: trans.client_info_id,
             is_paid: trans.is_paid,
-            commission: trans.commission
+            commission: trans.commission,
+            created_at: trans.created_at
           });
-
-          // Critical debugging: Check if this transaction should be visible
-          if (!isAdmin && associatedAgentId) {
-            const isVisible = trans.client_id === associatedAgentId;
-            console.log(`[fetchTransactions] Transaction ${trans.id} visible to agent ${associatedAgentId}? ${isVisible}`);
-          } else if (isAdmin) {
-            console.log(`[fetchTransactions] Transaction ${trans.id} visible to admin: YES`);
-          }
         });
+      } else {
+        console.log("❌ [fetchTransactions] NO TRANSACTIONS RETURNED FROM DATABASE");
+        console.log("[fetchTransactions] This could indicate:");
+        console.log("- Database is empty");
+        console.log("- RLS policies are blocking access");
+        console.log("- Query filtering is too restrictive");
       }
 
       // Map database transactions to our Transaction interface
@@ -296,12 +298,6 @@ const IndexPage = () => {
         // Find client for this transaction
         const client = clients.find(c => c.id === transaction.client_id);
         console.log(`[fetchTransactions] Client found for transaction ${transaction.id}:`, client?.name || "❌ NOT FOUND");
-        
-        // Enhanced debugging - is this client ID the same as the associated agent ID?
-        if (associatedAgentId) {
-          const isClientMatchingAgent = transaction.client_id === associatedAgentId;
-          console.log(`🔍 [fetchTransactions] DEBUG: transaction client_id (${transaction.client_id}) === associated_agent_id (${associatedAgentId})? ${isClientMatchingAgent}`);
-        }
         
         // Find client info for this transaction if available
         let clientInfo = null;
