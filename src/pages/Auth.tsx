@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Navigate } from "react-router-dom";
 import { z } from "zod";
@@ -112,21 +111,16 @@ const Auth = () => {
     try {
       setIsSubmitting(true);
       
-      // Create an absolute URL for redirection
-      // Use the deployment domain, not localhost
-      const currentUrl = window.location.href;
-      const currentHost = window.location.host;
+      // Get the fully qualified URL with deployment domain
+      const siteUrl = window.location.origin;
+      const authPath = '/auth';
+      const redirectUrl = `${siteUrl}${authPath}`;
       
-      // Get the current full URL path to auth page, ensuring it's not localhost
-      // Will be something like https://c83c844e-8976-48a5-afbb-608359c9004d.lovableproject.com/auth
-      const fullUrlPath = currentUrl.split('/').slice(0, -1).join('/') + '/auth';
-      
-      console.log('Current URL:', currentUrl);
-      console.log('Current Host:', currentHost);
-      console.log('Reset password redirect URL:', fullUrlPath);
+      console.log('Site URL for reset:', siteUrl);
+      console.log('Full redirect URL:', redirectUrl);
       
       const { error } = await supabase.auth.resetPasswordForEmail(values.email, {
-        redirectTo: fullUrlPath,
+        redirectTo: redirectUrl,
       });
       
       if (error) {
