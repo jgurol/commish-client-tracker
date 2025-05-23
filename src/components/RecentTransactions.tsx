@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Plus, DollarSign, Pencil, CheckCircle, Clock, Building } from "lucide-react";
+import { Plus, DollarSign, Pencil, CheckCircle, Clock, Building, FileText } from "lucide-react";
 import { Transaction, Client } from "@/pages/Index";
 import { AddTransactionDialog } from "@/components/AddTransactionDialog";
 import { EditTransactionDialog } from "@/components/EditTransactionDialog";
@@ -75,7 +75,7 @@ export const RecentTransactions = ({
                       <Badge variant="outline" className="text-xs">
                         ${transaction.amount.toLocaleString()}
                       </Badge>
-                      {transaction.datePaid ? (
+                      {transaction.isPaid ? (
                         <Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200">
                           <CheckCircle className="w-3 h-3 mr-1" />
                           Paid
@@ -88,7 +88,7 @@ export const RecentTransactions = ({
                           </Badge>
                         )
                       )}
-                      {transaction.paymentMethod && (
+                      {transaction.paymentMethod && transaction.isPaid && (
                         <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200">
                           {transaction.paymentMethod === "check" ? "Check" : "Zelle"}
                         </Badge>
@@ -98,7 +98,20 @@ export const RecentTransactions = ({
                       <Building className="w-4 h-4" />
                       {transaction.companyName}
                     </div>
-                    <div className="text-sm text-gray-600">
+                    <div className="text-sm text-gray-600 flex items-center gap-1">
+                      {transaction.invoiceNumber && (
+                        <>
+                          <FileText className="w-3 h-3" />
+                          <span>Invoice #{transaction.invoiceNumber}</span>
+                          {transaction.invoiceMonth && transaction.invoiceYear && (
+                            <span className="text-gray-500">
+                              ({months.find(m => m.value === transaction.invoiceMonth)?.label} {transaction.invoiceYear})
+                            </span>
+                          )}
+                        </>
+                      )}
+                    </div>
+                    <div className="text-sm text-gray-600 mt-1">
                       {transaction.description}
                     </div>
                     <div className="text-xs text-gray-500 mt-1 flex flex-wrap gap-2">
@@ -106,7 +119,7 @@ export const RecentTransactions = ({
                       {transaction.datePaid && (
                         <span>Paid: {new Date(transaction.datePaid).toLocaleDateString()}</span>
                       )}
-                      {transaction.referenceNumber && (
+                      {transaction.referenceNumber && transaction.isPaid && (
                         <span>
                           {transaction.paymentMethod === "check" ? "Check #: " : "Ref #: "}
                           {transaction.referenceNumber}
@@ -153,3 +166,19 @@ export const RecentTransactions = ({
     </>
   );
 };
+
+// Array for month names - needed for display
+const months = [
+  { value: "1", label: "January" },
+  { value: "2", label: "February" },
+  { value: "3", label: "March" },
+  { value: "4", label: "April" },
+  { value: "5", label: "May" },
+  { value: "6", label: "June" },
+  { value: "7", label: "July" },
+  { value: "8", label: "August" },
+  { value: "9", label: "September" },
+  { value: "10", label: "October" },
+  { value: "11", label: "November" },
+  { value: "12", label: "December" },
+];

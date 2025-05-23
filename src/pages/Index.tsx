@@ -31,6 +31,10 @@ export interface Transaction {
   datePaid?: string; // Optional field to track when payment was made
   paymentMethod?: string; // Check or Zelle
   referenceNumber?: string; // Check number or Zelle reference
+  invoiceMonth?: string; // Month of the invoice period
+  invoiceYear?: string; // Year of the invoice period
+  invoiceNumber?: string; // Invoice number
+  isPaid?: boolean; // Whether the customer has paid the invoice
 }
 
 const Index = () => {
