@@ -34,9 +34,6 @@ export const useClientManagement = (): ClientManagementHook => {
         
         setClientInfos(data);
         await fetchAgentNames();
-        
-        // Ensure loading is set to false after data is loaded
-        setIsLoading(false);
       } catch (err) {
         console.error('Error in client info fetch:', err);
         toast({
@@ -44,6 +41,8 @@ export const useClientManagement = (): ClientManagementHook => {
           description: err instanceof Error ? err.message : "Failed to load client information",
           variant: "destructive"
         });
+      } finally {
+        // Always set loading to false, regardless of success or error
         setIsLoading(false);
       }
     };
