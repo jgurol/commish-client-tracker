@@ -171,14 +171,14 @@ export const RecentTransactions = ({
         </CardHeader>
         <CardContent>
           <ScrollArea className="h-[500px] pr-4">
-            {/* Debug information - updated to show current status */}
+            {/* Simplified debug information */}
             <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-md text-xs text-blue-700 flex items-start gap-2">
               <AlertCircle className="w-4 h-4 text-blue-500 shrink-0 mt-0.5" />
               <div>
-                <p className="font-medium mb-1">TRANSACTION DEBUG INFO</p>
-                <p>User: {isAdmin ? 'Admin (sees all)' : `Agent (sees own only)`}</p>
+                <p className="font-medium mb-1">TRANSACTION STATUS</p>
+                <p>User: {isAdmin ? 'Admin (sees all)' : `Agent (filtered)`}</p>
                 <p>Transactions displayed: {transactions.length}</p>
-                <p>Filter status: {isAdmin ? 'No filtering applied' : (associatedAgentId ? `Filtered by agent ${associatedAgentId}` : 'No agent access')}</p>
+                <p>Filter: {isAdmin ? 'No filtering (admin sees all)' : (associatedAgentId ? `Filtered by agent ${associatedAgentId}` : 'No agent access')}</p>
               </div>
             </div>
             
@@ -203,6 +203,9 @@ export const RecentTransactions = ({
                         <h4 className="font-medium text-gray-900">{transaction.clientName}</h4>
                         <Badge variant="outline" className="text-xs">
                           ${transaction.amount.toLocaleString()}
+                        </Badge>
+                        <Badge variant="outline" className="text-xs bg-gray-50 text-gray-700 border-gray-200 font-mono">
+                          ID: {transaction.id.slice(0, 8)}...
                         </Badge>
                         {transaction.isPaid ? (
                           <Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200">

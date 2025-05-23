@@ -180,7 +180,6 @@ const IndexPage = () => {
     if (!user) return;
     
     try {
-      // Remove agent-based filtering to show all clients
       let query = supabase.from('client_info').select('*');
       
       query = query.order('company_name', { ascending: true });
@@ -208,7 +207,7 @@ const IndexPage = () => {
     }
   };
 
-  // Modified transaction fetch function - COMPLETELY FIXED filtering logic
+  // COMPLETELY FIXED transaction fetch function
   const fetchTransactions = async () => {
     if (!user) {
       console.log("❌ [fetchTransactions] No user found, skipping transaction fetch");
@@ -218,34 +217,35 @@ const IndexPage = () => {
     try {
       setIsLoading(true);
       
-      console.log("=== TRANSACTION FETCH DEBUGGING ===");
+      console.log("=== TRANSACTION FETCH DEBUGGING (FIXED) ===");
       console.log("[fetchTransactions] Current user:", user.id);
       console.log("[fetchTransactions] User email:", user.email);
       console.log("[fetchTransactions] User isAdmin:", isAdmin);
       console.log("[fetchTransactions] Associated agent ID:", associatedAgentId);
       
-      // Build the query with COMPLETELY CORRECTED filtering logic
+      // Build the query with COMPLETELY FIXED filtering logic
       let query = supabase.from('transactions').select('*');
       
-      // FIXED LOGIC: Admin users see ALL transactions with NO filtering whatsoever
+      // ADMIN USERS: See ALL transactions with NO filtering whatsoever
       if (isAdmin) {
-        console.log("🔍 [fetchTransactions] Admin user - NO FILTERING APPLIED - fetching ALL transactions");
-        // Admins see everything - absolutely no filtering
+        console.log("🔍 [fetchTransactions] ADMIN MODE - NO FILTERING - fetching ALL transactions");
+        // Admins see everything - absolutely no WHERE clauses
       } else {
-        // Non-admin users only see transactions where client_id matches their associated agent
+        // NON-ADMIN USERS: Only see transactions where client_id matches their associated agent
         if (associatedAgentId) {
-          console.log(`🔍 [fetchTransactions] Non-admin user - filtering for agent ID: ${associatedAgentId}`);
+          console.log(`🔍 [fetchTransactions] NON-ADMIN MODE - filtering for agent ID: ${associatedAgentId}`);
           query = query.eq('client_id', associatedAgentId);
         } else {
-          console.log("🔍 [fetchTransactions] Non-admin user without agent ID - no transactions visible");
-          query = query.eq('client_id', 'no-match'); // Return empty for non-admin without agent
+          console.log("🔍 [fetchTransactions] NON-ADMIN USER without agent ID - returning empty results");
+          // For non-admin users without agent ID, use a condition that will never match
+          query = query.eq('id', '00000000-0000-0000-0000-000000000000');
         }
       }
       
       // Add ordering to ensure consistent results
       query = query.order('created_at', { ascending: false });
       
-      console.log("[fetchTransactions] Final query will be executed now...");
+      console.log("[fetchTransactions] Executing query...");
       
       // Execute the query
       const { data, error } = await query;
