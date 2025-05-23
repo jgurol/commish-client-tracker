@@ -11,6 +11,7 @@ export const useIndexData = () => {
   const [clientInfos, setClientInfos] = useState<ClientInfo[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [associatedAgentId, setAssociatedAgentId] = useState<string | null>(null);
+  const [profileLoaded, setProfileLoaded] = useState(false);
   const { user, isAdmin } = useAuth();
   const { toast } = useToast();
 
@@ -21,20 +22,20 @@ export const useIndexData = () => {
     }
   }, [user]);
 
-  // Load clients from Supabase when component mounts
+  // Load clients from Supabase when profile is loaded
   useEffect(() => {
-    if (associatedAgentId !== undefined) {
+    if (profileLoaded) {
       fetchClients();
       fetchClientInfos();
     }
-  }, [associatedAgentId]);
+  }, [profileLoaded, associatedAgentId]);
 
-  // Function to fetch transactions from Supabase
+  // Function to fetch transactions from Supabase - only after clients are loaded
   useEffect(() => {
-    if (clients.length > 0) {
+    if (clients.length > 0 && profileLoaded) {
       fetchTransactions();
     }
-  }, [clients]);
+  }, [clients, profileLoaded]);
 
   // Fetch user's profile to get associated agent ID
   const fetchUserProfile = async () => {
@@ -52,6 +53,7 @@ export const useIndexData = () => {
       
       if (error) {
         console.error('[fetchUserProfile] Error fetching user profile:', error);
+        setProfileLoaded(true); // Still mark as loaded even if there's an error
         return;
       }
       
@@ -77,8 +79,10 @@ export const useIndexData = () => {
       }
       
       setAssociatedAgentId(data?.associated_agent_id || null);
+      setProfileLoaded(true); // Mark profile as loaded after setting the agent ID
     } catch (err) {
       console.error('[fetchUserProfile] Exception fetching user profile:', err);
+      setProfileLoaded(true); // Still mark as loaded even if there's an exception
     }
   };
 
@@ -196,49 +200,7 @@ export const useIndexData = () => {
       console.log('[DEBUG] - associatedAgentId:', associatedAgentId);
       console.log('[DEBUG] - user.id:', user.id);
       console.log('[DEBUG] - clients:', clients);
-      
-      // Let's first check ALL transactions that this user can see (without any filters)
-      console.log('[DEBUG] Checking ALL transactions user can access...');
-      const { data: allUserTransactions, error: allError } = await supabase
-        .from('transactions')
-        .select('id, client_id, user_id, description')
-        .order('created_at', { ascending: false });
-      
-      if (allError) {
-        console.log('[DEBUG] Error fetching all transactions:', allError);
-      } else {
-        console.log('[DEBUG] ALL transactions user can see:', allUserTransactions);
-        console.log('[DEBUG] Total accessible transactions:', allUserTransactions?.length || 0);
-        
-        // Check if our target transaction is in there
-        const targetInAll = allUserTransactions?.find(t => t.id === 'd0b91f93-75fd-4d3c-8c8c-b41c86f05eb1');
-        console.log('[DEBUG] Target transaction in all accessible:', targetInAll || 'NOT FOUND');
-        
-        // Show all client_ids in the accessible transactions
-        const uniqueClientIds = [...new Set(allUserTransactions?.map(t => t.client_id) || [])];
-        console.log('[DEBUG] All unique client_ids in accessible transactions:', uniqueClientIds);
-        console.log('[DEBUG] Our associatedAgentId:', associatedAgentId);
-        console.log('[DEBUG] Is our associatedAgentId in the client_ids?', uniqueClientIds.includes(associatedAgentId));
-      }
-      
-      // Also check what transactions exist for ANY client_id
-      console.log('[DEBUG] Checking transactions by client_id...');
-      const { data: transactionsByClient, error: clientError } = await supabase
-        .from('transactions')
-        .select('id, client_id, user_id, description')
-        .eq('id', 'd0b91f93-75fd-4d3c-8c8c-b41c86f05eb1');
-      
-      if (clientError) {
-        console.log('[DEBUG] Error checking specific transaction:', clientError);
-      } else {
-        console.log('[DEBUG] Specific transaction result:', transactionsByClient);
-        if (transactionsByClient && transactionsByClient.length > 0) {
-          const targetTx = transactionsByClient[0];
-          console.log('[DEBUG] Target transaction client_id:', targetTx.client_id);
-          console.log('[DEBUG] Our associatedAgentId:', associatedAgentId);
-          console.log('[DEBUG] Do they match?', targetTx.client_id === associatedAgentId);
-        }
-      }
+      console.log('[DEBUG] - profileLoaded:', profileLoaded);
       
       // Build the query with filtering logic
       let query = supabase.from('transactions').select('*');
@@ -281,19 +243,6 @@ export const useIndexData = () => {
 
       console.log('[DEBUG] Raw transaction data from DB:', data);
       console.log('[DEBUG] Number of transactions returned:', data?.length || 0);
-      
-      // Check if our target transaction is in the results
-      const targetTransaction = data?.find(t => t.id === 'd0b91f93-75fd-4d3c-8c8c-b41c86f05eb1');
-      console.log('[DEBUG] Target transaction in main query results:', targetTransaction ? 'FOUND' : 'NOT FOUND');
-      
-      if (targetTransaction) {
-        console.log('[DEBUG] Target transaction details:', targetTransaction);
-      } else {
-        console.log('[DEBUG] Target transaction missing - checking all returned IDs:');
-        data?.forEach((t, i) => {
-          console.log(`[DEBUG] Transaction ${i + 1}: ${t.id} (client_id: ${t.client_id})`);
-        });
-      }
 
       // Map database transactions to our Transaction interface
       const mappedTransactions = await Promise.all(data?.map(async (transaction) => {
