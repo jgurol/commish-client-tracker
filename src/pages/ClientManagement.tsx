@@ -11,7 +11,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 
-// Fixed type definition to make agent_id optional here as it is in the ClientInfo type
 const ClientManagement = () => {
   const [clientInfos, setClientInfos] = useState<ClientInfo[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -25,11 +24,16 @@ const ClientManagement = () => {
   // Load client info from Supabase
   useEffect(() => {
     const fetchClientInfos = async () => {
-      if (!user) return;
+      if (!user) {
+        setIsLoading(false);
+        return;
+      }
       
       try {
         setIsLoading(true);
-        // Remove agent-based filtering to show all clients consistently
+        console.log("Fetching all client info for user:", user.id);
+        
+        // Fetch all clients without any filtering
         const { data, error } = await supabase
           .from('client_info')
           .select('*')
@@ -43,6 +47,7 @@ const ClientManagement = () => {
             variant: "destructive"
           });
         } else {
+          console.log("Fetched client data:", data);
           setClientInfos(data || []);
           await fetchAgentNames();
         }
@@ -64,6 +69,7 @@ const ClientManagement = () => {
   // Fetch agent names for mapping
   const fetchAgentNames = async () => {
     try {
+      console.log("Fetching agent names for mapping");
       const { data, error } = await supabase
         .from('agents')
         .select('id, company_name, first_name, last_name');
@@ -71,10 +77,12 @@ const ClientManagement = () => {
       if (error) {
         console.error('Error fetching agents:', error);
       } else if (data) {
+        console.log("Fetched agent data:", data);
         const mapping: Record<string, string> = {};
         data.forEach(agent => {
           mapping[agent.id] = agent.company_name || `${agent.first_name} ${agent.last_name}`;
         });
+        console.log("Agent mapping created:", mapping);
         setAgentMapping(mapping);
       }
     } catch (err) {
