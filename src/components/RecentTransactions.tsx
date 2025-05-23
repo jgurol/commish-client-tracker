@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -45,9 +44,9 @@ export const RecentTransactions = ({
   // State for the approval warning dialog
   const [approvalWarningOpen, setApprovalWarningOpen] = useState(false);
   const [pendingApprovalId, setPendingApprovalId] = useState<string | null>(null);
-  // New state for filtering paid commissions
-  const [includePaidCommissions, setIncludePaidCommissions] = useState(true);
-  // Changed default value to true for showOnlyPaidInvoices
+  // Changed default value to false for includePaidCommissions
+  const [includePaidCommissions, setIncludePaidCommissions] = useState(false);
+  // Keep showOnlyPaidInvoices as true
   const [showOnlyPaidInvoices, setShowOnlyPaidInvoices] = useState(true);
 
   // Filter transactions based on the checkbox states
