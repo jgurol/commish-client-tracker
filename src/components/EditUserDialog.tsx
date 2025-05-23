@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -91,13 +92,16 @@ export const EditUserDialog = ({
         return;
       }
 
+      // Convert "none" to null for database storage
+      const agentIdToStore = data.associated_agent_id === "none" ? null : data.associated_agent_id;
+
       // Update associated agent separately if needed
-      if (data.associated_agent_id !== user.associated_agent_id) {
+      if (agentIdToStore !== user.associated_agent_id) {
         const { error: agentError } = await supabase
           .from('profiles')
           .update({ 
-            associated_agent_id: data.associated_agent_id,
-            is_associated: data.associated_agent_id ? true : user.is_associated
+            associated_agent_id: agentIdToStore,
+            is_associated: agentIdToStore ? true : user.is_associated
           })
           .eq('id', user.id);
 
@@ -113,7 +117,7 @@ export const EditUserDialog = ({
       }
 
       // Find the associated agent name if an agent is selected
-      const associatedAgent = agents.find(agent => agent.id === data.associated_agent_id);
+      const associatedAgent = agents.find(agent => agent.id === agentIdToStore);
       const associatedAgentName = associatedAgent?.full_name || null;
 
       const updatedUser = {
@@ -121,7 +125,7 @@ export const EditUserDialog = ({
         full_name: data.full_name,
         email: data.email,
         role: data.role,
-        associated_agent_id: data.associated_agent_id || null,
+        associated_agent_id: agentIdToStore,
         associated_agent_name: associatedAgentName,
       };
       
@@ -218,7 +222,7 @@ export const EditUserDialog = ({
                     <FormLabel>Associate with Agent</FormLabel>
                     <Select 
                       onValueChange={field.onChange} 
-                      value={field.value || undefined}
+                      value={field.value || "none"}
                     >
                       <FormControl>
                         <SelectTrigger>

@@ -48,15 +48,32 @@ export default function Admin() {
   const fetchUsers = async () => {
     setLoading(true);
     try {
-      // Use the RPC function instead of directly querying the profiles table
+      // Use the RPC function to get users with associated agent information
       const { data, error } = await supabase
         .rpc('get_admin_users');
 
       if (error) throw error;
-      setUsers(data || []);
+      
+      // Add the missing associated_agent_id field by querying the profiles table
+      const { data: profilesData, error: profilesError } = await supabase
+        .from('profiles')
+        .select('id, associated_agent_id');
+
+      if (profilesError) throw profilesError;
+
+      // Merge the data to include associated_agent_id
+      const usersWithAgentId = data?.map(user => {
+        const profile = profilesData?.find(p => p.id === user.id);
+        return {
+          ...user,
+          associated_agent_id: profile?.associated_agent_id || null
+        };
+      }) || [];
+
+      setUsers(usersWithAgentId);
       
       // Filter out agents for the association dropdown
-      const agentsList = data?.filter(u => u.role === 'agent') || [];
+      const agentsList = usersWithAgentId?.filter(u => u.role === 'agent') || [];
       setAgents(agentsList);
     } catch (error: any) {
       console.error('Error fetching users:', error);
