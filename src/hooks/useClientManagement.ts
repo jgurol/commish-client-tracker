@@ -22,13 +22,25 @@ export const useClientManagement = () => {
       
       try {
         setIsLoading(true);
-        console.log("Fetching client info for user:", user.id, "isAdmin:", isAdmin);
+        console.log("=== CLIENT FETCH DEBUG ===");
+        console.log("User ID:", user.id);
+        console.log("User Email:", user.email);
+        console.log("Is Admin:", isAdmin);
+        console.log("Auth context user:", user);
         
-        // Always fetch all clients for both admin and agent views
+        // For admin users, fetch ALL clients
+        // For agent users, we also want to see all clients for management purposes
+        console.log("Attempting to fetch all client_info records...");
+        
         const { data, error } = await supabase
           .from('client_info')
           .select('*')
           .order('company_name', { ascending: true });
+        
+        console.log("Raw Supabase response:");
+        console.log("- Data:", data);
+        console.log("- Error:", error);
+        console.log("- Data length:", data?.length || 0);
         
         if (error) {
           console.error('Error fetching client info:', error);
@@ -38,8 +50,15 @@ export const useClientManagement = () => {
             variant: "destructive"
           });
         } else {
-          console.log("Fetched all client data:", data);
-          console.log("Setting clientInfos to:", data?.length || 0, "clients");
+          console.log("Successfully fetched client data:", data);
+          console.log("Setting clientInfos state with:", data?.length || 0, "clients");
+          console.log("Client details:", data?.map(c => ({
+            id: c.id,
+            company_name: c.company_name,
+            user_id: c.user_id,
+            agent_id: c.agent_id
+          })));
+          
           setClientInfos(data || []);
           await fetchAgentNames();
         }
