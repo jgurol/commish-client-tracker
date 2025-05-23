@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -70,22 +71,52 @@ const IndexPage = () => {
   const [isAddClientOpen, setIsAddClientOpen] = useState(false);
   const [clientInfos, setClientInfos] = useState<ClientInfo[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [associatedAgentId, setAssociatedAgentId] = useState<string | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
+
+  // Fetch the associated agent ID for the current user
+  useEffect(() => {
+    if (user) {
+      fetchUserProfile();
+    }
+  }, [user]);
+
+  // Fetch user's profile to get associated agent ID
+  const fetchUserProfile = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('associated_agent_id')
+        .eq('id', user?.id)
+        .single();
+      
+      if (error) {
+        console.error('Error fetching user profile:', error);
+        return;
+      }
+      
+      setAssociatedAgentId(data?.associated_agent_id || null);
+    } catch (err) {
+      console.error('Exception fetching user profile:', err);
+    }
+  };
 
   // Load clients from Supabase when component mounts
   useEffect(() => {
-    fetchClients();
-    fetchClientInfos();
-  }, [user]);
+    if (associatedAgentId !== undefined) {
+      fetchClients();
+      fetchClientInfos();
+    }
+  }, [associatedAgentId]);
 
   // Function to fetch transactions from Supabase
   useEffect(() => {
     if (clients.length > 0) {
       fetchTransactions();
     }
-  }, [clients, user]);
+  }, [clients]);
 
   // Function to fetch clients from Supabase
   const fetchClients = async () => {
@@ -93,10 +124,18 @@ const IndexPage = () => {
     
     try {
       setIsLoading(true);
-      const { data, error } = await supabase
-        .from('agents')
-        .select('*')
-        .order('last_name', { ascending: true });
+      
+      // If admin, fetch all agents, otherwise fetch only the associated agent
+      let query = supabase.from('agents').select('*');
+      
+      // If user is not admin and has an associated agent, filter by that agent ID
+      if (!isAdmin && associatedAgentId) {
+        query = query.eq('id', associatedAgentId);
+      }
+      
+      query = query.order('last_name', { ascending: true });
+      
+      const { data, error } = await query;
 
       if (error) {
         console.error('Error fetching agents:', error);
@@ -139,10 +178,16 @@ const IndexPage = () => {
     if (!user) return;
     
     try {
-      const { data, error } = await supabase
-        .from('client_info')
-        .select('*')
-        .order('company_name', { ascending: true });
+      let query = supabase.from('client_info').select('*');
+      
+      // If user is not admin and has an associated agent, filter by that agent ID
+      if (!isAdmin && associatedAgentId) {
+        query = query.eq('agent_id', associatedAgentId);
+      }
+      
+      query = query.order('company_name', { ascending: true });
+      
+      const { data, error } = await query;
       
       if (error) {
         console.error('Error fetching client info:', error);
@@ -170,10 +215,17 @@ const IndexPage = () => {
     
     try {
       setIsLoading(true);
-      const { data, error } = await supabase
-        .from('transactions')
-        .select('*')
-        .order('date', { ascending: false });
+      
+      let query = supabase.from('transactions').select('*');
+      
+      // If user is not admin and has an associated agent, filter by that agent's ID
+      if (!isAdmin && associatedAgentId) {
+        query = query.eq('client_id', associatedAgentId);
+      }
+      
+      query = query.order('date', { ascending: false });
+      
+      const { data, error } = await query;
 
       if (error) {
         console.error('Error fetching transactions:', error);
@@ -575,14 +627,16 @@ const IndexPage = () => {
           <div className="space-y-6">
             <div className="flex justify-between items-center">
               <h2 className="text-xl font-bold text-gray-900">Agents</h2>
-              <Button 
-                onClick={() => setIsAddClientOpen(true)}
-                size="sm"
-                className="bg-green-600 hover:bg-green-700 text-white"
-              >
-                <Plus className="w-4 h-4 mr-1" />
-                Add Agent
-              </Button>
+              {isAdmin && (
+                <Button 
+                  onClick={() => setIsAddClientOpen(true)}
+                  size="sm"
+                  className="bg-green-600 hover:bg-green-700 text-white"
+                >
+                  <Plus className="w-4 h-4 mr-1" />
+                  Add Agent
+                </Button>
+              )}
             </div>
 
             {/* Client List Component */}
@@ -599,12 +653,14 @@ const IndexPage = () => {
       </div>
 
       {/* Add Client Dialog */}
-      <AddClientDialog 
-        open={isAddClientOpen}
-        onOpenChange={setIsAddClientOpen}
-        onAddClient={addClient}
-        onFetchClients={fetchClients}
-      />
+      {isAdmin && (
+        <AddClientDialog 
+          open={isAddClientOpen}
+          onOpenChange={setIsAddClientOpen}
+          onAddClient={addClient}
+          onFetchClients={fetchClients}
+        />
+      )}
     </div>
   );
 };
