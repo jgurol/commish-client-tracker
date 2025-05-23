@@ -45,19 +45,19 @@ export const AddClientDialog = ({ open, onOpenChange, onAddClient }: AddClientDi
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Add New Client</DialogTitle>
+          <DialogTitle>Add New Agent</DialogTitle>
           <DialogDescription>
-            Enter the client details and commission rate.
+            Enter the agent details and commission rate.
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="companyName">Company Name</Label>
+            <Label htmlFor="companyName">Agent Name</Label>
             <Input
               id="companyName"
               value={companyName}
               onChange={(e) => setCompanyName(e.target.value)}
-              placeholder="Enter company name (optional)"
+              placeholder="Enter agent name"
             />
           </div>
           <div className="space-y-2">
@@ -87,7 +87,7 @@ export const AddClientDialog = ({ open, onOpenChange, onAddClient }: AddClientDi
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="Enter client email"
+              placeholder="Enter agent email"
               required
             />
           </div>
@@ -110,7 +110,7 @@ export const AddClientDialog = ({ open, onOpenChange, onAddClient }: AddClientDi
               Cancel
             </Button>
             <Button type="submit" className="bg-blue-600 hover:bg-blue-700">
-              Add Client
+              Add Agent
             </Button>
           </div>
         </form>

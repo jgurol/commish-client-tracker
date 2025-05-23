@@ -48,19 +48,19 @@ export const EditClientDialog = ({ client, open, onOpenChange, onUpdateClient }:
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Edit Client</DialogTitle>
+          <DialogTitle>Edit Agent</DialogTitle>
           <DialogDescription>
-            Update the client details and commission rate.
+            Update the agent details and commission rate.
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="edit-companyName">Company Name</Label>
+            <Label htmlFor="edit-companyName">Agent Name</Label>
             <Input
               id="edit-companyName"
               value={companyName}
               onChange={(e) => setCompanyName(e.target.value)}
-              placeholder="Enter company name (optional)"
+              placeholder="Enter agent name"
             />
           </div>
           <div className="space-y-2">
@@ -90,7 +90,7 @@ export const EditClientDialog = ({ client, open, onOpenChange, onUpdateClient }:
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="Enter client email"
+              placeholder="Enter agent email"
               required
             />
           </div>
@@ -113,7 +113,7 @@ export const EditClientDialog = ({ client, open, onOpenChange, onUpdateClient }:
               Cancel
             </Button>
             <Button type="submit" className="bg-blue-600 hover:bg-blue-700">
-              Update Client
+              Update Agent
             </Button>
           </div>
         </form>

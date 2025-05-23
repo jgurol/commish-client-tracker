@@ -20,15 +20,15 @@ export const ClientList = ({ clients, onUpdateClient, onDeleteClient }: ClientLi
     <>
       <Card className="bg-white shadow-lg border-0">
         <CardHeader>
-          <CardTitle className="text-xl font-semibold text-gray-900">Client Management</CardTitle>
-          <CardDescription>Manage your commission clients and their rates</CardDescription>
+          <CardTitle className="text-xl font-semibold text-gray-900">Agent Management</CardTitle>
+          <CardDescription>Manage your commission agents and their rates</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
             {clients.length === 0 ? (
               <div className="text-center py-8 text-gray-500">
                 <Users className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-                <p>No clients added yet. Click "Add Client" to get started!</p>
+                <p>No agents added yet. Click "Add Agent" to get started!</p>
               </div>
             ) : (
               clients.map((client) => (

@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -13,7 +14,7 @@ export interface Client {
   firstName: string;
   lastName: string;
   name: string; // Keeping for compatibility
-  companyName?: string; // Using as primary index
+  companyName?: string; // Using as primary index for Agent name
   email: string;
   commissionRate: number;
   totalEarnings: number;
@@ -24,7 +25,7 @@ export interface Transaction {
   id: string;
   clientId: string;
   clientName: string;
-  companyName: string; // Added as primary index
+  companyName: string; // Added as primary index for Agent name
   amount: number;
   date: string;
   description: string;
@@ -202,14 +203,14 @@ const Index = () => {
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
           <div>
             <h1 className="text-4xl font-bold text-gray-900 mb-2">Commission Tracker</h1>
-            <p className="text-lg text-gray-600">Manage your client commissions and track earnings</p>
+            <p className="text-lg text-gray-600">Manage your agent commissions and track earnings</p>
           </div>
           <Button 
             onClick={() => setIsAddClientOpen(true)}
             className="mt-4 md:mt-0 bg-blue-600 hover:bg-blue-700 text-white shadow-lg hover:shadow-xl transition-all duration-200"
           >
             <Plus className="w-4 h-4 mr-2" />
-            Add Client
+            Add Agent
           </Button>
         </div>
 
