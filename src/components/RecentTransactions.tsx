@@ -46,8 +46,8 @@ export const RecentTransactions = ({
   const [pendingApprovalId, setPendingApprovalId] = useState<string | null>(null);
   // New state for filtering paid commissions
   const [includePaidCommissions, setIncludePaidCommissions] = useState(true);
-  // New state for filtering paid invoices
-  const [showOnlyPaidInvoices, setShowOnlyPaidInvoices] = useState(true);
+  // Changed default value to true for showOnlyPaidInvoices
+  const [showOnlyPaidInvoices, setShowOnlyPaidInvoices] = useState(false);
 
   // Filter transactions based on the checkbox states
   const filteredTransactions = transactions
