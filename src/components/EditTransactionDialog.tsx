@@ -31,6 +31,7 @@ export const EditTransactionDialog = ({ transaction, open, onOpenChange, onUpdat
   const [invoiceYear, setInvoiceYear] = useState("");
   const [invoiceNumber, setInvoiceNumber] = useState("");
   const [isPaid, setIsPaid] = useState(false);
+  const [commissionPaidDate, setCommissionPaidDate] = useState(""); // New state for commission paid date
 
   // Array for month names - needed for display
   const months = [
@@ -66,6 +67,7 @@ export const EditTransactionDialog = ({ transaction, open, onOpenChange, onUpdat
       setInvoiceYear(transaction.invoiceYear || "");
       setInvoiceNumber(transaction.invoiceNumber || "");
       setIsPaid(transaction.isPaid || false);
+      setCommissionPaidDate(transaction.commissionPaidDate || ""); // Set commission paid date
     }
   }, [transaction]);
 
@@ -94,7 +96,8 @@ export const EditTransactionDialog = ({ transaction, open, onOpenChange, onUpdat
           clientInfoId: clientInfoId !== "none" ? clientInfoId : undefined,
           clientCompanyName: selectedClientInfo?.companyName,
           commission: transaction.commission,
-          isApproved: transaction.isApproved
+          isApproved: transaction.isApproved,
+          commissionPaidDate: commissionPaidDate || undefined // Add commission paid date
         });
         onOpenChange(false);
       }
@@ -290,6 +293,19 @@ export const EditTransactionDialog = ({ transaction, open, onOpenChange, onUpdat
                 placeholder="Enter transaction description"
                 required
               />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="commissionPaidDate">Commission Paid Date</Label>
+              <Input
+                id="commissionPaidDate"
+                type="date"
+                value={commissionPaidDate}
+                onChange={(e) => setCommissionPaidDate(e.target.value)}
+                placeholder="Leave blank if not yet paid"
+              />
+              <div className="text-xs text-gray-500">
+                Leave blank if the commission has not been paid yet
+              </div>
             </div>
             <div className="flex justify-end space-x-2">
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>

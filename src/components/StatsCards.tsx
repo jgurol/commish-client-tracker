@@ -17,13 +17,13 @@ export const StatsCards = ({ clients, transactions }: StatsCardsProps) => {
     .filter(t => new Date(t.date).getMonth() === new Date().getMonth())
     .reduce((sum, t) => sum + t.amount, 0);
 
-  // Calculate commission totals based on different statuses
+  // Calculate commission totals based on different statuses using commissionPaidDate
   const paidCommissions = transactions
-    .filter(t => t.isPaid && t.commission)
+    .filter(t => t.commissionPaidDate && t.commission)
     .reduce((sum, t) => sum + (t.commission || 0), 0);
     
   const approvedUnpaidCommissions = transactions
-    .filter(t => !t.isPaid && t.isApproved && t.commission)
+    .filter(t => !t.commissionPaidDate && t.isApproved && t.commission)
     .reduce((sum, t) => sum + (t.commission || 0), 0);
     
   const unapprovedCommissions = transactions

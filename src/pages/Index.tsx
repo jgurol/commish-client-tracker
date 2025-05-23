@@ -56,6 +56,7 @@ export interface Transaction {
   clientCompanyName?: string; // Client company name for display
   commission?: number; // Commission amount
   isApproved?: boolean; // Whether the commission has been approved
+  commissionPaidDate?: string; // New field to track when commission was paid
 }
 
 const Index = () => {
@@ -301,6 +302,19 @@ const Index = () => {
     }));
   };
 
+  // Updated function to handle mark commission as paid
+  const payCommission = (transactionId: string, paidDate: string) => {
+    setTransactions(transactions.map(transaction => {
+      if (transaction.id === transactionId) {
+        return {
+          ...transaction,
+          commissionPaidDate: paidDate
+        };
+      }
+      return transaction;
+    }));
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
       <div className="container mx-auto px-4 py-8 max-w-7xl">
@@ -332,6 +346,7 @@ const Index = () => {
             onAddTransaction={addTransaction}
             onUpdateTransaction={updateTransaction}
             onApproveCommission={approveCommission}
+            onPayCommission={payCommission} // Add the new handler
           />
         </div>
 

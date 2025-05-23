@@ -9,7 +9,7 @@ import { EditClientDialog } from "@/components/EditClientDialog";
 
 interface ClientListProps {
   clients: Client[];
-  transactions: Transaction[]; // Add transactions to props
+  transactions: Transaction[];
   onUpdateClient: (client: Client) => void;
   onDeleteClient: (clientId: string) => void;
 }
@@ -17,16 +17,16 @@ interface ClientListProps {
 export const ClientList = ({ clients, transactions, onUpdateClient, onDeleteClient }: ClientListProps) => {
   const [editingClient, setEditingClient] = useState<Client | null>(null);
 
-  // Function to calculate commission totals for a specific client
+  // Updated function to calculate commission totals for a specific client
   const calculateClientCommissions = (clientId: string) => {
     const clientTransactions = transactions.filter(t => t.clientId === clientId);
     
     const paidCommissions = clientTransactions
-      .filter(t => t.isPaid && t.commission)
+      .filter(t => t.commissionPaidDate && t.commission)
       .reduce((sum, t) => sum + (t.commission || 0), 0);
       
     const approvedUnpaidCommissions = clientTransactions
-      .filter(t => !t.isPaid && t.isApproved && t.commission)
+      .filter(t => !t.commissionPaidDate && t.isApproved && t.commission)
       .reduce((sum, t) => sum + (t.commission || 0), 0);
       
     const unapprovedCommissions = clientTransactions

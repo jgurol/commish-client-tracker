@@ -30,7 +30,8 @@ export const AddTransactionDialog = ({ open, onOpenChange, onAddTransaction, cli
   const [invoiceYear, setInvoiceYear] = useState("");
   const [invoiceNumber, setInvoiceNumber] = useState("");
   const [isPaid, setIsPaid] = useState(false);
-
+  const [commissionPaidDate, setCommissionPaidDate] = useState(""); // New state for commission paid date
+  
   // Array for month names - needed for display
   const months = [
     { value: "1", label: "January" },
@@ -72,7 +73,8 @@ export const AddTransactionDialog = ({ open, onOpenChange, onAddTransaction, cli
           invoiceNumber: invoiceNumber || undefined,
           isPaid,
           clientInfoId: clientInfoId || undefined,
-          clientCompanyName: selectedClientInfo?.companyName
+          clientCompanyName: selectedClientInfo?.companyName,
+          commissionPaidDate: commissionPaidDate || undefined // Add commission paid date
         });
         
         // Reset form
@@ -88,6 +90,7 @@ export const AddTransactionDialog = ({ open, onOpenChange, onAddTransaction, cli
         setInvoiceYear("");
         setInvoiceNumber("");
         setIsPaid(false);
+        setCommissionPaidDate(""); // Reset commission paid date
         onOpenChange(false);
       }
     }
@@ -281,6 +284,19 @@ export const AddTransactionDialog = ({ open, onOpenChange, onAddTransaction, cli
               placeholder="Enter transaction description"
               required
             />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="commissionPaidDate">Commission Paid Date</Label>
+            <Input
+              id="commissionPaidDate"
+              type="date"
+              value={commissionPaidDate}
+              onChange={(e) => setCommissionPaidDate(e.target.value)}
+              placeholder="Leave blank if not yet paid"
+            />
+            <div className="text-xs text-gray-500">
+              Leave blank if the commission has not been paid yet
+            </div>
           </div>
           <div className="flex justify-end space-x-2">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>

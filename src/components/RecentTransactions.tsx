@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -15,6 +14,7 @@ interface RecentTransactionsProps {
   onAddTransaction: (transaction: Omit<Transaction, "id">) => void;
   onUpdateTransaction: (transaction: Transaction) => void;
   onApproveCommission: (transactionId: string) => void;
+  onPayCommission?: (transactionId: string, paidDate: string) => void; // New prop for paying commissions
 }
 
 export const RecentTransactions = ({ 
@@ -23,7 +23,8 @@ export const RecentTransactions = ({
   clientInfos,
   onAddTransaction, 
   onUpdateTransaction,
-  onApproveCommission
+  onApproveCommission,
+  onPayCommission
 }: RecentTransactionsProps) => {
   const [isAddTransactionOpen, setIsAddTransactionOpen] = useState(false);
   const [isEditTransactionOpen, setIsEditTransactionOpen] = useState(false);
@@ -41,6 +42,15 @@ export const RecentTransactions = ({
     const date = new Date(dateStr);
     const now = new Date();
     return date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear();
+  };
+
+  // New function to handle commission payment
+  const handlePayCommission = (transactionId: string) => {
+    if (onPayCommission) {
+      // Use today's date as default payment date
+      const today = new Date().toISOString().split('T')[0];
+      onPayCommission(transactionId, today);
+    }
   };
 
   return (
@@ -138,21 +148,38 @@ export const RecentTransactions = ({
                       )}
                     </div>
                     
-                    {/* Commission section with proper styling based on approval status */}
+                    {/* Commission section with updated styling based on approval and payment status */}
                     <div className="flex items-center justify-between mt-3 pt-2 border-t border-gray-100">
-                      <div className={`font-medium ${transaction.isApproved ? 'text-green-600' : 'text-gray-500'}`}>
+                      <div className={`font-medium ${transaction.commissionPaidDate ? 'text-green-600' : transaction.isApproved ? 'text-amber-600' : 'text-gray-500'}`}>
                         Commission: ${transaction.commission?.toFixed(2) || '0.00'}
+                        {transaction.commissionPaidDate && (
+                          <span className="text-xs ml-2">
+                            Paid: {new Date(transaction.commissionPaidDate).toLocaleDateString()}
+                          </span>
+                        )}
                       </div>
-                      {!transaction.isApproved && (
-                        <Button 
-                          size="sm" 
-                          variant="outline" 
-                          className="text-xs h-7 border-green-200 text-green-700 hover:bg-green-50"
-                          onClick={() => onApproveCommission(transaction.id)}
-                        >
-                          <CheckCircle className="w-3 h-3 mr-1" /> Approve
-                        </Button>
-                      )}
+                      <div className="flex gap-2">
+                        {!transaction.isApproved && (
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            className="text-xs h-7 border-green-200 text-green-700 hover:bg-green-50"
+                            onClick={() => onApproveCommission(transaction.id)}
+                          >
+                            <CheckCircle className="w-3 h-3 mr-1" /> Approve
+                          </Button>
+                        )}
+                        {transaction.isApproved && !transaction.commissionPaidDate && onPayCommission && (
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            className="text-xs h-7 border-blue-200 text-blue-700 hover:bg-blue-50"
+                            onClick={() => handlePayCommission(transaction.id)}
+                          >
+                            <DollarSign className="w-3 h-3 mr-1" /> Mark Paid
+                          </Button>
+                        )}
+                      </div>
                     </div>
                   </div>
                   <Button 
