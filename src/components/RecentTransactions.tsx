@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -53,14 +52,16 @@ export const RecentTransactions = ({
   // Display transaction count for debugging
   const transactionCount = transactions.length;
   
-  // Log transaction data for debugging
+  // Log transaction data for debugging with added agent ID check
   console.log("Transactions received in RecentTransactions component:", transactions);
   console.log("Total transactions count:", transactionCount);
-
-  const handleEditClick = (transaction: Transaction) => {
-    setCurrentTransaction(transaction);
-    setIsEditTransactionOpen(true);
-  };
+  
+  // Added debugging to check client/agent relationship
+  transactions.forEach((transaction, index) => {
+    console.log(`DEBUG - Transaction ${index + 1} client ID: ${transaction.clientId}`);
+    const client = clients.find(c => c.id === transaction.clientId);
+    console.log(`DEBUG - Transaction ${index + 1} client name: ${client?.name || 'Unknown'}`);
+  });
 
   // Function to determine if a transaction is from the current month
   const isCurrentMonth = (dateStr: string): boolean => {
@@ -156,6 +157,15 @@ export const RecentTransactions = ({
         </CardHeader>
         <CardContent>
           <ScrollArea className="h-[500px] pr-4">
+            {/* Add debugging info at top of transaction list */}
+            <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-md text-xs text-blue-700">
+              <p className="font-medium mb-1">DEBUG: Transaction/Agent Information</p>
+              <p>Total transactions: {transactionCount}</p>
+              {clients.map(client => (
+                <p key={client.id}>Agent {client.name} (ID: {client.id})</p>
+              ))}
+            </div>
+            
             <div className="space-y-3">
               {transactions.length === 0 ? (
                 <div className="text-center py-6 text-gray-500">

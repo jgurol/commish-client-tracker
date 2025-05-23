@@ -212,7 +212,7 @@ const IndexPage = () => {
     }
   };
 
-  // FIXED function to properly filter transactions based on user role and agent association
+  // DEBUGGING function - temporarily remove filtering to debug agent association
   const fetchTransactions = async () => {
     if (!user) {
       console.log("❌ No user found, skipping transaction fetch");
@@ -240,28 +240,11 @@ const IndexPage = () => {
         console.log("✅ Total transactions in database:", count);
       }
       
-      // Build query based on user role
-      let query = supabase.from('transactions').select('*');
-      
-      if (isAdmin) {
-        console.log("🔍 Admin user - fetching ALL transactions");
-        // Admins see all transactions - no filtering needed
-      } else {
-        console.log("🔍 Agent user - filtering by associated agent");
-        if (associatedAgentId) {
-          console.log("🔍 Filtering transactions for agent ID:", associatedAgentId);
-          // FIXED: Filter transactions where client_id matches the associated agent ID
-          query = query.eq('client_id', associatedAgentId);
-        } else {
-          console.log("❌ No associated agent ID found for user");
-          setTransactions([]);
-          setIsLoading(false);
-          return;
-        }
-      }
-      
-      console.log(`🔍 Executing ${isAdmin ? 'admin' : 'agent'} transaction query...`);
-      const { data, error } = await query;
+      // TEMPORARILY REMOVED FILTERING FOR DEBUGGING
+      console.log("🔍 DEBUG MODE: Fetching ALL transactions to debug the issue");
+      const { data, error } = await supabase
+        .from('transactions')
+        .select('*');
 
       if (error) {
         console.error('❌ Error fetching transactions:', error);
@@ -310,6 +293,12 @@ const IndexPage = () => {
         // Find client for this transaction
         const client = clients.find(c => c.id === transaction.client_id);
         console.log(`Client found for transaction ${transaction.id}:`, client?.name || "❌ NOT FOUND");
+        
+        // Enhanced debugging - is this client ID the same as the associated agent ID?
+        if (associatedAgentId) {
+          const isClientMatchingAgent = transaction.client_id === associatedAgentId;
+          console.log(`🔍 DEBUG: transaction client_id (${transaction.client_id}) === associated_agent_id (${associatedAgentId})? ${isClientMatchingAgent}`);
+        }
         
         // Find client info for this transaction if available
         let clientInfo = null;
@@ -670,11 +659,11 @@ const IndexPage = () => {
         <Header />
 
         {/* Enhanced debugging notice */}
-        <div className="mb-4 p-4 bg-blue-100 border border-blue-400 rounded-lg">
-          <p className="text-blue-800 font-medium">
-            🔍 Fixed Fetch Logic: {isAdmin ? 'Admin sees all transactions' : 'Agent sees only their transactions'}
+        <div className="mb-4 p-4 bg-yellow-100 border border-yellow-400 rounded-lg">
+          <p className="text-yellow-800 font-medium">
+            🔍 DEBUG MODE: Showing all transactions to identify agent association issue
           </p>
-          <p className="text-blue-700 text-sm mt-1">
+          <p className="text-yellow-700 text-sm mt-1">
             Transactions displayed: {transactions.length} | User: {user?.email} | Admin: {isAdmin ? 'Yes' : 'No'} | Agent ID: {associatedAgentId}
           </p>
         </div>
