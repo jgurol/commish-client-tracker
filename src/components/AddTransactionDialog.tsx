@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -33,12 +34,9 @@ export const AddTransactionDialog = ({ open, onOpenChange, onAddTransaction, cli
   const [isPaid, setIsPaid] = useState(false);
   const [commissionPaidDate, setCommissionPaidDate] = useState("");
   
-  // Filter client infos based on selected agent
-  const [filteredClientInfos, setFilteredClientInfos] = useState<ClientInfo[]>(clientInfos);
-  
   // Debug logging
-  console.log("[AddTransactionDialog] Available clients (agents):", clients);
-  console.log("[AddTransactionDialog] Available client infos:", clientInfos);
+  console.log("[AddTransactionDialog] Available agents:", clients);
+  console.log("[AddTransactionDialog] Available clients:", clientInfos);
   
   // Array for month names - needed for display
   const months = [
@@ -59,30 +57,34 @@ export const AddTransactionDialog = ({ open, onOpenChange, onAddTransaction, cli
   const currentYear = new Date().getFullYear();
   const years = Array.from({ length: 5 }, (_, i) => currentYear - 2 + i);
 
-  // Handle client info selection - auto-select agent
+  // Handle client selection - auto-select agent based on client's agent_id
   useEffect(() => {
     if (clientInfoId && clientInfoId !== "none") {
-      const selectedClientInfo = clientInfos.find(info => info.id === clientInfoId);
-      if (selectedClientInfo && selectedClientInfo.agent_id) {
-        setClientId(selectedClientInfo.agent_id);
+      const selectedClient = clientInfos.find(info => info.id === clientInfoId);
+      console.log("[AddTransactionDialog] Selected client:", selectedClient);
+      
+      if (selectedClient && selectedClient.agent_id) {
+        console.log("[AddTransactionDialog] Auto-selecting agent:", selectedClient.agent_id);
+        setClientId(selectedClient.agent_id);
+      } else {
+        console.log("[AddTransactionDialog] No agent associated with this client");
+        setClientId("");
       }
+    } else {
+      console.log("[AddTransactionDialog] No client selected, clearing agent");
+      setClientId("");
     }
   }, [clientInfoId, clientInfos]);
-
-  // Update filtered client infos when agent changes
-  useEffect(() => {
-    if (clientId) {
-      setFilteredClientInfos(clientInfos.filter(info => !info.agent_id || info.agent_id === clientId));
-    } else {
-      setFilteredClientInfos(clientInfos);
-    }
-  }, [clientId, clientInfos]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (clientId && amount && date && description) {
       const selectedClient = clients.find(client => client.id === clientId);
-      const selectedClientInfo = clientInfoId ? clientInfos.find(info => info.id === clientInfoId) : null;
+      const selectedClientInfo = clientInfoId && clientInfoId !== "none" ? clientInfos.find(info => info.id === clientInfoId) : null;
+      
+      console.log("[AddTransactionDialog] Submitting transaction:");
+      console.log("- Agent:", selectedClient);
+      console.log("- Client:", selectedClientInfo);
       
       if (selectedClient) {
         onAddTransaction({
@@ -99,7 +101,7 @@ export const AddTransactionDialog = ({ open, onOpenChange, onAddTransaction, cli
           invoiceYear: invoiceYear || undefined,
           invoiceNumber: invoiceNumber || undefined,
           isPaid,
-          clientInfoId: clientInfoId || undefined,
+          clientInfoId: clientInfoId !== "none" ? clientInfoId : undefined,
           clientCompanyName: selectedClientInfo?.company_name,
           commissionPaidDate: commissionPaidDate || undefined
         });
@@ -123,6 +125,8 @@ export const AddTransactionDialog = ({ open, onOpenChange, onAddTransaction, cli
     }
   };
 
+  const selectedAgent = clientId ? clients.find(c => c.id === clientId) : null;
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[550px] max-h-[90vh] overflow-y-auto">
@@ -141,49 +145,25 @@ export const AddTransactionDialog = ({ open, onOpenChange, onAddTransaction, cli
             </TabsList>
             
             <TabsContent value="basic" className="space-y-4">
-              {/* Debug info */}
-              <div className="mb-4 p-2 bg-blue-50 border border-blue-200 rounded text-xs text-blue-700">
-                <p>DEBUG: Available agents: {clients.length}</p>
-                {clients.map(client => (
-                  <p key={client.id}>- {client.name} (ID: {client.id})</p>
-                ))}
-              </div>
-
-              {/* Agent Selection - Make this the primary selection */}
+              {/* Client Selection - Primary selection */}
               <div className="space-y-2">
-                <Label htmlFor="agent">Agent (Required)</Label>
-                <Select value={clientId} onValueChange={setClientId} required>
+                <Label htmlFor="clientInfo">Client Company (Required)</Label>
+                <Select value={clientInfoId} onValueChange={setClientInfoId} required>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select an agent" />
+                    <SelectValue placeholder="Select a client company" />
                   </SelectTrigger>
                   <SelectContent>
-                    {clients.map((client) => (
-                      <SelectItem key={client.id} value={client.id}>
-                        {client.name} {client.companyName && `(${client.companyName})`}
+                    {clientInfos.length === 0 ? (
+                      <SelectItem value="no-clients" disabled>
+                        No clients available - Add clients first
                       </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {clientId && (
-                  <div className="text-xs text-gray-500">
-                    Selected: {clients.find(c => c.id === clientId)?.name}
-                  </div>
-                )}
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="clientInfo">Client Company (Optional)</Label>
-                <Select value={clientInfoId} onValueChange={setClientInfoId}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a client" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">None</SelectItem>
-                    {filteredClientInfos.map((clientInfo) => (
-                      <SelectItem key={clientInfo.id} value={clientInfo.id}>
-                        {clientInfo.company_name}
-                      </SelectItem>
-                    ))}
+                    ) : (
+                      clientInfos.map((clientInfo) => (
+                        <SelectItem key={clientInfo.id} value={clientInfo.id}>
+                          {clientInfo.company_name}
+                        </SelectItem>
+                      ))
+                    )}
                   </SelectContent>
                 </Select>
                 {clientInfoId && clientInfoId !== "none" && (
@@ -192,6 +172,28 @@ export const AddTransactionDialog = ({ open, onOpenChange, onAddTransaction, cli
                   </div>
                 )}
               </div>
+
+              {/* Agent Display - Shows auto-selected agent */}
+              {selectedAgent && (
+                <div className="space-y-2">
+                  <Label>Associated Agent</Label>
+                  <div className="border rounded-md px-3 py-2 bg-muted text-muted-foreground">
+                    {selectedAgent.name} {selectedAgent.companyName && `(${selectedAgent.companyName})`}
+                  </div>
+                  <div className="text-xs text-green-600">
+                    ✓ Agent automatically selected based on client
+                  </div>
+                </div>
+              )}
+
+              {/* Warning if no agent is associated */}
+              {clientInfoId && clientInfoId !== "none" && !selectedAgent && (
+                <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-md">
+                  <div className="text-sm text-yellow-800">
+                    ⚠️ This client is not associated with any agent. Please associate this client with an agent first.
+                  </div>
+                </div>
+              )}
 
               <div className="space-y-2">
                 <Label htmlFor="amount">Amount ($)</Label>
@@ -358,7 +360,11 @@ export const AddTransactionDialog = ({ open, onOpenChange, onAddTransaction, cli
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
-            <Button type="submit" className="bg-green-600 hover:bg-green-700">
+            <Button 
+              type="submit" 
+              className="bg-green-600 hover:bg-green-700"
+              disabled={!selectedAgent || clientInfos.length === 0}
+            >
               Add Transaction
             </Button>
           </div>
