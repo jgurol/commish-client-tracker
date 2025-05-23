@@ -1,7 +1,9 @@
+
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, ChevronRight } from "lucide-react";
+import { Plus, ChevronRight, UserCog, Building } from "lucide-react";
+import { Link } from "react-router-dom";
 import { Header } from "@/components/Header";
 import { StatsCards } from "@/components/StatsCards";
 import { RecentTransactions } from "@/components/RecentTransactions";
