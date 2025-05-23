@@ -212,7 +212,7 @@ const IndexPage = () => {
     }
   };
 
-  // FIXED function to fetch transactions matching admin behavior
+  // FIXED function to properly filter transactions based on user role
   const fetchTransactions = async () => {
     if (!user) {
       console.log("❌ No user found, skipping transaction fetch");
@@ -222,7 +222,7 @@ const IndexPage = () => {
     try {
       setIsLoading(true);
       
-      console.log("=== ADMIN MODE DEBUGGING ===");
+      console.log("=== TRANSACTION FETCH DEBUGGING ===");
       console.log("Current user:", user.id);
       console.log("User email:", user.email);
       console.log("User isAdmin:", isAdmin);
@@ -240,16 +240,27 @@ const IndexPage = () => {
         console.log("✅ Total transactions in database:", count);
       }
       
-      // KEY FIX: Use the same query for admin and non-admin users
-      // Admins see all transactions, but regular users still need to see their transactions 
-      // regardless of agent association
-      let query = supabase
-        .from('transactions')
-        .select('*');
+      // Build query based on user role
+      let query = supabase.from('transactions').select('*');
       
-      // No filtering by associated agent anymore - fetch all transactions like the admin view does
+      if (isAdmin) {
+        console.log("🔍 Admin user - fetching ALL transactions");
+        // Admins see all transactions - no filtering needed
+      } else {
+        console.log("🔍 Agent user - filtering by associated agent");
+        if (associatedAgentId) {
+          console.log("🔍 Filtering transactions for agent ID:", associatedAgentId);
+          // Filter transactions where client_id matches the associated agent ID
+          query = query.eq('client_id', associatedAgentId);
+        } else {
+          console.log("❌ No associated agent ID found for user");
+          setTransactions([]);
+          setIsLoading(false);
+          return;
+        }
+      }
       
-      console.log(`🔍 Executing ${isAdmin ? 'admin' : 'user'} transaction query...`);
+      console.log(`🔍 Executing ${isAdmin ? 'admin' : 'agent'} transaction query...`);
       const { data, error } = await query;
 
       if (error) {
@@ -335,7 +346,7 @@ const IndexPage = () => {
 
       console.log("✅ Final mapped transactions:", mappedTransactions);
       console.log("✅ Total mapped transactions:", mappedTransactions.length);
-      console.log("=== END ADMIN MODE DEBUGGING ===");
+      console.log("=== END TRANSACTION FETCH DEBUGGING ===");
       
       setTransactions(mappedTransactions);
     } catch (err) {
@@ -661,10 +672,10 @@ const IndexPage = () => {
         {/* Enhanced debugging notice */}
         <div className="mb-4 p-4 bg-blue-100 border border-blue-400 rounded-lg">
           <p className="text-blue-800 font-medium">
-            🔍 Admin Mode Fetch: Now showing all transactions without filtering
+            🔍 Fixed Fetch Logic: {isAdmin ? 'Admin sees all transactions' : 'Agent sees only their transactions'}
           </p>
           <p className="text-blue-700 text-sm mt-1">
-            Transactions displayed: {transactions.length} | User: {user?.email} | Admin: {isAdmin ? 'Yes' : 'No'}
+            Transactions displayed: {transactions.length} | User: {user?.email} | Admin: {isAdmin ? 'Yes' : 'No'} | Agent ID: {associatedAgentId}
           </p>
         </div>
 

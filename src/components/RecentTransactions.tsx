@@ -113,7 +113,7 @@ export const RecentTransactions = ({
         <CardHeader className="flex flex-row items-center justify-between space-y-0">
           <div>
             <CardTitle className="text-lg font-semibold text-gray-900">Transactions</CardTitle>
-            <CardDescription>All commission payments ({transactionCount})</CardDescription>
+            <CardDescription>Commission payments for this agent ({transactionCount})</CardDescription>
           </div>
           <div className="flex items-center gap-4">
             <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
@@ -160,10 +160,10 @@ export const RecentTransactions = ({
               {transactions.length === 0 ? (
                 <div className="text-center py-6 text-gray-500">
                   <DollarSign className="w-8 h-8 mx-auto mb-2 text-gray-300" />
-                  <p>No transactions found</p>
+                  <p>No transactions found for this agent</p>
                 </div>
               ) : (
-                // Note: We're now showing ALL transactions without any filtering
+                // Note: Displaying filtered transactions based on user role
                 transactions.map((transaction) => (
                   <div
                     key={transaction.id}
