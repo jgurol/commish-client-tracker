@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, TrendingUp, DollarSign, Calendar, CheckCircle, Clock, AlertCircle } from "lucide-react";
 import { Client, Transaction } from "@/pages/Index";
@@ -9,7 +8,9 @@ interface StatsCardsProps {
 }
 
 export const StatsCards = ({ clients, transactions }: StatsCardsProps) => {
-  const totalRevenue = clients.reduce((sum, client) => sum + client.totalEarnings, 0);
+  // Calculate total revenue from all transactions
+  const totalRevenue = transactions.reduce((sum, transaction) => sum + transaction.amount, 0);
+  
   const avgCommissionRate = clients.length > 0 
     ? clients.reduce((sum, client) => sum + client.commissionRate, 0) / clients.length 
     : 0;
@@ -52,7 +53,7 @@ export const StatsCards = ({ clients, transactions }: StatsCardsProps) => {
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold text-gray-900">${totalRevenue.toLocaleString()}</div>
-          <p className="text-xs text-gray-500">All-time commission revenue</p>
+          <p className="text-xs text-gray-500">All-time invoice amounts</p>
         </CardContent>
       </Card>
 
