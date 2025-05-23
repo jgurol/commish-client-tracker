@@ -212,7 +212,7 @@ const IndexPage = () => {
     }
   };
 
-  // Modified transaction fetch function that correctly filters by agent ID
+  // Modified transaction fetch function - REMOVED user ID filter
   const fetchTransactions = async () => {
     if (!user) {
       console.log("❌ [fetchTransactions] No user found, skipping transaction fetch");
@@ -228,7 +228,7 @@ const IndexPage = () => {
       console.log("[fetchTransactions] User isAdmin:", isAdmin);
       console.log("[fetchTransactions] Associated agent ID:", associatedAgentId);
       
-      // Build the query based on user role
+      // Build the query - REMOVED user_id filter completely
       let query = supabase.from('transactions').select('*');
       
       // If user is not admin and has an associated agent, filter by that agent ID
@@ -264,7 +264,6 @@ const IndexPage = () => {
             client_id: trans.client_id,
             amount: trans.amount,
             description: trans.description,
-            user_id: trans.user_id,
             date: trans.date,
             client_info_id: trans.client_info_id,
             is_paid: trans.is_paid,
@@ -657,10 +656,13 @@ const IndexPage = () => {
         {/* Enhanced debugging notice */}
         <div className="mb-4 p-4 bg-red-100 border border-red-400 rounded-lg">
           <p className="text-red-800 font-medium">
-            🔥 CRITICAL DEBUG MODE: Showing ALL transactions without filtering
+            🔥 CRITICAL DEBUG MODE: Transaction filtering updated
           </p>
           <p className="text-red-700 text-sm mt-1">
             User ID: {user?.id} | Admin: {isAdmin ? 'Yes' : 'No'} | Agent ID: {associatedAgentId || 'None'}
+          </p>
+          <p className="text-red-700 text-sm mt-1">
+            Filter: {!isAdmin && associatedAgentId ? `client_id = ${associatedAgentId}` : 'No filter (admin mode)'}
           </p>
           <p className="text-red-700 text-sm mt-1">
             Transactions displayed: {transactions.length} | Clients: {clients.length}  
