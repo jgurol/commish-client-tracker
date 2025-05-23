@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -188,6 +189,7 @@ export const useIndexData = () => {
   // Function to fetch transactions from Supabase
   const fetchTransactions = async () => {
     if (!user) {
+      console.log('[DEBUG] No user found, skipping transaction fetch');
       return;
     }
     
@@ -195,10 +197,25 @@ export const useIndexData = () => {
       setIsLoading(true);
       
       console.log('[DEBUG] === STARTING TRANSACTION FETCH ===');
+      console.log('[DEBUG] - User:', user);
+      console.log('[DEBUG] - User ID:', user.id);
       console.log('[DEBUG] - isAdmin:', isAdmin);
       console.log('[DEBUG] - associatedAgentId:', associatedAgentId);
-      console.log('[DEBUG] - user.id:', user.id);
       console.log('[DEBUG] - profileLoaded:', profileLoaded);
+      
+      // First, let's see ALL transactions in the database
+      console.log('[DEBUG] Fetching ALL transactions from database...');
+      const { data: allTransactions, error: allError } = await supabase
+        .from('transactions')
+        .select('*')
+        .order('created_at', { ascending: false });
+      
+      if (allError) {
+        console.error('[DEBUG] Error fetching all transactions:', allError);
+      } else {
+        console.log('[DEBUG] ALL transactions in database:', allTransactions);
+        console.log('[DEBUG] Total transactions in DB:', allTransactions?.length || 0);
+      }
       
       // Build the query with filtering logic
       let query = supabase.from('transactions').select('*');
@@ -224,13 +241,13 @@ export const useIndexData = () => {
       // Add ordering to ensure consistent results
       query = query.order('created_at', { ascending: false });
       
-      console.log('[DEBUG] About to execute main query');
+      console.log('[DEBUG] About to execute filtered query for user display');
       
       // Execute the query
       const { data, error } = await query;
 
       if (error) {
-        console.error('Error fetching transactions:', error);
+        console.error('[DEBUG] Error fetching filtered transactions:', error);
         toast({
           title: "Failed to load transactions",
           description: error.message,
@@ -239,17 +256,18 @@ export const useIndexData = () => {
         return;
       }
 
-      console.log('[DEBUG] Raw transaction data from DB:', data);
-      console.log('[DEBUG] Number of transactions returned:', data?.length || 0);
+      console.log('[DEBUG] Filtered transaction data from DB:', data);
+      console.log('[DEBUG] Number of filtered transactions returned:', data?.length || 0);
 
       if (!data || data.length === 0) {
-        console.log('[DEBUG] No transactions found - setting empty array');
+        console.log('[DEBUG] No transactions found after filtering - setting empty array');
         setTransactions([]);
         setIsLoading(false);
         return;
       }
 
       // Fetch agent and client info data in parallel
+      console.log('[DEBUG] Fetching agent and client info data...');
       const [agentResponse, clientInfoResponse] = await Promise.all([
         supabase.from('agents').select('*'),
         supabase.from('client_info').select('*')
@@ -258,11 +276,14 @@ export const useIndexData = () => {
       const agentData = agentResponse.data || [];
       const clientInfoData = clientInfoResponse.data || [];
 
-      console.log('[DEBUG] Agent data:', agentData);
-      console.log('[DEBUG] Client info data:', clientInfoData);
+      console.log('[DEBUG] Agent data for mapping:', agentData);
+      console.log('[DEBUG] Client info data for mapping:', clientInfoData);
 
       // Map database transactions to our Transaction interface
-      const mappedTransactions = data.map((transaction) => {
+      console.log('[DEBUG] Starting transaction mapping...');
+      const mappedTransactions = data.map((transaction, index) => {
+        console.log(`[DEBUG] Mapping transaction ${index + 1}/${data.length}:`, transaction);
+        
         // Find client for this transaction
         const client = agentData.find(c => c.id === transaction.client_id);
         
@@ -272,7 +293,11 @@ export const useIndexData = () => {
           clientInfo = clientInfoData.find(ci => ci.id === transaction.client_info_id);
         }
 
-        console.log('[DEBUG] Processing transaction:', transaction.id, 'client_id:', transaction.client_id, 'found client:', !!client);
+        console.log(`[DEBUG] Transaction ${transaction.id}:`);
+        console.log(`[DEBUG] - client_id: ${transaction.client_id}`);
+        console.log(`[DEBUG] - found client:`, client);
+        console.log(`[DEBUG] - client_info_id: ${transaction.client_info_id}`);
+        console.log(`[DEBUG] - found clientInfo:`, clientInfo);
 
         const mappedTransaction = {
           id: transaction.id,
@@ -298,6 +323,7 @@ export const useIndexData = () => {
           commissionPaidDate: transaction.commission_paid_date
         };
         
+        console.log(`[DEBUG] Mapped transaction ${index + 1}:`, mappedTransaction);
         return mappedTransaction;
       });
       
@@ -306,7 +332,7 @@ export const useIndexData = () => {
       
       setTransactions(mappedTransactions);
     } catch (err) {
-      console.error('Exception in transaction fetch:', err);
+      console.error('[DEBUG] Exception in transaction fetch:', err);
       toast({
         title: "Error",
         description: "Failed to load transaction data",
