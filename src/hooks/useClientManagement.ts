@@ -1,15 +1,18 @@
+
 import { useState, useEffect } from "react";
 import { ClientInfo } from "@/pages/Index";
-import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/hooks/use-toast";
+import { useAgentMapping } from "@/hooks/useAgentMapping";
+import { clientInfoService } from "@/services/clientInfoService";
+import { ClientManagementHook } from "@/types/clientManagement";
 
-export const useClientManagement = () => {
+export const useClientManagement = (): ClientManagementHook => {
   const [clientInfos, setClientInfos] = useState<ClientInfo[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [agentMapping, setAgentMapping] = useState<Record<string, string>>({});
   const { user, isAdmin } = useAuth();
   const { toast } = useToast();
+  const { agentMapping, fetchAgentNames } = useAgentMapping();
 
   // Load client info from Supabase
   useEffect(() => {
@@ -21,52 +24,21 @@ export const useClientManagement = () => {
       
       try {
         setIsLoading(true);
-        console.log("=== CLIENT FETCH DEBUG ===");
         console.log("User ID:", user.id);
         console.log("User Email:", user.email);
         console.log("Is Admin:", isAdmin);
         console.log("Auth context user:", user);
         
-        console.log("Attempting to fetch client_info records...");
-        console.log("RLS policies will automatically handle filtering based on user role");
+        const data = await clientInfoService.fetchClientInfos();
+        console.log("Setting clientInfos state with:", data?.length || 0, "clients");
         
-        // RLS policies now handle the filtering automatically
-        // Admin users will see all records, agents will only see their own
-        const { data, error } = await supabase
-          .from('client_info')
-          .select('*')
-          .order('company_name', { ascending: true });
-        
-        console.log("Raw Supabase response:");
-        console.log("- Data:", data);
-        console.log("- Error:", error);
-        console.log("- Data length:", data?.length || 0);
-        
-        if (error) {
-          console.error('Error fetching client info:', error);
-          toast({
-            title: "Failed to load clients",
-            description: error.message,
-            variant: "destructive"
-          });
-        } else {
-          console.log("Successfully fetched client data:", data);
-          console.log("Setting clientInfos state with:", data?.length || 0, "clients");
-          console.log("Client details:", data?.map(c => ({
-            id: c.id,
-            company_name: c.company_name,
-            user_id: c.user_id,
-            agent_id: c.agent_id
-          })));
-          
-          setClientInfos(data || []);
-          await fetchAgentNames();
-        }
+        setClientInfos(data);
+        await fetchAgentNames();
       } catch (err) {
         console.error('Error in client info fetch:', err);
         toast({
-          title: "Error",
-          description: "Failed to load client information",
+          title: "Failed to load clients",
+          description: err instanceof Error ? err.message : "Failed to load client information",
           variant: "destructive"
         });
       } finally {
@@ -75,70 +47,26 @@ export const useClientManagement = () => {
     };
 
     fetchClientInfos();
-  }, [user, isAdmin, toast]);
-
-  // Fetch agent names for mapping
-  const fetchAgentNames = async () => {
-    try {
-      console.log("Fetching agent names for mapping");
-      const { data, error } = await supabase
-        .from('agents')
-        .select('id, company_name, first_name, last_name');
-      
-      if (error) {
-        console.error('Error fetching agents:', error);
-      } else if (data) {
-        console.log("Fetched agent data:", data);
-        const mapping: Record<string, string> = {};
-        data.forEach(agent => {
-          mapping[agent.id] = agent.company_name || `${agent.first_name} ${agent.last_name}`;
-        });
-        console.log("Agent mapping created:", mapping);
-        setAgentMapping(mapping);
-      }
-    } catch (err) {
-      console.error('Error creating agent mapping:', err);
-    }
-  };
+  }, [user, isAdmin, toast, fetchAgentNames]);
 
   // Function to add client info
   const addClientInfo = async (newClientInfo: Omit<ClientInfo, "id" | "created_at" | "updated_at" | "user_id">) => {
     if (!user) return;
 
-    // Handle the "none" special value for agent_id
-    const clientInfoToInsert = {
-      ...newClientInfo,
-      agent_id: newClientInfo.agent_id === "none" ? null : newClientInfo.agent_id,
-      user_id: user.id
-    };
-
     try {
-      const { data, error } = await supabase
-        .from('client_info')
-        .insert(clientInfoToInsert)
-        .select('*')
-        .single();
-
-      if (error) {
-        console.error('Error adding client info:', error);
-        toast({
-          title: "Failed to add client",
-          description: error.message,
-          variant: "destructive"
-        });
-      } else if (data) {
-        toast({
-          title: "Client added",
-          description: `${data.company_name} has been added successfully.`,
-          variant: "default"
-        });
-        setClientInfos([...clientInfos, data]);
-      }
+      const data = await clientInfoService.addClientInfo(newClientInfo, user.id);
+      
+      toast({
+        title: "Client added",
+        description: `${data.company_name} has been added successfully.`,
+        variant: "default"
+      });
+      setClientInfos([...clientInfos, data]);
     } catch (err) {
       console.error('Error in add client operation:', err);
       toast({
-        title: "Error",
-        description: "Failed to add client information",
+        title: "Failed to add client",
+        description: err instanceof Error ? err.message : "Failed to add client information",
         variant: "destructive"
       });
     }
@@ -154,48 +82,20 @@ export const useClientManagement = () => {
       return;
     }
 
-    // Handle the "none" special value for agent_id
-    const clientInfoToUpdate = {
-      ...updatedClientInfo,
-      agent_id: updatedClientInfo.agent_id === "none" ? null : updatedClientInfo.agent_id,
-    };
-
     try {
-      const { data, error } = await supabase
-        .from('client_info')
-        .update({
-          company_name: clientInfoToUpdate.company_name,
-          contact_name: clientInfoToUpdate.contact_name,
-          email: clientInfoToUpdate.email,
-          phone: clientInfoToUpdate.phone,
-          address: clientInfoToUpdate.address,
-          notes: clientInfoToUpdate.notes,
-          agent_id: clientInfoToUpdate.agent_id
-        })
-        .eq('id', clientInfoToUpdate.id)
-        .select('*')
-        .single();
-
-      if (error) {
-        console.error('Error updating client info:', error);
-        toast({
-          title: "Failed to update client",
-          description: error.message,
-          variant: "destructive"
-        });
-      } else if (data) {
-        toast({
-          title: "Client updated",
-          description: `${data.company_name} has been updated successfully.`,
-          variant: "default"
-        });
-        setClientInfos(clientInfos.map(ci => ci.id === data.id ? data : ci));
-      }
+      const data = await clientInfoService.updateClientInfo(updatedClientInfo);
+      
+      toast({
+        title: "Client updated",
+        description: `${data.company_name} has been updated successfully.`,
+        variant: "default"
+      });
+      setClientInfos(clientInfos.map(ci => ci.id === data.id ? data : ci));
     } catch (err) {
       console.error('Error in update client operation:', err);
       toast({
-        title: "Error",
-        description: "Failed to update client information",
+        title: "Failed to update client",
+        description: err instanceof Error ? err.message : "Failed to update client information",
         variant: "destructive"
       });
     }
