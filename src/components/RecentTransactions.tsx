@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Plus, DollarSign, Pencil } from "lucide-react";
+import { Plus, DollarSign, Pencil, CheckCircle, Clock } from "lucide-react";
 import { Transaction, Client } from "@/pages/Index";
 import { AddTransactionDialog } from "@/components/AddTransactionDialog";
 import { EditTransactionDialog } from "@/components/EditTransactionDialog";
@@ -30,6 +30,13 @@ export const RecentTransactions = ({
   const handleEditClick = (transaction: Transaction) => {
     setCurrentTransaction(transaction);
     setIsEditTransactionOpen(true);
+  };
+
+  // Function to determine if a transaction is from the current month
+  const isCurrentMonth = (dateStr: string): boolean => {
+    const date = new Date(dateStr);
+    const now = new Date();
+    return date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear();
   };
 
   return (
@@ -68,12 +75,28 @@ export const RecentTransactions = ({
                       <Badge variant="outline" className="text-xs">
                         ${transaction.amount.toLocaleString()}
                       </Badge>
+                      {transaction.datePaid ? (
+                        <Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200">
+                          <CheckCircle className="w-3 h-3 mr-1" />
+                          Paid
+                        </Badge>
+                      ) : (
+                        isCurrentMonth(transaction.date) && (
+                          <Badge variant="outline" className="text-xs bg-amber-50 text-amber-700 border-amber-200">
+                            <Clock className="w-3 h-3 mr-1" />
+                            Due
+                          </Badge>
+                        )
+                      )}
                     </div>
                     <div className="text-sm text-gray-600">
                       {transaction.description}
                     </div>
-                    <div className="text-xs text-gray-500 mt-1">
-                      {new Date(transaction.date).toLocaleDateString()}
+                    <div className="text-xs text-gray-500 mt-1 flex gap-2">
+                      <span>Date: {new Date(transaction.date).toLocaleDateString()}</span>
+                      {transaction.datePaid && (
+                        <span>Paid: {new Date(transaction.datePaid).toLocaleDateString()}</span>
+                      )}
                     </div>
                   </div>
                   <Button 

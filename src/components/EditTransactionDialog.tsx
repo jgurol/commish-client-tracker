@@ -21,6 +21,7 @@ export const EditTransactionDialog = ({ transaction, open, onOpenChange, onUpdat
   const [amount, setAmount] = useState("");
   const [date, setDate] = useState("");
   const [description, setDescription] = useState("");
+  const [datePaid, setDatePaid] = useState("");
 
   // Update form values when transaction changes
   useEffect(() => {
@@ -29,6 +30,7 @@ export const EditTransactionDialog = ({ transaction, open, onOpenChange, onUpdat
       setAmount(transaction.amount.toString());
       setDate(transaction.date);
       setDescription(transaction.description);
+      setDatePaid(transaction.datePaid || "");
     }
   }, [transaction]);
 
@@ -43,7 +45,8 @@ export const EditTransactionDialog = ({ transaction, open, onOpenChange, onUpdat
           clientName: selectedClient.name,
           amount: parseFloat(amount),
           date,
-          description
+          description,
+          datePaid: datePaid || undefined
         });
         onOpenChange(false);
       }
@@ -97,6 +100,15 @@ export const EditTransactionDialog = ({ transaction, open, onOpenChange, onUpdat
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
                 required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="datePaid">Date Paid (leave empty if unpaid)</Label>
+              <Input
+                id="datePaid"
+                type="date"
+                value={datePaid}
+                onChange={(e) => setDatePaid(e.target.value)}
               />
             </div>
             <div className="space-y-2">

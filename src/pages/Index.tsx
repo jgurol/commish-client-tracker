@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -28,6 +27,7 @@ export interface Transaction {
   amount: number;
   date: string;
   description: string;
+  datePaid?: string; // Optional field to track when payment was made
 }
 
 const Index = () => {

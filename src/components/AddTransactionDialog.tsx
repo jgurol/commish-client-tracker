@@ -20,6 +20,7 @@ export const AddTransactionDialog = ({ open, onOpenChange, onAddTransaction, cli
   const [amount, setAmount] = useState("");
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [description, setDescription] = useState("");
+  const [datePaid, setDatePaid] = useState("");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,12 +32,14 @@ export const AddTransactionDialog = ({ open, onOpenChange, onAddTransaction, cli
           clientName: selectedClient.name,
           amount: parseFloat(amount),
           date,
-          description
+          description,
+          datePaid: datePaid || undefined
         });
         setClientId("");
         setAmount("");
         setDate(new Date().toISOString().split('T')[0]);
         setDescription("");
+        setDatePaid("");
         onOpenChange(false);
       }
     }
@@ -88,6 +91,15 @@ export const AddTransactionDialog = ({ open, onOpenChange, onAddTransaction, cli
               value={date}
               onChange={(e) => setDate(e.target.value)}
               required
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="datePaid">Date Paid (leave empty if unpaid)</Label>
+            <Input
+              id="datePaid"
+              type="date"
+              value={datePaid}
+              onChange={(e) => setDatePaid(e.target.value)}
             />
           </div>
           <div className="space-y-2">
