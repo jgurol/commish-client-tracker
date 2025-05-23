@@ -338,6 +338,7 @@ const Index = () => {
         {/* Client List */}
         <ClientList 
           clients={clients} 
+          transactions={transactions}
           onUpdateClient={updateClient}
           onDeleteClient={deleteClient}
         />
