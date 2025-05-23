@@ -52,6 +52,8 @@ export interface Transaction {
   invoiceYear?: string; // Year of the invoice period
   invoiceNumber?: string; // Invoice number
   isPaid?: boolean; // Whether the customer has paid the invoice
+  clientInfoId?: string; // Reference to the client info
+  clientCompanyName?: string; // Client company name for display
 }
 
 const Index = () => {
