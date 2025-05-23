@@ -21,7 +21,7 @@ interface UserProfile {
   id: string;
   email: string;
   full_name: string | null;
-  role: string; // This is a string type from the RPC function
+  role: string; 
   is_associated: boolean;
   created_at: string;
   associated_agent_name: string | null;

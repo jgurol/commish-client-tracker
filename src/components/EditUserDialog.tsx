@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -219,7 +218,7 @@ export const EditUserDialog = ({
                     <FormLabel>Associate with Agent</FormLabel>
                     <Select 
                       onValueChange={field.onChange} 
-                      value={field.value || ""}
+                      value={field.value || undefined}
                     >
                       <FormControl>
                         <SelectTrigger>
@@ -227,7 +226,7 @@ export const EditUserDialog = ({
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="">None</SelectItem>
+                        <SelectItem value="none">None</SelectItem>
                         {availableAgents.map((agent) => (
                           <SelectItem key={agent.id} value={agent.id}>
                             {agent.full_name || agent.email}
