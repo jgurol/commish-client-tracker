@@ -87,8 +87,8 @@ export const AssociateUserDialog = ({
         return;
       }
 
-      // Find the associated agent name
-      const associatedAgentName = `${selectedAgent.first_name} ${selectedAgent.last_name}`;
+      // Use the company name as the associated agent name
+      const associatedAgentName = selectedAgent.company_name || 'No Company';
 
       const updatedUser = {
         ...user,
@@ -138,7 +138,7 @@ export const AssociateUserDialog = ({
                 {agents.length > 0 ? (
                   agents.map((agent) => (
                     <SelectItem key={agent.id} value={agent.id}>
-                      {agent.first_name} {agent.last_name} - {agent.company_name || 'No Company'}
+                      {agent.company_name || 'No Company'}
                     </SelectItem>
                   ))
                 ) : (

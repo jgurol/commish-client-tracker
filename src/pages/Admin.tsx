@@ -59,29 +59,30 @@ export default function Admin() {
   const fetchUsers = async () => {
     setLoading(true);
     try {
-      // Use the RPC function to get users with associated agent information
-      const { data, error } = await supabase
-        .rpc('get_admin_users');
-
-      if (error) throw error;
-      
-      // Add the missing associated_agent_id field by querying the profiles table
-      const { data: profilesData, error: profilesError } = await supabase
+      // Fetch users with associated agent information
+      const { data: usersData, error: usersError } = await supabase
         .from('profiles')
-        .select('id, associated_agent_id');
+        .select('id, email, full_name, role, is_associated, created_at, associated_agent_id');
 
-      if (profilesError) throw profilesError;
+      if (usersError) throw usersError;
 
-      // Merge the data to include associated_agent_id
-      const usersWithAgentId = data?.map(user => {
-        const profile = profilesData?.find(p => p.id === user.id);
+      // Fetch agents data to get company names
+      const { data: agentsData, error: agentsError } = await supabase
+        .from('agents')
+        .select('id, company_name');
+
+      if (agentsError) throw agentsError;
+
+      // Merge the data to include company names as associated_agent_name
+      const usersWithAgentInfo = usersData?.map(user => {
+        const agent = agentsData?.find(a => a.id === user.associated_agent_id);
         return {
           ...user,
-          associated_agent_id: profile?.associated_agent_id || null
+          associated_agent_name: agent?.company_name || null
         };
       }) || [];
 
-      setUsers(usersWithAgentId);
+      setUsers(usersWithAgentInfo);
     } catch (error: any) {
       console.error('Error fetching users:', error);
       toast({
@@ -131,7 +132,7 @@ export default function Admin() {
       // Update local state
       setUsers(users.map(u => 
         u.id === userId 
-          ? { ...u, is_associated: associate, associated_agent_id: associate ? u.associated_agent_id : null } 
+          ? { ...u, is_associated: associate, associated_agent_id: associate ? u.associated_agent_id : null, associated_agent_name: associate ? u.associated_agent_name : null } 
           : u
       ));
 
