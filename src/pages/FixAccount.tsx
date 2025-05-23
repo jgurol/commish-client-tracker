@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Navigate } from "react-router-dom";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
-import { ExclamationTriangleIcon } from "lucide-react";
+import { AlertTriangle } from "lucide-react";
 
 export default function FixAccount() {
   const { user, signOut, loading } = useAuth();
@@ -102,7 +102,7 @@ export default function FixAccount() {
       
       {error && (
         <Alert variant="destructive" className="mb-4">
-          <ExclamationTriangleIcon className="h-4 w-4" />
+          <AlertTriangle className="h-4 w-4" />
           <AlertTitle>Error</AlertTitle>
           <AlertDescription>{error}</AlertDescription>
         </Alert>
