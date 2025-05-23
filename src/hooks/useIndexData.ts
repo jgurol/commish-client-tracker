@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -154,17 +155,25 @@ export const useIndexData = () => {
     try {
       setIsLoading(true);
       
+      console.log('[DEBUG] Starting transaction fetch with:');
+      console.log('[DEBUG] - isAdmin:', isAdmin);
+      console.log('[DEBUG] - associatedAgentId:', associatedAgentId);
+      console.log('[DEBUG] - user.id:', user.id);
+      
       // Build the query with filtering logic
       let query = supabase.from('transactions').select('*');
       
       // ADMIN USERS: See ALL transactions with NO filtering whatsoever
       if (isAdmin) {
+        console.log('[DEBUG] Admin user - no filtering applied');
         // Admins see everything - absolutely no WHERE clauses
       } else {
         // NON-ADMIN USERS: Only see transactions where client_id matches their associated agent
         if (associatedAgentId) {
+          console.log('[DEBUG] Non-admin user - filtering by client_id =', associatedAgentId);
           query = query.eq('client_id', associatedAgentId);
         } else {
+          console.log('[DEBUG] Non-admin user without agent ID - returning empty results');
           // For non-admin users without agent ID, return empty results
           setTransactions([]);
           setIsLoading(false);
@@ -174,6 +183,8 @@ export const useIndexData = () => {
       
       // Add ordering to ensure consistent results
       query = query.order('created_at', { ascending: false });
+      
+      console.log('[DEBUG] About to execute query');
       
       // Execute the query
       const { data, error } = await query;
@@ -189,6 +200,7 @@ export const useIndexData = () => {
       }
 
       console.log('[DEBUG] Raw transaction data from DB:', data);
+      console.log('[DEBUG] Number of transactions returned:', data?.length || 0);
       console.log('[DEBUG] Looking for transaction d0b91f93-75fd-4d3c-8c8c-b41c86f05eb1 in raw data:', 
         data?.find(t => t.id === 'd0b91f93-75fd-4d3c-8c8c-b41c86f05eb1'));
 
