@@ -2,6 +2,7 @@
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { TransactionFilters } from "@/components/TransactionFilters";
+import { useAuth } from "@/context/AuthContext";
 
 interface TransactionHeaderProps {
   transactionCount: number;
@@ -20,6 +21,8 @@ export const TransactionHeader = ({
   setIncludePaidCommissions,
   onAddTransaction
 }: TransactionHeaderProps) => {
+  const { isAdmin } = useAuth();
+
   return (
     <div className="flex flex-row items-center justify-between space-y-0">
       <div>
@@ -35,14 +38,16 @@ export const TransactionHeader = ({
           includePaidCommissions={includePaidCommissions}
           setIncludePaidCommissions={setIncludePaidCommissions}
         />
-        <Button 
-          size="sm"
-          onClick={onAddTransaction}
-          className="bg-green-600 hover:bg-green-700"
-        >
-          <Plus className="w-4 h-4 mr-1" />
-          Add
-        </Button>
+        {isAdmin && (
+          <Button 
+            size="sm"
+            onClick={onAddTransaction}
+            className="bg-green-600 hover:bg-green-700"
+          >
+            <Plus className="w-4 h-4 mr-1" />
+            Add
+          </Button>
+        )}
       </div>
     </div>
   );

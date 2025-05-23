@@ -8,6 +8,7 @@ import { TransactionHeader } from "@/components/TransactionHeader";
 import { TransactionTable } from "@/components/TransactionTable";
 import { TransactionEmptyState } from "@/components/TransactionEmptyState";
 import { ApprovalWarningDialog } from "@/components/ApprovalWarningDialog";
+import { useAuth } from "@/context/AuthContext";
 
 interface RecentTransactionsProps {
   transactions: Transaction[];
@@ -35,6 +36,7 @@ export const RecentTransactions = ({
   const [currentTransaction, setCurrentTransaction] = useState<Transaction | null>(null);
   const [approvalWarningOpen, setApprovalWarningOpen] = useState(false);
   const [pendingApprovalId, setPendingApprovalId] = useState<string | null>(null);
+  const { isAdmin } = useAuth();
   
   // These filter checkboxes no longer affect filtering - they're kept for UI consistency
   const [includePaidCommissions, setIncludePaidCommissions] = useState(false);
@@ -47,8 +49,9 @@ export const RecentTransactions = ({
     return date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear();
   };
 
-  // Function to handle editing a transaction
+  // Function to handle editing a transaction - only for admins
   const handleEditClick = (transaction: Transaction) => {
+    if (!isAdmin) return;
     setCurrentTransaction(transaction);
     setIsEditTransactionOpen(true);
   };
@@ -113,8 +116,8 @@ export const RecentTransactions = ({
             <TransactionTable
               transactions={transactions}
               clientInfos={clientInfos}
-              onEditClick={handleEditClick}
-              onApproveCommission={handleApproveCommission}
+              onEditClick={isAdmin ? handleEditClick : undefined}
+              onApproveCommission={onApproveCommission}
               onPayCommission={onPayCommission ? handlePayCommission : undefined}
               isCurrentMonth={isCurrentMonth}
             />
@@ -129,22 +132,26 @@ export const RecentTransactions = ({
         onCancel={handleCancelApproval}
       />
 
-      <AddTransactionDialog
-        open={isAddTransactionOpen}
-        onOpenChange={setIsAddTransactionOpen}
-        onAddTransaction={onAddTransaction}
-        clients={clients}
-        clientInfos={clientInfos}
-      />
+      {isAdmin && (
+        <>
+          <AddTransactionDialog
+            open={isAddTransactionOpen}
+            onOpenChange={setIsAddTransactionOpen}
+            onAddTransaction={onAddTransaction}
+            clients={clients}
+            clientInfos={clientInfos}
+          />
 
-      <EditTransactionDialog
-        transaction={currentTransaction}
-        open={isEditTransactionOpen}
-        onOpenChange={setIsEditTransactionOpen}
-        onUpdateTransaction={onUpdateTransaction}
-        clients={clients}
-        clientInfos={clientInfos}
-      />
+          <EditTransactionDialog
+            transaction={currentTransaction}
+            open={isEditTransactionOpen}
+            onOpenChange={setIsEditTransactionOpen}
+            onUpdateTransaction={onUpdateTransaction}
+            clients={clients}
+            clientInfos={clientInfos}
+          />
+        </>
+      )}
     </>
   );
 };
