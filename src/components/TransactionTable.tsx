@@ -132,17 +132,12 @@ export const TransactionTable = ({
                     </div>
                   )}
                   
-                  {/* Payment Status Badges - removed Due status */}
+                  {/* Payment Status Badges - only showing Paid status */}
                   <div className="flex flex-col gap-1 mt-2">
                     {transaction.isPaid && (
                       <Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200 w-fit">
                         <CheckCircle className="w-3 h-3 mr-1" />
                         Paid
-                      </Badge>
-                    )}
-                    {transaction.paymentMethod && transaction.isPaid && (
-                      <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200 w-fit">
-                        {transaction.paymentMethod === "check" ? "Check" : "Zelle"}
                       </Badge>
                     )}
                   </div>
@@ -159,6 +154,14 @@ export const TransactionTable = ({
                       </div>
                     )}
                   </div>
+                  
+                  {/* Payment Method Badge - moved here from Invoice column */}
+                  {transaction.paymentMethod && transaction.isPaid && (
+                    <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200 w-fit">
+                      {transaction.paymentMethod === "check" ? "Check" : "Zelle"}
+                    </Badge>
+                  )}
+                  
                   {isAdmin && (
                     <div className="flex gap-1">
                       {!transaction.isApproved && (
