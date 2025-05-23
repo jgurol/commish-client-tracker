@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -89,15 +88,43 @@ export const ClientList = ({
     }
   };
 
-  // New function to handle agent deletion in Supabase
+  // Updated function to handle agent deletion with foreign key constraint resolution
   const handleDeleteAgentFromDb = async (clientId: string) => {
     try {
-      const { error } = await supabase
+      // First, remove any associations from profiles table
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ 
+          associated_agent_id: null,
+          is_associated: false 
+        })
+        .eq('associated_agent_id', clientId);
+
+      if (updateError) {
+        console.error('Error removing agent associations:', updateError);
+        toast({
+          title: "Error",
+          description: `Failed to remove agent associations: ${updateError.message}`,
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // Now delete the agent
+      const { error: deleteError } = await supabase
         .from('agents')
         .delete()
         .eq('id', clientId);
 
-      if (error) throw error;
+      if (deleteError) {
+        console.error('Error deleting agent from database:', deleteError);
+        toast({
+          title: "Error",
+          description: `Failed to delete agent from database: ${deleteError.message}`,
+          variant: "destructive"
+        });
+        return;
+      }
       
       // Remove from local state
       onDeleteClient(clientId);
@@ -107,7 +134,7 @@ export const ClientList = ({
         description: "Agent deleted successfully from the database",
       });
     } catch (error: any) {
-      console.error('Error deleting agent from database:', error);
+      console.error('Exception deleting agent from database:', error);
       toast({
         title: "Error",
         description: `Failed to delete agent from database: ${error.message}`,
