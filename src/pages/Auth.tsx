@@ -89,10 +89,9 @@ const Auth = () => {
           // Clear any prior token errors
           setTokenError(null);
           
-          // Extract tokens from hash
-          const params = new URLSearchParams(hash.substring(1));
-          const accessToken = params.get('access_token');
-          const refreshToken = params.get('refresh_token');
+          // Parse the URL hash to get access token
+          const accessToken = new URLSearchParams(hash.substring(1)).get('access_token');
+          const refreshToken = new URLSearchParams(hash.substring(1)).get('refresh_token');
           
           if (!accessToken) {
             console.error('No access token found in URL');
@@ -101,30 +100,26 @@ const Auth = () => {
             return;
           }
           
-          // Try to set session with the token from URL
-          console.log('Attempting to set session with token');
-          const { data: sessionData, error: sessionError } = await supabase.auth.setSession({
+          // Set the session with the token from URL
+          const { data, error } = await supabase.auth.setSession({
             access_token: accessToken,
             refresh_token: refreshToken || '',
           });
           
-          if (sessionError) {
-            console.error('Error setting session:', sessionError);
-            setTokenError(sessionError.message || "Invalid or expired password reset link. Please request a new one.");
+          if (error) {
+            console.error('Error setting session:', error);
+            setTokenError(error.message || "Invalid or expired password reset link");
             toast({
               title: "Reset Link Error",
-              description: sessionError.message || "The password reset link is invalid or has expired. Please request a new one.",
+              description: error.message || "The password reset link is invalid or has expired",
               variant: "destructive"
             });
-          } else if (sessionData.session) {
-            console.log('Successfully set session from URL tokens');
           } else {
-            console.error('No session returned after setting tokens');
-            setTokenError("Failed to authenticate with provided token. Please request a new password reset link.");
+            console.log('Successfully set session for password reset');
           }
         } catch (err) {
-          console.error('Unexpected error during recovery flow:', err);
-          setTokenError("An unexpected error occurred. Please try requesting a new password reset link.");
+          console.error('Error during recovery flow:', err);
+          setTokenError("An unexpected error occurred");
         } finally {
           setIsCheckingSession(false);
         }
@@ -254,12 +249,11 @@ const Auth = () => {
       // Clear the hash from URL
       window.history.replaceState(null, '', window.location.pathname);
       
-      setShowUpdatePasswordForm(false);
-      setActiveTab("login");
-      
       // Force user to log in with new password
       await supabase.auth.signOut();
       
+      setShowUpdatePasswordForm(false);
+      setActiveTab("login");
     } catch (error) {
       console.error("Error updating password:", error);
     } finally {
@@ -338,7 +332,7 @@ const Auth = () => {
                     <Button
                       type="submit"
                       className="w-full bg-blue-600 hover:bg-blue-700"
-                      disabled={isSubmitting || !!tokenError}
+                      disabled={isSubmitting}
                     >
                       {isSubmitting ? "Updating..." : "Update Password"}
                     </Button>
@@ -437,122 +431,79 @@ const Auth = () => {
             <CardDescription>Sign in to manage your commissions</CardDescription>
           </CardHeader>
           <CardContent>
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="grid w-full grid-cols-2 mb-6">
-                <TabsTrigger value="login">Login</TabsTrigger>
-                <TabsTrigger value="register">Register</TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="login">
-                <Form {...loginForm}>
-                  <form onSubmit={loginForm.handleSubmit(handleLoginSubmit)} className="space-y-4">
-                    <FormField
-                      control={loginForm.control}
-                      name="email"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Email</FormLabel>
-                          <FormControl>
-                            <Input
-                              type="email"
-                              placeholder="your.email@example.com"
-                              {...field}
-                              disabled={isSubmitting}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={loginForm.control}
-                      name="password"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Password</FormLabel>
-                          <FormControl>
-                            <Input
-                              type="password"
-                              placeholder="••••••••"
-                              {...field}
-                              disabled={isSubmitting}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+            {/* Showing the reset password form if requested */}
+            {showResetForm ? (
+              <Form {...resetPasswordForm}>
+                <form onSubmit={resetPasswordForm.handleSubmit(handleResetPasswordSubmit)} className="space-y-4">
+                  <FormField
+                    control={resetPasswordForm.control}
+                    name="email"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Email</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="email"
+                            placeholder="your.email@example.com"
+                            {...field}
+                            disabled={isSubmitting}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <div className="flex gap-2">
                     <Button
                       type="button"
-                      variant="link"
-                      className="p-0 h-auto font-normal text-sm text-blue-600"
-                      onClick={() => setShowResetForm(true)}
+                      variant="outline"
+                      className="flex-1"
+                      onClick={() => setShowResetForm(false)}
+                      disabled={isSubmitting}
                     >
-                      Forgot password?
+                      Back to Login
                     </Button>
                     <Button
                       type="submit"
-                      className="w-full bg-blue-600 hover:bg-blue-700"
+                      className="flex-1 bg-blue-600 hover:bg-blue-700"
                       disabled={isSubmitting}
                     >
-                      {isSubmitting ? "Signing in..." : "Sign in"}
+                      {isSubmitting ? "Sending..." : "Send Reset Link"}
                     </Button>
-                  </form>
-                </Form>
-              </TabsContent>
+                  </div>
+                </form>
+              </Form>
+            ) : (
+              /* Login/Register Tabs */
+              <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                <TabsList className="grid w-full grid-cols-2 mb-6">
+                  <TabsTrigger value="login">Login</TabsTrigger>
+                  <TabsTrigger value="register">Register</TabsTrigger>
+                </TabsList>
 
-              <TabsContent value="register">
-                <Alert className="mb-4 bg-amber-50 text-amber-800 border-amber-200">
-                  <AlertTriangle className="h-4 w-4" />
-                  <AlertTitle>Important notice</AlertTitle>
-                  <AlertDescription>
-                    After registering, your account will need to be associated with an agent by a system administrator before you can log in.
-                  </AlertDescription>
-                </Alert>
-                
-                <Form {...registerForm}>
-                  <form
-                    onSubmit={registerForm.handleSubmit(handleRegisterSubmit)}
-                    className="space-y-4"
-                  >
-                    <FormField
-                      control={registerForm.control}
-                      name="fullName"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Full Name</FormLabel>
-                          <FormControl>
-                            <Input
-                              placeholder="John Smith"
-                              {...field}
-                              disabled={isSubmitting}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={registerForm.control}
-                      name="email"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Email</FormLabel>
-                          <FormControl>
-                            <Input
-                              type="email"
-                              placeholder="your.email@example.com"
-                              {...field}
-                              disabled={isSubmitting}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <div className="grid grid-cols-2 gap-4">
+                <TabsContent value="login">
+                  <Form {...loginForm}>
+                    <form onSubmit={loginForm.handleSubmit(handleLoginSubmit)} className="space-y-4">
                       <FormField
-                        control={registerForm.control}
+                        control={loginForm.control}
+                        name="email"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Email</FormLabel>
+                            <FormControl>
+                              <Input
+                                type="email"
+                                placeholder="your.email@example.com"
+                                {...field}
+                                disabled={isSubmitting}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={loginForm.control}
                         name="password"
                         render={({ field }) => (
                           <FormItem>
@@ -569,16 +520,48 @@ const Auth = () => {
                           </FormItem>
                         )}
                       />
+                      <Button
+                        type="button"
+                        variant="link"
+                        className="p-0 h-auto font-normal text-sm text-blue-600"
+                        onClick={() => setShowResetForm(true)}
+                      >
+                        Forgot password?
+                      </Button>
+                      <Button
+                        type="submit"
+                        className="w-full bg-blue-600 hover:bg-blue-700"
+                        disabled={isSubmitting}
+                      >
+                        {isSubmitting ? "Signing in..." : "Sign in"}
+                      </Button>
+                    </form>
+                  </Form>
+                </TabsContent>
+
+                <TabsContent value="register">
+                  <Alert className="mb-4 bg-amber-50 text-amber-800 border-amber-200">
+                    <AlertTriangle className="h-4 w-4" />
+                    <AlertTitle>Important notice</AlertTitle>
+                    <AlertDescription>
+                      After registering, your account will need to be associated with an agent by a system administrator before you can log in.
+                    </AlertDescription>
+                  </Alert>
+                  
+                  <Form {...registerForm}>
+                    <form
+                      onSubmit={registerForm.handleSubmit(handleRegisterSubmit)}
+                      className="space-y-4"
+                    >
                       <FormField
                         control={registerForm.control}
-                        name="confirmPassword"
+                        name="fullName"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Confirm Password</FormLabel>
+                            <FormLabel>Full Name</FormLabel>
                             <FormControl>
                               <Input
-                                type="password"
-                                placeholder="••••••••"
+                                placeholder="John Smith"
                                 {...field}
                                 disabled={isSubmitting}
                               />
@@ -587,18 +570,74 @@ const Auth = () => {
                           </FormItem>
                         )}
                       />
-                    </div>
-                    <Button
-                      type="submit"
-                      className="w-full bg-green-600 hover:bg-green-700"
-                      disabled={isSubmitting}
-                    >
-                      {isSubmitting ? "Creating account..." : "Create account"}
-                    </Button>
-                  </form>
-                </Form>
-              </TabsContent>
-            </Tabs>
+                      <FormField
+                        control={registerForm.control}
+                        name="email"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Email</FormLabel>
+                            <FormControl>
+                              <Input
+                                type="email"
+                                placeholder="your.email@example.com"
+                                {...field}
+                                disabled={isSubmitting}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <div className="grid grid-cols-2 gap-4">
+                        <FormField
+                          control={registerForm.control}
+                          name="password"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Password</FormLabel>
+                              <FormControl>
+                                <Input
+                                  type="password"
+                                  placeholder="••••••••"
+                                  {...field}
+                                  disabled={isSubmitting}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={registerForm.control}
+                          name="confirmPassword"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Confirm Password</FormLabel>
+                              <FormControl>
+                                <Input
+                                  type="password"
+                                  placeholder="••••••••"
+                                  {...field}
+                                  disabled={isSubmitting}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                      <Button
+                        type="submit"
+                        className="w-full bg-green-600 hover:bg-green-700"
+                        disabled={isSubmitting}
+                      >
+                        {isSubmitting ? "Creating account..." : "Create account"}
+                      </Button>
+                    </form>
+                  </Form>
+                </TabsContent>
+              </Tabs>
+            )}
           </CardContent>
           <CardFooter className="flex justify-center text-sm text-gray-500">
             {activeTab === "login"
