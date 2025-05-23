@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Navigate } from "react-router-dom";
 import { z } from "zod";
@@ -25,6 +24,8 @@ import {
 } from "@/components/ui/form";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/context/AuthContext";
+import { AlertTriangle } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 const loginSchema = z.object({
   email: z.string().email({ message: "Invalid email address" }),
@@ -160,6 +161,14 @@ const Auth = () => {
               </TabsContent>
 
               <TabsContent value="register">
+                <Alert className="mb-4 bg-amber-50 text-amber-800 border-amber-200">
+                  <AlertTriangle className="h-4 w-4" />
+                  <AlertTitle>Important notice</AlertTitle>
+                  <AlertDescription>
+                    After registering, your account will need to be associated with an agent by a system administrator before you can log in.
+                  </AlertDescription>
+                </Alert>
+                
                 <Form {...registerForm}>
                   <form
                     onSubmit={registerForm.handleSubmit(handleRegisterSubmit)}

@@ -2,7 +2,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/context/AuthContext';
-import { LogOut, User } from 'lucide-react';
+import { LogOut, User, Shield } from 'lucide-react';
 
 export const Header = () => {
   const { user, signOut, isAdmin } = useAuth();
@@ -19,7 +19,16 @@ export const Header = () => {
           <User className="w-4 h-4 text-gray-600" />
           <span className="text-sm font-medium">
             {user?.email}
-            {isAdmin && <span className="ml-1 text-xs bg-blue-500 text-white px-2 py-0.5 rounded">Admin</span>}
+            {isAdmin && (
+              <span className="ml-1 text-xs bg-blue-500 text-white px-2 py-0.5 rounded flex items-center gap-1">
+                <Shield className="w-3 h-3" /> Admin
+              </span>
+            )}
+            {!isAdmin && (
+              <span className="ml-1 text-xs bg-green-500 text-white px-2 py-0.5 rounded">
+                Agent
+              </span>
+            )}
           </span>
         </div>
         
