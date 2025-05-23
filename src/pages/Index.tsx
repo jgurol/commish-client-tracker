@@ -552,14 +552,6 @@ const IndexPage = () => {
           <div className="lg:col-span-2 space-y-6">
             <div className="flex justify-between items-center">
               <h2 className="text-xl font-bold text-gray-900">Recent Activity</h2>
-              <Button 
-                variant="ghost"
-                onClick={() => navigate('/clients')}
-                className="text-blue-600"
-              >
-                View Clients
-                <ChevronRight className="ml-1 w-4 h-4" />
-              </Button>
             </div>
             
             {/* Recent Transactions Component */}
