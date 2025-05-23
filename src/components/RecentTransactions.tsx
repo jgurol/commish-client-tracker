@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -68,6 +69,12 @@ export const RecentTransactions = ({
     const date = new Date(dateStr);
     const now = new Date();
     return date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear();
+  };
+
+  // Function to handle editing a transaction
+  const handleEditClick = (transaction: Transaction) => {
+    setCurrentTransaction(transaction);
+    setIsEditTransactionOpen(true);
   };
 
   // Function to handle commission approval with warning check
