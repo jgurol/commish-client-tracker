@@ -1,12 +1,11 @@
+
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Plus, DollarSign, Pencil, CheckCircle, Clock, Building, FileText, Users, AlertCircle } from "lucide-react";
+import { Plus, DollarSign } from "lucide-react";
 import { Transaction, Client, ClientInfo } from "@/pages/Index";
 import { AddTransactionDialog } from "@/components/AddTransactionDialog";
 import { EditTransactionDialog } from "@/components/EditTransactionDialog";
-import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { 
   AlertDialog,
@@ -19,6 +18,9 @@ import {
   AlertDialogTitle
 } from "@/components/ui/alert-dialog";
 import { useAuth } from "@/context/AuthContext";
+import { TransactionDebugInfo } from "@/components/TransactionDebugInfo";
+import { TransactionFilters } from "@/components/TransactionFilters";
+import { TransactionCard } from "@/components/TransactionCard";
 
 interface RecentTransactionsProps {
   transactions: Transaction[];
@@ -131,34 +133,12 @@ export const RecentTransactions = ({
             <CardDescription>Commission payments ({transactionCount} total)</CardDescription>
           </div>
           <div className="flex items-center gap-4">
-            <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
-              <div className="flex items-center gap-2">
-                <Checkbox 
-                  id="showOnlyPaidInvoices" 
-                  checked={showOnlyPaidInvoices} 
-                  onCheckedChange={(checked) => setShowOnlyPaidInvoices(checked === true)}
-                />
-                <label 
-                  htmlFor="showOnlyPaidInvoices" 
-                  className="text-sm text-gray-600 cursor-pointer"
-                >
-                  Show only paid invoices
-                </label>
-              </div>
-              <div className="flex items-center gap-2">
-                <Checkbox 
-                  id="includePaidCommissions" 
-                  checked={includePaidCommissions} 
-                  onCheckedChange={(checked) => setIncludePaidCommissions(checked === true)}
-                />
-                <label 
-                  htmlFor="includePaidCommissions" 
-                  className="text-sm text-gray-600 cursor-pointer"
-                >
-                  Include paid commissions
-                </label>
-              </div>
-            </div>
+            <TransactionFilters
+              showOnlyPaidInvoices={showOnlyPaidInvoices}
+              setShowOnlyPaidInvoices={setShowOnlyPaidInvoices}
+              includePaidCommissions={includePaidCommissions}
+              setIncludePaidCommissions={setIncludePaidCommissions}
+            />
             <Button 
               size="sm"
               onClick={() => setIsAddTransactionOpen(true)}
@@ -171,16 +151,11 @@ export const RecentTransactions = ({
         </CardHeader>
         <CardContent>
           <ScrollArea className="h-[500px] pr-4">
-            {/* Simplified debug information */}
-            <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-md text-xs text-blue-700 flex items-start gap-2">
-              <AlertCircle className="w-4 h-4 text-blue-500 shrink-0 mt-0.5" />
-              <div>
-                <p className="font-medium mb-1">TRANSACTION STATUS</p>
-                <p>User: {isAdmin ? 'Admin (sees all)' : `Agent (filtered)`}</p>
-                <p>Transactions displayed: {transactions.length}</p>
-                <p>Filter: {isAdmin ? 'No filtering (admin sees all)' : (associatedAgentId ? `Filtered by agent ${associatedAgentId}` : 'No agent access')}</p>
-              </div>
-            </div>
+            <TransactionDebugInfo
+              isAdmin={isAdmin}
+              transactionCount={transactionCount}
+              associatedAgentId={associatedAgentId}
+            />
             
             <div className="space-y-3">
               {transactions.length === 0 ? (
@@ -194,122 +169,15 @@ export const RecentTransactions = ({
               ) : (
                 // Display ALL transactions passed to this component (no local filtering)
                 transactions.map((transaction) => (
-                  <div
+                  <TransactionCard
                     key={transaction.id}
-                    className="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors duration-200"
-                  >
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1">
-                        <h4 className="font-medium text-gray-900">{transaction.clientName}</h4>
-                        <Badge variant="outline" className="text-xs">
-                          ${transaction.amount.toLocaleString()}
-                        </Badge>
-                        <Badge variant="outline" className="text-xs bg-gray-50 text-gray-700 border-gray-200 font-mono">
-                          ID: {transaction.id.slice(0, 8)}...
-                        </Badge>
-                        {transaction.isPaid ? (
-                          <Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200">
-                            <CheckCircle className="w-3 h-3 mr-1" />
-                            Paid
-                          </Badge>
-                        ) : (
-                          isCurrentMonth(transaction.date) && (
-                            <Badge variant="outline" className="text-xs bg-amber-50 text-amber-700 border-amber-200">
-                              <Clock className="w-3 h-3 mr-1" />
-                              Due
-                            </Badge>
-                          )
-                        )}
-                        {transaction.paymentMethod && transaction.isPaid && (
-                          <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200">
-                            {transaction.paymentMethod === "check" ? "Check" : "Zelle"}
-                          </Badge>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-1 mb-1 text-sm text-gray-600">
-                        <Building className="w-4 h-4" />
-                        {transaction.companyName}
-                      </div>
-                      {/* Display client company if available */}
-                      {transaction.clientInfoId && transaction.clientInfoId !== "none" && (
-                        <div className="flex items-center gap-1 mb-1 text-sm text-gray-600">
-                          <Users className="w-4 h-4" />
-                          Client: {transaction.clientCompanyName || clientInfos.find(ci => ci.id === transaction.clientInfoId)?.company_name || "N/A"}
-                        </div>
-                      )}
-                      <div className="text-sm text-gray-600 flex items-center gap-1">
-                        {transaction.invoiceNumber && (
-                          <>
-                            <FileText className="w-3 h-3" />
-                            <span>Invoice #{transaction.invoiceNumber}</span>
-                            {transaction.invoiceMonth && transaction.invoiceYear && (
-                              <span className="text-gray-500">
-                                ({months.find(m => m.value === transaction.invoiceMonth)?.label} {transaction.invoiceYear})
-                              </span>
-                            )}
-                          </>
-                        )}
-                      </div>
-                      <div className="text-sm text-gray-600 mt-1">
-                        {transaction.description}
-                      </div>
-                      
-                      <div className="text-xs text-gray-500 mt-1 flex flex-wrap gap-2">
-                        <span>Date: {new Date(transaction.date).toLocaleDateString()}</span>
-                        {transaction.datePaid && (
-                          <span>Paid: {new Date(transaction.datePaid).toLocaleDateString()}</span>
-                        )}
-                        {transaction.referenceNumber && transaction.isPaid && (
-                          <span>
-                            {transaction.paymentMethod === "check" ? "Check #: " : "Ref #: "}
-                            {transaction.referenceNumber}
-                          </span>
-                        )}
-                      </div>
-                      
-                      {/* Commission section with updated styling based on approval and payment status */}
-                      <div className="flex items-center justify-between mt-3 pt-2 border-t border-gray-100">
-                        <div className={`font-medium ${transaction.commissionPaidDate ? 'text-green-600' : transaction.isApproved ? 'text-amber-600' : 'text-gray-500'}`}>
-                          Commission: ${transaction.commission?.toFixed(2) || '0.00'}
-                          {transaction.commissionPaidDate && (
-                            <span className="text-xs ml-2">
-                              Paid: {new Date(transaction.commissionPaidDate).toLocaleDateString()}
-                            </span>
-                          )}
-                        </div>
-                        <div className="flex gap-2">
-                          {!transaction.isApproved && (
-                            <Button 
-                              size="sm" 
-                              variant="outline" 
-                              className="text-xs h-7 border-green-200 text-green-700 hover:bg-green-50"
-                              onClick={() => handleApproveCommission(transaction.id)}
-                            >
-                              <CheckCircle className="w-3 h-3 mr-1" /> Approve
-                            </Button>
-                          )}
-                          {transaction.isApproved && !transaction.commissionPaidDate && onPayCommission && (
-                            <Button 
-                              size="sm" 
-                              variant="outline" 
-                              className="text-xs h-7 border-blue-200 text-blue-700 hover:bg-blue-50"
-                              onClick={() => handlePayCommission(transaction.id)}
-                            >
-                              <DollarSign className="w-3 h-3 mr-1" /> Mark Paid
-                            </Button>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      className="text-gray-500 hover:text-blue-600"
-                      onClick={() => handleEditClick(transaction)}
-                    >
-                      <Pencil className="w-4 h-4" />
-                    </Button>
-                  </div>
+                    transaction={transaction}
+                    clientInfos={clientInfos}
+                    onEditClick={handleEditClick}
+                    onApproveCommission={handleApproveCommission}
+                    onPayCommission={onPayCommission ? handlePayCommission : undefined}
+                    isCurrentMonth={isCurrentMonth}
+                  />
                 ))
               )}
             </div>
@@ -355,19 +223,3 @@ export const RecentTransactions = ({
     </>
   );
 };
-
-// Array for month names - needed for display
-const months = [
-  { value: "1", label: "January" },
-  { value: "2", label: "February" },
-  { value: "3", label: "March" },
-  { value: "4", label: "April" },
-  { value: "5", label: "May" },
-  { value: "6", label: "June" },
-  { value: "7", label: "July" },
-  { value: "8", label: "August" },
-  { value: "9", label: "September" },
-  { value: "10", label: "October" },
-  { value: "11", label: "November" },
-  { value: "12", label: "December" },
-];
