@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -9,6 +10,7 @@ import Auth from "./pages/Auth";
 import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 import FixAccount from "./pages/FixAccount";
+import { NavigationBar } from "./components/NavigationBar";
 
 const queryClient = new QueryClient();
 
@@ -48,23 +50,28 @@ const AdminRoute = ({ children }: { children: React.ReactNode }) => {
 };
 
 const AppRoutes = () => {
+  const { user } = useAuth();
+  
   return (
-    <Routes>
-      <Route path="/auth" element={<Auth />} />
-      <Route path="/fix-account" element={<FixAccount />} />
-      <Route path="/" element={
-        <ProtectedRoute>
-          <Index />
-        </ProtectedRoute>
-      } />
-      <Route path="/admin" element={
-        <AdminRoute>
-          <Admin />
-        </AdminRoute>
-      } />
-      {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-      <Route path="*" element={<NotFound />} />
-    </Routes>
+    <>
+      {user && <NavigationBar />}
+      <Routes>
+        <Route path="/auth" element={<Auth />} />
+        <Route path="/fix-account" element={<FixAccount />} />
+        <Route path="/" element={
+          <ProtectedRoute>
+            <Index />
+          </ProtectedRoute>
+        } />
+        <Route path="/admin" element={
+          <AdminRoute>
+            <Admin />
+          </AdminRoute>
+        } />
+        {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </>
   );
 };
 

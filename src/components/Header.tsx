@@ -2,8 +2,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/context/AuthContext';
-import { LogOut, User, Shield, Settings } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { LogOut, User, Shield } from 'lucide-react';
 
 export const Header = () => {
   const { user, signOut, isAdmin } = useAuth();
@@ -11,7 +10,7 @@ export const Header = () => {
   return (
     <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
       <div>
-        <h1 className="text-4xl font-bold text-gray-900 mb-2">Commission Tracker</h1>
+        <h1 className="text-4xl font-bold text-gray-900 mb-2">Dashboard</h1>
         <p className="text-lg text-gray-600">Manage your agent commissions and track earnings</p>
       </div>
       
@@ -32,18 +31,6 @@ export const Header = () => {
             )}
           </span>
         </div>
-        
-        {isAdmin && (
-          <Link to="/admin">
-            <Button 
-              variant="outline"
-              className="flex items-center gap-2"
-            >
-              <Settings className="w-4 h-4" />
-              Admin
-            </Button>
-          </Link>
-        )}
         
         <Button 
           onClick={() => signOut()}
