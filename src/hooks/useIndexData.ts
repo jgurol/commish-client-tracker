@@ -32,10 +32,10 @@ export const useIndexData = () => {
 
   // Function to fetch transactions from Supabase - only after clients are loaded
   useEffect(() => {
-    if (clients.length > 0 && profileLoaded) {
+    if (profileLoaded) {
       fetchTransactions();
     }
-  }, [clients, profileLoaded]);
+  }, [profileLoaded, associatedAgentId, isAdmin]);
 
   // Fetch user's profile to get associated agent ID
   const fetchUserProfile = async () => {
@@ -199,7 +199,6 @@ export const useIndexData = () => {
       console.log('[DEBUG] - isAdmin:', isAdmin);
       console.log('[DEBUG] - associatedAgentId:', associatedAgentId);
       console.log('[DEBUG] - user.id:', user.id);
-      console.log('[DEBUG] - clients:', clients);
       console.log('[DEBUG] - profileLoaded:', profileLoaded);
       
       // Build the query with filtering logic
@@ -244,22 +243,35 @@ export const useIndexData = () => {
       console.log('[DEBUG] Raw transaction data from DB:', data);
       console.log('[DEBUG] Number of transactions returned:', data?.length || 0);
 
+      if (!data || data.length === 0) {
+        console.log('[DEBUG] No transactions found - setting empty array');
+        setTransactions([]);
+        setIsLoading(false);
+        return;
+      }
+
+      // We need to fetch client info separately since clients might not be loaded yet
+      const { data: agentData } = await supabase.from('agents').select('*');
+      const { data: clientInfoData } = await supabase.from('client_info').select('*');
+
       // Map database transactions to our Transaction interface
-      const mappedTransactions = await Promise.all(data?.map(async (transaction) => {
+      const mappedTransactions = data.map((transaction) => {
         // Find client for this transaction
-        const client = clients.find(c => c.id === transaction.client_id);
+        const client = agentData?.find(c => c.id === transaction.client_id);
         
         // Find client info for this transaction if available
         let clientInfo = null;
         if (transaction.client_info_id) {
-          clientInfo = clientInfos.find(ci => ci.id === transaction.client_info_id);
+          clientInfo = clientInfoData?.find(ci => ci.id === transaction.client_info_id);
         }
 
         const mappedTransaction = {
           id: transaction.id,
           clientId: transaction.client_id,
-          clientName: client?.name || "Unknown Agent",
-          companyName: client?.companyName || client?.name || "Unknown Company",
+          clientName: client?.first_name && client?.last_name 
+            ? `${client.first_name} ${client.last_name}`
+            : "Unknown Agent",
+          companyName: client?.company_name || client?.first_name || "Unknown Company",
           amount: transaction.amount,
           date: transaction.date,
           description: transaction.description,
@@ -278,8 +290,9 @@ export const useIndexData = () => {
         };
         
         return mappedTransaction;
-      }) || []);
+      });
       
+      console.log('[DEBUG] Final mapped transactions:', mappedTransactions);
       console.log('[DEBUG] Final mapped transactions count:', mappedTransactions.length);
       
       setTransactions(mappedTransactions);
