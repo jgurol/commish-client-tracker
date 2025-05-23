@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -9,6 +8,7 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
+import FixAccount from "./pages/FixAccount";
 
 const queryClient = new QueryClient();
 
@@ -31,24 +31,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 
   // If the user is logged in but not associated (i.e., an agent without association)
   if (!isAssociated) {
-    return (
-      <div className="h-screen flex flex-col items-center justify-center p-4 text-center">
-        <h1 className="text-2xl font-bold mb-2">Account Not Activated</h1>
-        <p className="mb-4 text-gray-600 max-w-md">
-          Your account has not yet been associated with an agent in the system. Please contact an administrator.
-        </p>
-        <button
-          onClick={async () => {
-            const { useAuth } = await import("./context/AuthContext");
-            const { signOut } = useAuth();
-            signOut();
-          }}
-          className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
-        >
-          Sign Out
-        </button>
-      </div>
-    );
+    return <Navigate to="/fix-account" />;
   }
   
   return <>{children}</>;
@@ -60,6 +43,7 @@ const AppRoutes = () => {
   return (
     <Routes>
       <Route path="/auth" element={<Auth />} />
+      <Route path="/fix-account" element={<FixAccount />} />
       <Route path="/" element={
         <ProtectedRoute>
           <Index />

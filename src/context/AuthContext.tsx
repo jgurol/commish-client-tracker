@@ -165,8 +165,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         throw error;
       }
       
-      // Force set associated to true to bypass profile check issues temporarily
-      setIsAssociated(true);
+      // Remove force set to true - let the fetchUserProfile determine association
+      // setIsAssociated(true);
       
       toast({
         title: "Login successful",
