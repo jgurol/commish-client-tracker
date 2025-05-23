@@ -230,8 +230,8 @@ const IndexPage = () => {
       // CORRECTED LOGIC: If user is admin, show all transactions
       // If user is not admin and has an associated agent, filter by that agent ID
       if (isAdmin) {
-        console.log("🔍 [fetchTransactions] Admin user - fetching all transactions");
-        // Admin sees all transactions - no filter needed
+        console.log("🔍 [fetchTransactions] Admin user - fetching all transactions (no filter)");
+        // Admin sees all transactions - no filter needed at all
       } else if (associatedAgentId) {
         console.log(`🔍 [fetchTransactions] Non-admin user with agent ID - filtering transactions for agent ID: ${associatedAgentId}`);
         query = query.eq('client_id', associatedAgentId);
@@ -240,6 +240,9 @@ const IndexPage = () => {
         // Non-admin without agent ID should see no transactions
         query = query.eq('client_id', 'no-match'); // This will return empty results
       }
+      
+      // Add ordering to ensure consistent results
+      query = query.order('created_at', { ascending: false });
       
       // Execute the query
       const { data, error } = await query;
@@ -264,6 +267,7 @@ const IndexPage = () => {
           console.log(`[fetchTransactions] Transaction ${index + 1}:`, {
             id: trans.id,
             client_id: trans.client_id,
+            user_id: trans.user_id,
             amount: trans.amount,
             description: trans.description,
             date: trans.date,
