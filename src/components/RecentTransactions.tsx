@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -176,28 +175,19 @@ export const RecentTransactions = ({
             <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-md text-xs text-green-700 flex items-start gap-2">
               <AlertCircle className="w-4 h-4 text-green-500 shrink-0 mt-0.5" />
               <div>
-                <p className="font-medium mb-1">TRANSACTION FILTERING UPDATE</p>
-                <p>Filter applied: {!isAdmin && associatedAgentId ? `client_id = ${associatedAgentId}` : 'No filter (admin mode)'}</p>
-                <p className="mt-1">User ID filter: REMOVED</p>
-                <p>Admin: {isAdmin ? 'Yes' : 'No'}</p>
+                <p className="font-medium mb-1">TRANSACTION FILTERING UPDATED</p>
+                <p>Filter applied: {!isAdmin ? (associatedAgentId ? `client_id = ${associatedAgentId}` : 'No agent access') : 'No filter (admin mode)'}</p>
+                <p className="mt-1">Admin: {isAdmin ? 'Yes' : 'No'}</p>
                 <p>Associated Agent ID: {associatedAgentId || 'None'}</p>
+                <p>Filter logic: {isAdmin ? 'Admin sees all' : 'Agent sees own transactions only'}</p>
               </div>
-            </div>
-            
-            {/* Add debugging info at top of transaction list */}
-            <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-md text-xs text-blue-700">
-              <p className="font-medium mb-1">DEBUG: Transaction/Agent Information</p>
-              <p>Total transactions received: {transactionCount}</p>
-              {clients.map(client => (
-                <p key={client.id}>Agent {client.name} (ID: {client.id})</p>
-              ))}
             </div>
             
             <div className="space-y-3">
               {transactions.length === 0 ? (
                 <div className="text-center py-6 text-gray-500">
                   <DollarSign className="w-8 h-8 mx-auto mb-2 text-gray-300" />
-                  <p>No transactions found for this agent</p>
+                  <p>No transactions found {!isAdmin && associatedAgentId ? 'for this agent' : ''}</p>
                 </div>
               ) : (
                 // Display ALL transactions passed to this component (no local filtering)
@@ -257,11 +247,6 @@ export const RecentTransactions = ({
                       </div>
                       <div className="text-sm text-gray-600 mt-1">
                         {transaction.description}
-                      </div>
-                      
-                      {/* Updated debug info for this transaction */}
-                      <div className="text-xs text-green-600 mt-1 bg-green-50 p-1 rounded">
-                        DEBUG: Transaction ID: {transaction.id} | Client ID: {transaction.clientId} | Matches Agent: {transaction.clientId === associatedAgentId ? 'YES' : 'NO'}
                       </div>
                       
                       <div className="text-xs text-gray-500 mt-1 flex flex-wrap gap-2">

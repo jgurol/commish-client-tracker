@@ -208,7 +208,7 @@ const IndexPage = () => {
     }
   };
 
-  // Modified transaction fetch function - REMOVED user ID filter
+  // Modified transaction fetch function - UPDATED filtering logic
   const fetchTransactions = async () => {
     if (!user) {
       console.log("❌ [fetchTransactions] No user found, skipping transaction fetch");
@@ -224,15 +224,21 @@ const IndexPage = () => {
       console.log("[fetchTransactions] User isAdmin:", isAdmin);
       console.log("[fetchTransactions] Associated agent ID:", associatedAgentId);
       
-      // Build the query - REMOVED user_id filter completely
+      // Build the query with corrected filtering logic
       let query = supabase.from('transactions').select('*');
       
+      // CORRECTED LOGIC: If user is admin, show all transactions
       // If user is not admin and has an associated agent, filter by that agent ID
-      if (!isAdmin && associatedAgentId) {
-        console.log(`🔍 [fetchTransactions] Filtering transactions for agent ID: ${associatedAgentId}`);
+      if (isAdmin) {
+        console.log("🔍 [fetchTransactions] Admin user - fetching all transactions");
+        // Admin sees all transactions - no filter needed
+      } else if (associatedAgentId) {
+        console.log(`🔍 [fetchTransactions] Non-admin user with agent ID - filtering transactions for agent ID: ${associatedAgentId}`);
         query = query.eq('client_id', associatedAgentId);
       } else {
-        console.log("🔍 [fetchTransactions] User is admin or no agent ID, fetching all transactions");
+        console.log("🔍 [fetchTransactions] Non-admin user without agent ID - no transactions should be visible");
+        // Non-admin without agent ID should see no transactions
+        query = query.eq('client_id', 'no-match'); // This will return empty results
       }
       
       // Execute the query
@@ -266,10 +272,12 @@ const IndexPage = () => {
             commission: trans.commission
           });
 
-          // Critical debugging: Check if this transaction should be visible to current agent
+          // Critical debugging: Check if this transaction should be visible
           if (!isAdmin && associatedAgentId) {
             const isVisible = trans.client_id === associatedAgentId;
             console.log(`[fetchTransactions] Transaction ${trans.id} visible to agent ${associatedAgentId}? ${isVisible}`);
+          } else if (isAdmin) {
+            console.log(`[fetchTransactions] Transaction ${trans.id} visible to admin: YES`);
           }
         });
       }
