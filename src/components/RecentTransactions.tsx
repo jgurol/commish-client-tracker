@@ -47,11 +47,24 @@ export const RecentTransactions = ({
   const [pendingApprovalId, setPendingApprovalId] = useState<string | null>(null);
   // New state for filtering paid commissions
   const [includePaidCommissions, setIncludePaidCommissions] = useState(true);
+  // New state for filtering paid invoices
+  const [showOnlyPaidInvoices, setShowOnlyPaidInvoices] = useState(true);
 
-  // Filter transactions based on the checkbox state
-  const filteredTransactions = includePaidCommissions 
-    ? transactions 
-    : transactions.filter(transaction => !transaction.commissionPaidDate);
+  // Filter transactions based on the checkbox states
+  const filteredTransactions = transactions
+    .filter(transaction => {
+      // Filter by paid commissions
+      if (!includePaidCommissions && transaction.commissionPaidDate) {
+        return false;
+      }
+      
+      // Filter by paid invoices
+      if (showOnlyPaidInvoices && !transaction.isPaid) {
+        return false;
+      }
+      
+      return true;
+    });
 
   const handleEditClick = (transaction: Transaction) => {
     setCurrentTransaction(transaction);
@@ -112,18 +125,33 @@ export const RecentTransactions = ({
             <CardDescription>All commission payments</CardDescription>
           </div>
           <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2">
-              <Checkbox 
-                id="includePaidCommissions" 
-                checked={includePaidCommissions} 
-                onCheckedChange={(checked) => setIncludePaidCommissions(checked === true)}
-              />
-              <label 
-                htmlFor="includePaidCommissions" 
-                className="text-sm text-gray-600 cursor-pointer"
-              >
-                Include paid commissions
-              </label>
+            <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
+              <div className="flex items-center gap-2">
+                <Checkbox 
+                  id="showOnlyPaidInvoices" 
+                  checked={showOnlyPaidInvoices} 
+                  onCheckedChange={(checked) => setShowOnlyPaidInvoices(checked === true)}
+                />
+                <label 
+                  htmlFor="showOnlyPaidInvoices" 
+                  className="text-sm text-gray-600 cursor-pointer"
+                >
+                  Show only paid invoices
+                </label>
+              </div>
+              <div className="flex items-center gap-2">
+                <Checkbox 
+                  id="includePaidCommissions" 
+                  checked={includePaidCommissions} 
+                  onCheckedChange={(checked) => setIncludePaidCommissions(checked === true)}
+                />
+                <label 
+                  htmlFor="includePaidCommissions" 
+                  className="text-sm text-gray-600 cursor-pointer"
+                >
+                  Include paid commissions
+                </label>
+              </div>
             </div>
             <Button 
               size="sm"
