@@ -12,7 +12,7 @@ import {
   navigationMenuTriggerStyle,
 } from "@/components/ui/navigation-menu";
 import { cn } from "@/lib/utils";
-import { Settings, Users, FileText, Home, UserPlus } from 'lucide-react';
+import { Settings, Users, FileText, Home, UserPlus, Building } from 'lucide-react';
 
 export function NavigationBar() {
   const { isAdmin } = useAuth();
@@ -45,6 +45,10 @@ export function NavigationBar() {
 
                   <ListItem href="/settings/billing" title="Billing" Icon={FileText}>
                     View invoices, payment history, and manage billing settings
+                  </ListItem>
+                  
+                  <ListItem href="/client-management" title="Client Management" Icon={Building}>
+                    Manage your clients' information and details
                   </ListItem>
                   
                   {isAdmin && (

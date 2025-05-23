@@ -10,6 +10,7 @@ import Auth from "./pages/Auth";
 import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 import FixAccount from "./pages/FixAccount";
+import ClientManagement from "./pages/ClientManagement";
 import { NavigationBar } from "./components/NavigationBar";
 
 const queryClient = new QueryClient();
@@ -67,6 +68,11 @@ const AppRoutes = () => {
           <AdminRoute>
             <Admin />
           </AdminRoute>
+        } />
+        <Route path="/client-management" element={
+          <ProtectedRoute>
+            <ClientManagement />
+          </ProtectedRoute>
         } />
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<NotFound />} />

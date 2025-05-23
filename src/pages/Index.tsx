@@ -8,8 +8,6 @@ import { AddClientDialog } from "@/components/AddClientDialog";
 import { CommissionChart } from "@/components/CommissionChart";
 import { RecentTransactions } from "@/components/RecentTransactions";
 import { StatsCards } from "@/components/StatsCards";
-import { ClientInfoList } from "@/components/ClientInfoList";
-import { AddClientInfoDialog } from "@/components/AddClientInfoDialog";
 import { Header } from "@/components/Header";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -68,27 +66,8 @@ const Index = () => {
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
-  // New state for client information
-  const [clientInfos, setClientInfos] = useState<ClientInfo[]>([
-    {
-      id: "1",
-      companyName: "Tech Corp",
-      contactName: "John Smith",
-      email: "john@techcorp.com",
-      phone: "555-123-4567",
-      createdAt: "2024-05-10",
-      updatedAt: "2024-05-10"
-    },
-    {
-      id: "2",
-      companyName: "InnoSoft Solutions",
-      contactName: "Jane Doe",
-      email: "jane@innosoft.com",
-      phone: "555-987-6543",
-      createdAt: "2024-05-12",
-      updatedAt: "2024-05-15"
-    }
-  ]);
+  // New state for client information - moved to ClientManagement page
+  const [clientInfos, setClientInfos] = useState<ClientInfo[]>([]);
 
   const [transactions, setTransactions] = useState<Transaction[]>([
     {
@@ -125,9 +104,7 @@ const Index = () => {
   ]);
 
   const [isAddClientOpen, setIsAddClientOpen] = useState(false);
-  // New state for client info dialog
-  const [isAddClientInfoOpen, setIsAddClientInfoOpen] = useState(false);
-
+  
   // Fetch agents from the database
   useEffect(() => {
     fetchAgents();
@@ -195,26 +172,6 @@ const Index = () => {
   // New function to update transactions
   const updateTransactions = (updatedTransactions: Transaction[]) => {
     setTransactions(updatedTransactions);
-  };
-
-  // New function to add client info
-  const addClientInfo = (newClientInfo: Omit<ClientInfo, "id" | "createdAt" | "updatedAt">) => {
-    const clientInfo: ClientInfo = {
-      ...newClientInfo,
-      id: Date.now().toString(),
-      createdAt: new Date().toISOString().split('T')[0],
-      updatedAt: new Date().toISOString().split('T')[0]
-    };
-    setClientInfos([...clientInfos, clientInfo]);
-  };
-
-  // New function to update client info
-  const updateClientInfo = (updatedClientInfo: ClientInfo) => {
-    setClientInfos(clientInfos.map(clientInfo => 
-      clientInfo.id === updatedClientInfo.id ? 
-        { ...updatedClientInfo, updatedAt: new Date().toISOString().split('T')[0] } : 
-        clientInfo
-    ));
   };
 
   const addTransaction = (transaction: Omit<Transaction, "id">) => {
@@ -391,36 +348,6 @@ const Index = () => {
           onOpenChange={setIsAddClientOpen}
           onAddClient={addClient}
           onFetchClients={fetchAgents}
-        />
-
-        {/* Client info management UI */}
-        <Card className="bg-white shadow-lg border-0 mt-8">
-          <CardHeader>
-            <CardTitle className="text-xl font-semibold text-gray-900">Client Management</CardTitle>
-            <CardDescription>Manage your clients' information</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="flex justify-end mb-4">
-              <Button 
-                onClick={() => setIsAddClientInfoOpen(true)}
-                className="bg-green-600 hover:bg-green-700 text-white shadow-lg hover:shadow-xl transition-all duration-200"
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                Add Client
-              </Button>
-            </div>
-            <ClientInfoList 
-              clientInfos={clientInfos}
-              onUpdateClientInfo={updateClientInfo}
-            />
-          </CardContent>
-        </Card>
-
-        {/* Add ClientInfo Dialog */}
-        <AddClientInfoDialog
-          open={isAddClientInfoOpen}
-          onOpenChange={setIsAddClientInfoOpen}
-          onAddClientInfo={addClientInfo}
         />
       </div>
     </div>
