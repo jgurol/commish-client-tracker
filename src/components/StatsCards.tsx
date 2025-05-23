@@ -9,12 +9,14 @@ interface StatsCardsProps {
 }
 
 export const StatsCards = ({ clients, transactions }: StatsCardsProps) => {
-  const totalEarnings = clients.reduce((sum, client) => sum + client.totalEarnings, 0);
+  const totalRevenue = clients.reduce((sum, client) => sum + client.totalEarnings, 0);
   const avgCommissionRate = clients.length > 0 
     ? clients.reduce((sum, client) => sum + client.commissionRate, 0) / clients.length 
     : 0;
-  const thisMonthEarnings = transactions
-    .filter(t => new Date(t.date).getMonth() === new Date().getMonth())
+    
+  // Calculate qualified revenue - transactions with paid invoices but unpaid commissions
+  const qualifiedRevenue = transactions
+    .filter(t => t.isPaid && !t.commissionPaidDate)
     .reduce((sum, t) => sum + t.amount, 0);
 
   // Calculate commission totals based on different statuses using commissionPaidDate
@@ -45,12 +47,12 @@ export const StatsCards = ({ clients, transactions }: StatsCardsProps) => {
 
       <Card className="bg-white shadow-lg hover:shadow-xl transition-shadow duration-200 border-0">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium text-gray-600">Total Earnings</CardTitle>
+          <CardTitle className="text-sm font-medium text-gray-600">Total Revenue</CardTitle>
           <DollarSign className="h-4 w-4 text-green-600" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold text-gray-900">${totalEarnings.toLocaleString()}</div>
-          <p className="text-xs text-gray-500">All-time commission earnings</p>
+          <div className="text-2xl font-bold text-gray-900">${totalRevenue.toLocaleString()}</div>
+          <p className="text-xs text-gray-500">All-time commission revenue</p>
         </CardContent>
       </Card>
 
@@ -67,16 +69,16 @@ export const StatsCards = ({ clients, transactions }: StatsCardsProps) => {
 
       <Card className="bg-white shadow-lg hover:shadow-xl transition-shadow duration-200 border-0">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium text-gray-600">This Month</CardTitle>
+          <CardTitle className="text-sm font-medium text-gray-600">Qualified Revenue</CardTitle>
           <Calendar className="h-4 w-4 text-orange-600" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold text-gray-900">${thisMonthEarnings.toLocaleString()}</div>
-          <p className="text-xs text-gray-500">Commission earnings</p>
+          <div className="text-2xl font-bold text-gray-900">${qualifiedRevenue.toLocaleString()}</div>
+          <p className="text-xs text-gray-500">Paid invoices with unpaid commissions</p>
         </CardContent>
       </Card>
 
-      {/* New Cards for Commission Totals */}
+      {/* Commission Cards */}
       <Card className="bg-white shadow-lg hover:shadow-xl transition-shadow duration-200 border-0">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium text-gray-600">Paid Commissions</CardTitle>
