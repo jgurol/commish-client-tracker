@@ -193,11 +193,14 @@ const Index = () => {
   };
 
   const addTransaction = (transaction: Omit<Transaction, "id">) => {
-    const newTransaction: Transaction = {
+    // Process clientInfoId to handle the "none" value
+    const processedTransaction = {
       ...transaction,
+      clientInfoId: transaction.clientInfoId === "none" ? undefined : transaction.clientInfoId,
       id: Date.now().toString(),
     };
-    setTransactions([newTransaction, ...transactions]);
+    
+    setTransactions([processedTransaction, ...transactions]);
 
     // Update client's total earnings
     setClients(clients.map(client => {
@@ -213,9 +216,15 @@ const Index = () => {
   };
 
   const updateTransaction = (updatedTransaction: Transaction) => {
+    // Process clientInfoId to handle the "none" value
+    const processedTransaction = {
+      ...updatedTransaction,
+      clientInfoId: updatedTransaction.clientInfoId === "none" ? undefined : updatedTransaction.clientInfoId,
+    };
+    
     setTransactions(transactions.map(transaction => {
-      if (transaction.id === updatedTransaction.id) {
-        return updatedTransaction;
+      if (transaction.id === processedTransaction.id) {
+        return processedTransaction;
       }
       return transaction;
     }));

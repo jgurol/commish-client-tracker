@@ -132,7 +132,8 @@ export const AddTransactionDialog = ({ open, onOpenChange, onAddTransaction, cli
                 <SelectValue placeholder="Select a client (optional)" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">None</SelectItem>
+                {/* Fix: Change empty string value to a non-empty string */}
+                <SelectItem value="none">None</SelectItem>
                 {clientInfos.map((clientInfo) => (
                   <SelectItem key={clientInfo.id} value={clientInfo.id}>
                     {clientInfo.companyName}
@@ -140,7 +141,7 @@ export const AddTransactionDialog = ({ open, onOpenChange, onAddTransaction, cli
                 ))}
               </SelectContent>
             </Select>
-            {clientInfoId && (
+            {clientInfoId && clientInfoId !== "none" && (
               <div className="text-sm text-gray-500">
                 Contact: {clientInfos.find(ci => ci.id === clientInfoId)?.contactName || "N/A"}
               </div>

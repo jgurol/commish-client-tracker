@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -55,7 +56,7 @@ export const EditTransactionDialog = ({ transaction, open, onOpenChange, onUpdat
   useEffect(() => {
     if (transaction) {
       setClientId(transaction.clientId);
-      setClientInfoId(transaction.clientInfoId || "");
+      setClientInfoId(transaction.clientInfoId || "none");
       setAmount(transaction.amount.toString());
       setDate(transaction.date);
       setDescription(transaction.description);
@@ -73,7 +74,7 @@ export const EditTransactionDialog = ({ transaction, open, onOpenChange, onUpdat
     e.preventDefault();
     if (transaction && clientId && amount && date && description) {
       const selectedClient = clients.find(client => client.id === clientId);
-      const selectedClientInfo = clientInfoId ? clientInfos.find(info => info.id === clientInfoId) : null;
+      const selectedClientInfo = clientInfoId && clientInfoId !== "none" ? clientInfos.find(info => info.id === clientInfoId) : null;
       
       if (selectedClient) {
         onUpdateTransaction({
@@ -91,7 +92,7 @@ export const EditTransactionDialog = ({ transaction, open, onOpenChange, onUpdat
           invoiceYear: invoiceYear || undefined,
           invoiceNumber: invoiceNumber || undefined,
           isPaid,
-          clientInfoId: clientInfoId || undefined,
+          clientInfoId: clientInfoId !== "none" ? clientInfoId : undefined,
           clientCompanyName: selectedClientInfo?.companyName
         });
         onOpenChange(false);
@@ -139,7 +140,8 @@ export const EditTransactionDialog = ({ transaction, open, onOpenChange, onUpdat
                   <SelectValue placeholder="Select a client (optional)" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">None</SelectItem>
+                  {/* Fix: Change empty string value to a non-empty string */}
+                  <SelectItem value="none">None</SelectItem>
                   {clientInfos.map((clientInfo) => (
                     <SelectItem key={clientInfo.id} value={clientInfo.id}>
                       {clientInfo.companyName}
@@ -147,7 +149,7 @@ export const EditTransactionDialog = ({ transaction, open, onOpenChange, onUpdat
                   ))}
                 </SelectContent>
               </Select>
-              {clientInfoId && (
+              {clientInfoId && clientInfoId !== "none" && (
                 <div className="text-sm text-gray-500">
                   Contact: {clientInfos.find(ci => ci.id === clientInfoId)?.contactName || "N/A"}
                 </div>
