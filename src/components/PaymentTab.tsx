@@ -77,19 +77,27 @@ export const PaymentTab = ({
               placeholder={paymentMethod === "check" ? "Enter check number" : "Enter Zelle reference"}
             />
           </div>
-
-          <div className="flex items-center space-x-2 pt-2">
-            <Checkbox 
-              id="isApproved" 
-              checked={isApproved} 
-              onCheckedChange={(checked) => setIsApproved(checked === true)}
-            />
-            <Label htmlFor="isApproved" className="font-medium text-sm">
-              Payment approved
-            </Label>
-          </div>
         </>
       )}
+
+      {/* Payment Approval - Always visible */}
+      <div className="space-y-2">
+        <div className="flex items-center space-x-2 pt-2">
+          <Checkbox 
+            id="isApproved" 
+            checked={isApproved} 
+            onCheckedChange={(checked) => setIsApproved(checked === true)}
+          />
+          <Label htmlFor="isApproved" className="font-medium text-sm">
+            Payment approved
+          </Label>
+        </div>
+        {!isPaid && (
+          <div className="text-xs text-amber-600">
+            ⚠️ Note: This transaction is not marked as paid yet
+          </div>
+        )}
+      </div>
 
       <div className="space-y-2">
         <Label htmlFor="commissionPaidDate">Commission Paid Date</Label>
