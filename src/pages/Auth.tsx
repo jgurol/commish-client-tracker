@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { z } from "zod";
@@ -83,6 +84,7 @@ const Auth = () => {
       if (hash && hash.includes('type=recovery')) {
         console.log('Password reset flow detected');
         setShowUpdatePasswordForm(true);
+        setActiveTab("none"); // Ensure tabs don't show
         setIsCheckingSession(true);
         
         try {
@@ -265,6 +267,7 @@ const Auth = () => {
     return <Navigate to="/" />;
   }
 
+  // Dedicated Password Reset Form component (shown when user clicks password reset link)
   if (showUpdatePasswordForm) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-blue-50 p-4">
@@ -431,7 +434,6 @@ const Auth = () => {
             <CardDescription>Sign in to manage your commissions</CardDescription>
           </CardHeader>
           <CardContent>
-            {/* Showing the reset password form if requested */}
             {showResetForm ? (
               <Form {...resetPasswordForm}>
                 <form onSubmit={resetPasswordForm.handleSubmit(handleResetPasswordSubmit)} className="space-y-4">
@@ -474,7 +476,6 @@ const Auth = () => {
                 </form>
               </Form>
             ) : (
-              /* Login/Register Tabs */
               <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
                 <TabsList className="grid w-full grid-cols-2 mb-6">
                   <TabsTrigger value="login">Login</TabsTrigger>
