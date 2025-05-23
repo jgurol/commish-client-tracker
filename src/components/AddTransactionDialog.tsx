@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -30,7 +29,7 @@ export const AddTransactionDialog = ({ open, onOpenChange, onAddTransaction, cli
   const [invoiceNumber, setInvoiceNumber] = useState("");
   const [isPaid, setIsPaid] = useState(false);
 
-  // Generate arrays for month and year options
+  // Array for month names - needed for display
   const months = [
     { value: "1", label: "January" },
     { value: "2", label: "February" },
@@ -96,10 +95,10 @@ export const AddTransactionDialog = ({ open, onOpenChange, onAddTransaction, cli
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="client">Client</Label>
+            <Label htmlFor="client">Agent</Label>
             <Select value={clientId} onValueChange={setClientId} required>
               <SelectTrigger>
-                <SelectValue placeholder="Select a client" />
+                <SelectValue placeholder="Select an agent" />
               </SelectTrigger>
               <SelectContent>
                 {clients.map((client) => (
