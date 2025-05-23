@@ -56,10 +56,31 @@ export const AssociateUserDialog = ({
 
     setIsSubmitting(true);
     try {
+      // First, get the profile ID that corresponds to this agent
+      // We'll find the profile where the email matches the agent's email
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('email', agents.find(agent => agent.id === selectedAgentId)?.email)
+        .single();
+
+      if (profileError) {
+        console.error("Error finding agent profile:", profileError);
+        toast({
+          title: "Association failed",
+          description: "Could not find a profile for the selected agent",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const profileId = profileData?.id;
+      
+      // Now update the user's profile with the agent's profile ID
       const { error } = await supabase
         .from('profiles')
         .update({ 
-          associated_agent_id: selectedAgentId,
+          associated_agent_id: profileId,
           is_associated: true
         })
         .eq('id', user.id);
@@ -80,7 +101,7 @@ export const AssociateUserDialog = ({
 
       const updatedUser = {
         ...user,
-        associated_agent_id: selectedAgentId,
+        associated_agent_id: profileId,
         associated_agent_name: associatedAgentName,
         is_associated: true,
       };
