@@ -33,7 +33,14 @@ export const useClientManagement = (): ClientManagementHook => {
         console.log("Setting clientInfos state with:", data?.length || 0, "clients");
         
         setClientInfos(data);
-        await fetchAgentNames();
+        
+        // Fetch agent names but don't let it block the loading state
+        try {
+          await fetchAgentNames();
+        } catch (agentError) {
+          console.error('Error fetching agent names:', agentError);
+          // Don't throw here, just log the error
+        }
       } catch (err) {
         console.error('Error in client info fetch:', err);
         toast({
@@ -43,6 +50,7 @@ export const useClientManagement = (): ClientManagementHook => {
         });
       } finally {
         // Always set loading to false, regardless of success or error
+        console.log("Setting isLoading to false");
         setIsLoading(false);
       }
     };
