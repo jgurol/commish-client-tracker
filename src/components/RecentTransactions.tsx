@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -47,7 +48,7 @@ export const RecentTransactions = ({
   // New state for filtering paid commissions
   const [includePaidCommissions, setIncludePaidCommissions] = useState(true);
   // Changed default value to true for showOnlyPaidInvoices
-  const [showOnlyPaidInvoices, setShowOnlyPaidInvoices] = useState(false);
+  const [showOnlyPaidInvoices, setShowOnlyPaidInvoices] = useState(true);
 
   // Filter transactions based on the checkbox states
   const filteredTransactions = transactions
