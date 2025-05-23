@@ -14,16 +14,16 @@ interface EditClientDialogProps {
 }
 
 export const EditClientDialog = ({ client, open, onOpenChange, onUpdateClient }: EditClientDialogProps) => {
+  const [companyName, setCompanyName] = useState(client.companyName || "");
   const [firstName, setFirstName] = useState(client.firstName || "");
   const [lastName, setLastName] = useState(client.lastName || "");
-  const [companyName, setCompanyName] = useState(client.companyName || "");
   const [email, setEmail] = useState(client.email);
   const [commissionRate, setCommissionRate] = useState(client.commissionRate.toString());
 
   useEffect(() => {
+    setCompanyName(client.companyName || "");
     setFirstName(client.firstName || "");
     setLastName(client.lastName || "");
-    setCompanyName(client.companyName || "");
     setEmail(client.email);
     setCommissionRate(client.commissionRate.toString());
   }, [client]);
@@ -55,6 +55,15 @@ export const EditClientDialog = ({ client, open, onOpenChange, onUpdateClient }:
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
+            <Label htmlFor="edit-companyName">Company Name</Label>
+            <Input
+              id="edit-companyName"
+              value={companyName}
+              onChange={(e) => setCompanyName(e.target.value)}
+              placeholder="Enter company name (optional)"
+            />
+          </div>
+          <div className="space-y-2">
             <Label htmlFor="edit-firstName">First Name</Label>
             <Input
               id="edit-firstName"
@@ -72,15 +81,6 @@ export const EditClientDialog = ({ client, open, onOpenChange, onUpdateClient }:
               onChange={(e) => setLastName(e.target.value)}
               placeholder="Enter last name"
               required
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="edit-companyName">Company Name</Label>
-            <Input
-              id="edit-companyName"
-              value={companyName}
-              onChange={(e) => setCompanyName(e.target.value)}
-              placeholder="Enter company name (optional)"
             />
           </div>
           <div className="space-y-2">

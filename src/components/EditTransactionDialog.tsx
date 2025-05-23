@@ -81,11 +81,16 @@ export const EditTransactionDialog = ({ transaction, open, onOpenChange, onUpdat
                 <SelectContent>
                   {clients.map((client) => (
                     <SelectItem key={client.id} value={client.id}>
-                      {client.name}
+                      {client.companyName || client.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
+              {clientId && (
+                <div className="text-sm text-gray-500">
+                  Contact: {clients.find(c => c.id === clientId)?.name}
+                </div>
+              )}
             </div>
             <div className="space-y-2">
               <Label htmlFor="amount">Amount ($)</Label>

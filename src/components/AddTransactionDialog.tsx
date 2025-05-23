@@ -53,6 +53,12 @@ export const AddTransactionDialog = ({ open, onOpenChange, onAddTransaction, cli
     }
   };
 
+  // Find the client's company name based on clientId
+  const getClientCompanyName = (clientId: string) => {
+    const client = clients.find(c => c.id === clientId);
+    return client ? (client.companyName || client.name) : "";
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
@@ -72,11 +78,16 @@ export const AddTransactionDialog = ({ open, onOpenChange, onAddTransaction, cli
               <SelectContent>
                 {clients.map((client) => (
                   <SelectItem key={client.id} value={client.id}>
-                    {client.name}
+                    {client.companyName || client.name}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
+            {clientId && (
+              <div className="text-sm text-gray-500">
+                Contact: {clients.find(c => c.id === clientId)?.name}
+              </div>
+            )}
           </div>
           <div className="space-y-2">
             <Label htmlFor="amount">Amount ($)</Label>

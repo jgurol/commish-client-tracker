@@ -13,9 +13,9 @@ interface AddClientDialogProps {
 }
 
 export const AddClientDialog = ({ open, onOpenChange, onAddClient }: AddClientDialogProps) => {
+  const [companyName, setCompanyName] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
-  const [companyName, setCompanyName] = useState("");
   const [email, setEmail] = useState("");
   const [commissionRate, setCommissionRate] = useState("");
 
@@ -32,9 +32,9 @@ export const AddClientDialog = ({ open, onOpenChange, onAddClient }: AddClientDi
         totalEarnings: 0,
         lastPayment: new Date().toISOString().split('T')[0]
       });
+      setCompanyName("");
       setFirstName("");
       setLastName("");
-      setCompanyName("");
       setEmail("");
       setCommissionRate("");
       onOpenChange(false);
@@ -51,6 +51,15 @@ export const AddClientDialog = ({ open, onOpenChange, onAddClient }: AddClientDi
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="companyName">Company Name</Label>
+            <Input
+              id="companyName"
+              value={companyName}
+              onChange={(e) => setCompanyName(e.target.value)}
+              placeholder="Enter company name (optional)"
+            />
+          </div>
           <div className="space-y-2">
             <Label htmlFor="firstName">First Name</Label>
             <Input
@@ -69,15 +78,6 @@ export const AddClientDialog = ({ open, onOpenChange, onAddClient }: AddClientDi
               onChange={(e) => setLastName(e.target.value)}
               placeholder="Enter last name"
               required
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="companyName">Company Name</Label>
-            <Input
-              id="companyName"
-              value={companyName}
-              onChange={(e) => setCompanyName(e.target.value)}
-              placeholder="Enter company name (optional)"
             />
           </div>
           <div className="space-y-2">
