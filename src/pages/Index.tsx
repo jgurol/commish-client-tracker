@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -711,6 +710,7 @@ const IndexPage = () => {
           <div className="space-y-6">
             <AgentSummary 
               clients={clients} 
+              transactions={transactions}
               isAdmin={isAdmin} 
             />
             

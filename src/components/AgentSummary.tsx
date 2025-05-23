@@ -4,17 +4,29 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { UserCog, ChevronRight } from "lucide-react";
 import { Link } from "react-router-dom";
-import { Client } from "@/pages/Index";
+import { Client, Transaction } from "@/pages/Index";
 
 interface AgentSummaryProps {
   clients: Client[];
+  transactions: Transaction[];
   isAdmin: boolean;
 }
 
-export function AgentSummary({ clients, isAdmin }: AgentSummaryProps) {
-  // Get top 3 agents by commission rate
+export function AgentSummary({ clients, transactions, isAdmin }: AgentSummaryProps) {
+  // Calculate commission due for each agent (approved but unpaid commissions)
+  const getCommissionDue = (agentId: string) => {
+    return transactions
+      .filter(t => t.clientId === agentId && t.isApproved && !t.commissionPaidDate)
+      .reduce((sum, t) => sum + (t.commission || 0), 0);
+  };
+
+  // Get top 3 agents by commission due
   const topAgents = [...clients]
-    .sort((a, b) => b.commissionRate - a.commissionRate)
+    .map(agent => ({
+      ...agent,
+      commissionDue: getCommissionDue(agent.id)
+    }))
+    .sort((a, b) => b.commissionDue - a.commissionDue)
     .slice(0, 3);
 
   return (
@@ -23,7 +35,7 @@ export function AgentSummary({ clients, isAdmin }: AgentSummaryProps) {
         <div className="flex justify-between items-center">
           <div>
             <CardTitle className="text-lg font-medium text-gray-900">Agent Summary</CardTitle>
-            <CardDescription>Top agents by commission rate</CardDescription>
+            <CardDescription>Top agents by commission due</CardDescription>
           </div>
           <Link to="/agent-management">
             <Button variant="ghost" size="sm" className="text-blue-600 hover:text-blue-800 hover:bg-blue-50">
@@ -48,8 +60,8 @@ export function AgentSummary({ clients, isAdmin }: AgentSummaryProps) {
                   <p className="text-sm text-gray-500">{agent.companyName || 'Independent'}</p>
                 </div>
                 <div className="text-right">
-                  <span className="bg-blue-100 text-blue-800 text-xs font-medium px-2 py-1 rounded">
-                    {agent.commissionRate}% rate
+                  <span className="bg-amber-100 text-amber-800 text-xs font-medium px-2 py-1 rounded">
+                    ${agent.commissionDue.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} due
                   </span>
                 </div>
               </div>
