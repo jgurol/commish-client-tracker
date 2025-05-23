@@ -329,6 +329,7 @@ export const useIndexData = () => {
       
       console.log('[DEBUG] Final mapped transactions:', mappedTransactions);
       console.log('[DEBUG] Final mapped transactions count:', mappedTransactions.length);
+      console.log('[DEBUG] Setting transactions state with:', mappedTransactions);
       
       setTransactions(mappedTransactions);
     } catch (err) {
@@ -339,6 +340,7 @@ export const useIndexData = () => {
         variant: "destructive"
       });
     } finally {
+      console.log('[DEBUG] Setting isLoading to false');
       setIsLoading(false);
     }
   };
