@@ -160,21 +160,35 @@ export const useIndexData = () => {
       console.log('[DEBUG] - associatedAgentId:', associatedAgentId);
       console.log('[DEBUG] - user.id:', user.id);
       
-      // First, let's check the actual client_id of our target transaction
-      console.log('[DEBUG] Checking actual client_id of target transaction...');
-      const { data: targetTx, error: targetError } = await supabase
+      // Let's first check ALL transactions that this user can see (without any filters)
+      console.log('[DEBUG] Checking ALL transactions user can access...');
+      const { data: allUserTransactions, error: allError } = await supabase
         .from('transactions')
-        .select('id, client_id, user_id')
-        .eq('id', 'd0b91f93-75fd-4d3c-8c8c-b41c86f05eb1')
-        .single();
+        .select('id, client_id, user_id, description')
+        .order('created_at', { ascending: false });
       
-      if (targetError) {
-        console.log('[DEBUG] Target transaction query error:', targetError);
+      if (allError) {
+        console.log('[DEBUG] Error fetching all transactions:', allError);
       } else {
-        console.log('[DEBUG] Target transaction actual data:', targetTx);
-        console.log('[DEBUG] Target client_id:', targetTx?.client_id);
-        console.log('[DEBUG] Expected client_id:', associatedAgentId);
-        console.log('[DEBUG] Client IDs match:', targetTx?.client_id === associatedAgentId);
+        console.log('[DEBUG] ALL transactions user can see:', allUserTransactions);
+        console.log('[DEBUG] Total accessible transactions:', allUserTransactions?.length || 0);
+        
+        // Check if our target transaction is in there
+        const targetInAll = allUserTransactions?.find(t => t.id === 'd0b91f93-75fd-4d3c-8c8c-b41c86f05eb1');
+        console.log('[DEBUG] Target transaction in all accessible:', targetInAll || 'NOT FOUND');
+      }
+      
+      // Also check what transactions exist for ANY client_id
+      console.log('[DEBUG] Checking transactions by client_id...');
+      const { data: transactionsByClient, error: clientError } = await supabase
+        .from('transactions')
+        .select('id, client_id, user_id, description')
+        .eq('id', 'd0b91f93-75fd-4d3c-8c8c-b41c86f05eb1');
+      
+      if (clientError) {
+        console.log('[DEBUG] Error checking specific transaction:', clientError);
+      } else {
+        console.log('[DEBUG] Specific transaction result:', transactionsByClient);
       }
       
       // Build the query with filtering logic
