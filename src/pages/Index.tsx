@@ -225,7 +225,7 @@ const IndexPage = () => {
       console.log("User isAdmin:", isAdmin);
       console.log("Associated agent ID:", associatedAgentId);
       
-      // Get ALL transactions without any filtering
+      // Get ALL transactions without any filtering - REMOVED ALL FILTERS
       const { data, error } = await supabase
         .from('transactions')
         .select('*')
