@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -175,7 +174,7 @@ export const RecentTransactions = ({
               <AlertCircle className="w-4 h-4 text-red-500 shrink-0 mt-0.5" />
               <div>
                 <p className="font-medium mb-1">IMPORTANT DEBUGGING MODE</p>
-                <p>ALL transactions are now being displayed without filtering to debug the issue. If transactions appear below but were not visible before, there is a filtering issue.</p>
+                <p>Showing transactions with filter: {!isAdmin && associatedAgentId ? `client_id = ${associatedAgentId}` : 'No filter (all transactions)'}</p>
                 <p className="mt-1">User ID: {user?.id || 'Not logged in'}</p>
                 <p>Admin: {isAdmin ? 'Yes' : 'No'}</p>
               </div>
@@ -197,7 +196,7 @@ export const RecentTransactions = ({
                   <p>No transactions found for this agent</p>
                 </div>
               ) : (
-                // Display ALL transactions without filtering for debugging
+                // Display ALL transactions passed to this component (no local filtering)
                 transactions.map((transaction) => (
                   <div
                     key={transaction.id}

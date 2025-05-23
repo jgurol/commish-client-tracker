@@ -212,7 +212,7 @@ const IndexPage = () => {
     }
   };
 
-  // COMPLETELY UNFILTERED fetch function to see ALL transactions for debugging
+  // Modified transaction fetch function that correctly filters by agent ID
   const fetchTransactions = async () => {
     if (!user) {
       console.log("❌ [fetchTransactions] No user found, skipping transaction fetch");
@@ -228,11 +228,19 @@ const IndexPage = () => {
       console.log("[fetchTransactions] User isAdmin:", isAdmin);
       console.log("[fetchTransactions] Associated agent ID:", associatedAgentId);
       
-      console.log("🔍 [fetchTransactions] Fetching ALL transactions WITHOUT FILTERING for debugging");
+      // Build the query based on user role
+      let query = supabase.from('transactions').select('*');
       
-      const { data, error } = await supabase
-        .from('transactions')
-        .select('*');
+      // If user is not admin and has an associated agent, filter by that agent ID
+      if (!isAdmin && associatedAgentId) {
+        console.log(`🔍 [fetchTransactions] Filtering transactions for agent ID: ${associatedAgentId}`);
+        query = query.eq('client_id', associatedAgentId);
+      } else {
+        console.log("🔍 [fetchTransactions] User is admin or no agent ID, fetching all transactions");
+      }
+      
+      // Execute the query
+      const { data, error } = await query;
 
       if (error) {
         console.error('❌ [fetchTransactions] Error fetching transactions:', error);
