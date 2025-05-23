@@ -21,7 +21,7 @@ interface UserProfile {
   id: string;
   email: string;
   full_name: string | null;
-  role: string; // Changed from 'admin' | 'agent' to string to match the RPC function return type
+  role: string; // This is a string type from the RPC function
   is_associated: boolean;
   created_at: string;
 }
@@ -97,14 +97,14 @@ export default function Admin() {
 
   const handleUpdateUser = async (updatedUser: UserProfile) => {
     try {
+      // Use the new RPC function instead of directly updating the profiles table
       const { error } = await supabase
-        .from('profiles')
-        .update({
-          email: updatedUser.email,
-          full_name: updatedUser.full_name,
-          role: updatedUser.role
-        })
-        .eq('id', updatedUser.id);
+        .rpc('update_user_profile', {
+          _user_id: updatedUser.id,
+          _email: updatedUser.email,
+          _full_name: updatedUser.full_name || '',
+          _role: updatedUser.role
+        });
 
       if (error) throw error;
 

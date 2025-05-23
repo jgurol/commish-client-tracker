@@ -73,6 +73,15 @@ export type Database = {
         Args: { user_id: string }
         Returns: undefined
       }
+      update_user_profile: {
+        Args: {
+          _user_id: string
+          _email: string
+          _full_name: string
+          _role: string
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       user_role: "admin" | "agent"
