@@ -97,6 +97,7 @@ const IndexPage = () => {
         return;
       }
       
+      console.log("User profile data:", data);
       setAssociatedAgentId(data?.associated_agent_id || null);
     } catch (err) {
       console.error('Exception fetching user profile:', err);
@@ -146,6 +147,8 @@ const IndexPage = () => {
         });
         return;
       }
+
+      console.log("Fetched agents:", data);
 
       // Map the data to match our Client interface
       const mappedClients: Client[] = data?.map(agent => ({
@@ -197,6 +200,7 @@ const IndexPage = () => {
           variant: "destructive"
         });
       } else {
+        console.log("Fetched client infos:", data);
         setClientInfos(data || []);
       }
     } catch (err) {
@@ -220,7 +224,10 @@ const IndexPage = () => {
       
       // If user is not admin and has an associated agent, filter by that agent's ID
       if (!isAdmin && associatedAgentId) {
+        // This was the issue - we were using client_id here which is wrong for associated users
+        // We need to filter by the agent ID, not make the user the client
         query = query.eq('client_id', associatedAgentId);
+        console.log("Filtering transactions for agent ID:", associatedAgentId);
       }
       
       query = query.order('date', { ascending: false });
@@ -236,6 +243,8 @@ const IndexPage = () => {
         });
         return;
       }
+
+      console.log("Fetched transactions:", data);
 
       // Map database transactions to our Transaction interface
       const mappedTransactions = await Promise.all(data?.map(async (transaction) => {
