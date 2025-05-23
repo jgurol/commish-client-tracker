@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { Header } from '@/components/Header';
@@ -28,13 +27,21 @@ interface UserProfile {
   associated_agent_id: string | null;
 }
 
+interface Agent {
+  id: string;
+  email: string;
+  first_name: string;
+  last_name: string;
+  company_name: string | null;
+}
+
 export default function Admin() {
   const { isAdmin, user } = useAuth();
   const { toast } = useToast();
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingUser, setEditingUser] = useState<UserProfile | null>(null);
-  const [agents, setAgents] = useState<UserProfile[]>([]);
+  const [agents, setAgents] = useState<Agent[]>([]);
 
   // Redirect non-admin users
   if (!isAdmin) {
@@ -43,6 +50,7 @@ export default function Admin() {
 
   useEffect(() => {
     fetchUsers();
+    fetchAgents();
   }, []);
 
   const fetchUsers = async () => {
@@ -71,10 +79,6 @@ export default function Admin() {
       }) || [];
 
       setUsers(usersWithAgentId);
-      
-      // Filter out agents for the association dropdown
-      const agentsList = usersWithAgentId?.filter(u => u.role === 'agent') || [];
-      setAgents(agentsList);
     } catch (error: any) {
       console.error('Error fetching users:', error);
       toast({
@@ -84,6 +88,26 @@ export default function Admin() {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchAgents = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('agents')
+        .select('id, email, first_name, last_name, company_name');
+
+      if (error) throw error;
+
+      console.log("Fetched agents from agents table:", data);
+      setAgents(data || []);
+    } catch (error: any) {
+      console.error('Error fetching agents:', error);
+      toast({
+        title: "Error",
+        description: `Failed to fetch agents: ${error.message}`,
+        variant: "destructive"
+      });
     }
   };
 
@@ -142,7 +166,7 @@ export default function Admin() {
       
       <div className="mb-6 flex justify-between items-center">
         <h1 className="text-2xl font-bold text-gray-900">User Management</h1>
-        <Button onClick={fetchUsers} disabled={loading}>
+        <Button onClick={() => { fetchUsers(); fetchAgents(); }} disabled={loading}>
           {loading ? 'Loading...' : 'Refresh'}
         </Button>
       </div>

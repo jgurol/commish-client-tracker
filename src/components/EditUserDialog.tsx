@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -23,9 +22,17 @@ interface UserProfile {
   associated_agent_id?: string | null;
 }
 
+interface Agent {
+  id: string;
+  email: string;
+  first_name: string;
+  last_name: string;
+  company_name: string | null;
+}
+
 interface EditUserDialogProps {
   user: UserProfile;
-  agents?: UserProfile[];
+  agents?: Agent[];
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onUpdateUser: (user: UserProfile) => void;
@@ -118,7 +125,7 @@ export const EditUserDialog = ({
 
       // Find the associated agent name if an agent is selected
       const associatedAgent = agents.find(agent => agent.id === agentIdToStore);
-      const associatedAgentName = associatedAgent?.full_name || null;
+      const associatedAgentName = associatedAgent ? `${associatedAgent.first_name} ${associatedAgent.last_name}` : null;
 
       const updatedUser = {
         ...user,
@@ -146,13 +153,8 @@ export const EditUserDialog = ({
     }
   };
 
-  // Show all agents for association - allow self-association
-  const availableAgents = agents.filter(agent => agent.role === 'agent');
-
-  console.log("Available agents for association:", availableAgents);
-  console.log("All agents passed to dialog:", agents);
-  console.log("Current user being edited:", user.email, user.role);
-  console.log("User can associate with themselves:", availableAgents.length);
+  console.log("Agents from agents table:", agents);
+  console.log("Available agents count:", agents.length);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -235,10 +237,10 @@ export const EditUserDialog = ({
                     </FormControl>
                     <SelectContent>
                       <SelectItem value="none">None</SelectItem>
-                      {availableAgents.length > 0 ? (
-                        availableAgents.map((agent) => (
+                      {agents.length > 0 ? (
+                        agents.map((agent) => (
                           <SelectItem key={agent.id} value={agent.id}>
-                            {agent.full_name || agent.email}
+                            {agent.first_name} {agent.last_name} ({agent.email})
                           </SelectItem>
                         ))
                       ) : (
