@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -32,6 +33,9 @@ export const EditTransactionDialog = ({ transaction, open, onOpenChange, onUpdat
   const [invoiceNumber, setInvoiceNumber] = useState("");
   const [isPaid, setIsPaid] = useState(false);
   const [commissionPaidDate, setCommissionPaidDate] = useState(""); // New state for commission paid date
+
+  // Filter client infos based on selected agent
+  const [filteredClientInfos, setFilteredClientInfos] = useState<ClientInfo[]>(clientInfos);
 
   // Array for month names - needed for display
   const months = [
@@ -70,6 +74,25 @@ export const EditTransactionDialog = ({ transaction, open, onOpenChange, onUpdat
       setCommissionPaidDate(transaction.commissionPaidDate || ""); // Set commission paid date
     }
   }, [transaction]);
+
+  // Handle client info selection - auto-select agent
+  useEffect(() => {
+    if (clientInfoId && clientInfoId !== "none") {
+      const selectedClientInfo = clientInfos.find(info => info.id === clientInfoId);
+      if (selectedClientInfo && selectedClientInfo.agent_id) {
+        setClientId(selectedClientInfo.agent_id);
+      }
+    }
+  }, [clientInfoId, clientInfos]);
+
+  // Update filtered client infos when agent changes
+  useEffect(() => {
+    if (clientId) {
+      setFilteredClientInfos(clientInfos.filter(info => !info.agent_id || info.agent_id === clientId));
+    } else {
+      setFilteredClientInfos(clientInfos);
+    }
+  }, [clientId, clientInfos]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -115,49 +138,49 @@ export const EditTransactionDialog = ({ transaction, open, onOpenChange, onUpdat
         </DialogHeader>
         {transaction && (
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="client">Agent</Label>
-              <Select value={clientId} onValueChange={setClientId} required>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select an agent" />
-                </SelectTrigger>
-                <SelectContent>
-                  {clients.map((client) => (
-                    <SelectItem key={client.id} value={client.id}>
-                      {client.companyName || client.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {clientId && (
-                <div className="text-sm text-gray-500">
-                  Contact: {clients.find(c => c.id === clientId)?.name}
-                </div>
-              )}
-            </div>
-
-            {/* New Client Info selection */}
-            <div className="space-y-2">
-              <Label htmlFor="clientInfo">Client Company</Label>
-              <Select value={clientInfoId} onValueChange={setClientInfoId}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a client (optional)" />
-                </SelectTrigger>
-                <SelectContent>
-                  {/* Fix: Change empty string value to a non-empty string */}
-                  <SelectItem value="none">None</SelectItem>
-                  {clientInfos.map((clientInfo) => (
-                    <SelectItem key={clientInfo.id} value={clientInfo.id}>
-                      {clientInfo.company_name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {clientInfoId && clientInfoId !== "none" && (
-                <div className="text-sm text-gray-500">
-                  Contact: {clientInfos.find(ci => ci.id === clientInfoId)?.contact_name || "N/A"}
-                </div>
-              )}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="clientInfo">Client Company</Label>
+                <Select value={clientInfoId} onValueChange={setClientInfoId}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a client (optional)" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">None</SelectItem>
+                    {clientInfos.map((clientInfo) => (
+                      <SelectItem key={clientInfo.id} value={clientInfo.id}>
+                        {clientInfo.company_name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {clientInfoId && clientInfoId !== "none" && (
+                  <div className="text-xs text-gray-500">
+                    Contact: {clientInfos.find(ci => ci.id === clientInfoId)?.contact_name || "N/A"}
+                  </div>
+                )}
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="client">Agent</Label>
+                <Select value={clientId} onValueChange={setClientId} required>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select an agent" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {clients.map((client) => (
+                      <SelectItem key={client.id} value={client.id}>
+                        {client.companyName || client.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {clientId && (
+                  <div className="text-xs text-gray-500">
+                    Contact: {clients.find(c => c.id === clientId)?.name}
+                  </div>
+                )}
+              </div>
             </div>
 
             <div className="space-y-2">
