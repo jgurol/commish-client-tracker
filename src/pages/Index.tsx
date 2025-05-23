@@ -9,6 +9,7 @@ import { RecentTransactions } from "@/components/RecentTransactions";
 import { StatsCards } from "@/components/StatsCards";
 import { ClientInfoList } from "@/components/ClientInfoList";
 import { AddClientInfoDialog } from "@/components/AddClientInfoDialog";
+import { Header } from "@/components/Header";
 
 export interface Client {
   id: string;
@@ -323,20 +324,8 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
       <div className="container mx-auto px-4 py-8 max-w-7xl">
-        {/* Header */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
-          <div>
-            <h1 className="text-4xl font-bold text-gray-900 mb-2">Commission Tracker</h1>
-            <p className="text-lg text-gray-600">Manage your agent commissions and track earnings</p>
-          </div>
-          <Button 
-            onClick={() => setIsAddClientOpen(true)}
-            className="mt-4 md:mt-0 bg-blue-600 hover:bg-blue-700 text-white shadow-lg hover:shadow-xl transition-all duration-200"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Add Agent
-          </Button>
-        </div>
+        {/* Replace the old header with our new component */}
+        <Header />
 
         {/* Stats Cards */}
         <StatsCards clients={clients} transactions={transactions} />
