@@ -191,16 +191,6 @@ export const TransactionTable = ({
                           <DollarSign className="w-3 h-3 mr-1" /> Pay
                         </Button>
                       )}
-                      {onDeleteTransaction && (
-                        <Button 
-                          size="sm" 
-                          variant="outline" 
-                          className="text-xs h-6 px-2 border-red-200 text-red-700 hover:bg-red-50"
-                          onClick={() => handleDeleteTransaction(transaction.id)}
-                        >
-                          <Trash2 className="w-3 h-3 mr-1" /> Del
-                        </Button>
-                      )}
                     </div>
                   )}
                 </div>
@@ -208,14 +198,26 @@ export const TransactionTable = ({
               
               {isAdmin && (
                 <TableCell>
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    className="text-gray-500 hover:text-blue-600 h-8 w-8 p-0"
-                    onClick={() => onEditClick && onEditClick(transaction)}
-                  >
-                    <Pencil className="w-4 h-4" />
-                  </Button>
+                  <div className="flex gap-1">
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="text-gray-500 hover:text-blue-600 h-8 w-8 p-0"
+                      onClick={() => onEditClick && onEditClick(transaction)}
+                    >
+                      <Pencil className="w-4 h-4" />
+                    </Button>
+                    {onDeleteTransaction && (
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="text-gray-500 hover:text-red-600 h-8 w-8 p-0"
+                        onClick={() => handleDeleteTransaction(transaction.id)}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    )}
+                  </div>
                 </TableCell>
               )}
             </TableRow>
