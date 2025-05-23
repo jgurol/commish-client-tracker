@@ -39,9 +39,14 @@ export const useIndexData = () => {
   // Fetch user's profile to get associated agent ID
   const fetchUserProfile = async () => {
     try {
+      console.log('[DEBUG] === FETCHING USER PROFILE ===');
+      console.log('[DEBUG] Current user:', user);
+      console.log('[DEBUG] User ID:', user?.id);
+      console.log('[DEBUG] Is Admin:', isAdmin);
+      
       const { data, error } = await supabase
         .from('profiles')
-        .select('associated_agent_id')
+        .select('associated_agent_id, role, is_associated, full_name')
         .eq('id', user?.id)
         .single();
       
@@ -51,6 +56,26 @@ export const useIndexData = () => {
       }
       
       console.log("[fetchUserProfile] User profile data:", data);
+      console.log("[fetchUserProfile] Associated agent ID:", data?.associated_agent_id);
+      console.log("[fetchUserProfile] User role:", data?.role);
+      console.log("[fetchUserProfile] Is associated:", data?.is_associated);
+      
+      // Check if this agent actually exists in the agents table
+      if (data?.associated_agent_id) {
+        console.log('[DEBUG] Checking if associated agent exists in agents table...');
+        const { data: agentData, error: agentError } = await supabase
+          .from('agents')
+          .select('id, first_name, last_name, email')
+          .eq('id', data.associated_agent_id)
+          .single();
+        
+        if (agentError) {
+          console.log('[DEBUG] Associated agent NOT FOUND in agents table:', agentError);
+        } else {
+          console.log('[DEBUG] Associated agent found:', agentData);
+        }
+      }
+      
       setAssociatedAgentId(data?.associated_agent_id || null);
     } catch (err) {
       console.error('[fetchUserProfile] Exception fetching user profile:', err);
@@ -64,12 +89,21 @@ export const useIndexData = () => {
     try {
       setIsLoading(true);
       
+      console.log('[DEBUG] === FETCHING CLIENTS ===');
+      console.log('[DEBUG] Is Admin:', isAdmin);
+      console.log('[DEBUG] Associated Agent ID:', associatedAgentId);
+      
       // If admin, fetch all agents, otherwise fetch only the associated agent
       let query = supabase.from('agents').select('*');
       
       // If user is not admin and has an associated agent, filter by that agent ID
       if (!isAdmin && associatedAgentId) {
+        console.log('[DEBUG] Non-admin user - filtering agents by associated_agent_id:', associatedAgentId);
         query = query.eq('id', associatedAgentId);
+      } else if (!isAdmin && !associatedAgentId) {
+        console.log('[DEBUG] Non-admin user with NO associated agent - will return empty results');
+      } else {
+        console.log('[DEBUG] Admin user - fetching ALL agents');
       }
       
       query = query.order('last_name', { ascending: true });
@@ -87,6 +121,7 @@ export const useIndexData = () => {
       }
 
       console.log("[fetchClients] Fetched agents:", data);
+      console.log("[fetchClients] Number of agents returned:", data?.length || 0);
 
       // Map the data to match our Client interface
       const mappedClients: Client[] = data?.map(agent => ({
@@ -101,6 +136,7 @@ export const useIndexData = () => {
         lastPayment: agent.last_payment ? new Date(agent.last_payment).toISOString() : new Date().toISOString()
       })) || [];
 
+      console.log("[fetchClients] Mapped clients:", mappedClients);
       setClients(mappedClients);
     } catch (err) {
       console.error('[fetchClients] Error in client fetch:', err);
@@ -155,10 +191,11 @@ export const useIndexData = () => {
     try {
       setIsLoading(true);
       
-      console.log('[DEBUG] Starting transaction fetch with:');
+      console.log('[DEBUG] === STARTING TRANSACTION FETCH ===');
       console.log('[DEBUG] - isAdmin:', isAdmin);
       console.log('[DEBUG] - associatedAgentId:', associatedAgentId);
       console.log('[DEBUG] - user.id:', user.id);
+      console.log('[DEBUG] - clients:', clients);
       
       // Let's first check ALL transactions that this user can see (without any filters)
       console.log('[DEBUG] Checking ALL transactions user can access...');
@@ -176,6 +213,12 @@ export const useIndexData = () => {
         // Check if our target transaction is in there
         const targetInAll = allUserTransactions?.find(t => t.id === 'd0b91f93-75fd-4d3c-8c8c-b41c86f05eb1');
         console.log('[DEBUG] Target transaction in all accessible:', targetInAll || 'NOT FOUND');
+        
+        // Show all client_ids in the accessible transactions
+        const uniqueClientIds = [...new Set(allUserTransactions?.map(t => t.client_id) || [])];
+        console.log('[DEBUG] All unique client_ids in accessible transactions:', uniqueClientIds);
+        console.log('[DEBUG] Our associatedAgentId:', associatedAgentId);
+        console.log('[DEBUG] Is our associatedAgentId in the client_ids?', uniqueClientIds.includes(associatedAgentId));
       }
       
       // Also check what transactions exist for ANY client_id
@@ -189,6 +232,12 @@ export const useIndexData = () => {
         console.log('[DEBUG] Error checking specific transaction:', clientError);
       } else {
         console.log('[DEBUG] Specific transaction result:', transactionsByClient);
+        if (transactionsByClient && transactionsByClient.length > 0) {
+          const targetTx = transactionsByClient[0];
+          console.log('[DEBUG] Target transaction client_id:', targetTx.client_id);
+          console.log('[DEBUG] Our associatedAgentId:', associatedAgentId);
+          console.log('[DEBUG] Do they match?', targetTx.client_id === associatedAgentId);
+        }
       }
       
       // Build the query with filtering logic
