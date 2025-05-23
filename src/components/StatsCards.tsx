@@ -1,3 +1,4 @@
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, TrendingUp, DollarSign, Calendar, CheckCircle, Clock, AlertCircle } from "lucide-react";
 import { Client, Transaction } from "@/pages/Index";
@@ -8,30 +9,40 @@ interface StatsCardsProps {
 }
 
 export const StatsCards = ({ clients, transactions }: StatsCardsProps) => {
-  // Calculate total revenue from all transactions
-  const totalRevenue = transactions.reduce((sum, transaction) => sum + transaction.amount, 0);
+  // Safely calculate totals with null checks
+  const totalRevenue = transactions && transactions.length > 0
+    ? transactions.reduce((sum, transaction) => sum + transaction.amount, 0)
+    : 0;
   
-  const avgCommissionRate = clients.length > 0 
+  const avgCommissionRate = clients && clients.length > 0 
     ? clients.reduce((sum, client) => sum + client.commissionRate, 0) / clients.length 
     : 0;
     
-  // Calculate qualified revenue - transactions with paid invoices but unpaid commissions
-  const qualifiedRevenue = transactions
-    .filter(t => t.isPaid && !t.commissionPaidDate)
-    .reduce((sum, t) => sum + t.amount, 0);
+  // Calculate qualified revenue with null checks
+  const qualifiedRevenue = transactions && transactions.length > 0
+    ? transactions
+        .filter(t => t.isPaid && !t.commissionPaidDate)
+        .reduce((sum, t) => sum + t.amount, 0)
+    : 0;
 
-  // Calculate commission totals based on different statuses using commissionPaidDate
-  const paidCommissions = transactions
-    .filter(t => t.commissionPaidDate && t.commission)
-    .reduce((sum, t) => sum + (t.commission || 0), 0);
+  // Calculate commission totals with null checks
+  const paidCommissions = transactions && transactions.length > 0
+    ? transactions
+        .filter(t => t.commissionPaidDate && t.commission)
+        .reduce((sum, t) => sum + (t.commission || 0), 0)
+    : 0;
     
-  const approvedUnpaidCommissions = transactions
-    .filter(t => !t.commissionPaidDate && t.isApproved && t.commission)
-    .reduce((sum, t) => sum + (t.commission || 0), 0);
+  const approvedUnpaidCommissions = transactions && transactions.length > 0
+    ? transactions
+        .filter(t => !t.commissionPaidDate && t.isApproved && t.commission)
+        .reduce((sum, t) => sum + (t.commission || 0), 0)
+    : 0;
     
-  const unapprovedCommissions = transactions
-    .filter(t => !t.isApproved && t.commission)
-    .reduce((sum, t) => sum + (t.commission || 0), 0);
+  const unapprovedCommissions = transactions && transactions.length > 0
+    ? transactions
+        .filter(t => !t.isApproved && t.commission)
+        .reduce((sum, t) => sum + (t.commission || 0), 0)
+    : 0;
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
@@ -41,7 +52,7 @@ export const StatsCards = ({ clients, transactions }: StatsCardsProps) => {
           <Users className="h-4 w-4 text-blue-600" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold text-gray-900">{clients.length}</div>
+          <div className="text-2xl font-bold text-gray-900">{clients ? clients.length : 0}</div>
           <p className="text-xs text-gray-500">Active commission clients</p>
         </CardContent>
       </Card>

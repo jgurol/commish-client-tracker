@@ -1,117 +1,53 @@
 
-import { useState } from "react";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import React from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Client } from "@/pages/Index";
-import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/context/AuthContext";
+import { useForm } from "react-hook-form";
 
 interface AddClientDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onAddClient: (client: Omit<Client, "id">) => void;
-  onFetchClients: () => void; // Add this to refresh clients after DB insert
+  onAddClient: (newClient: Omit<Client, "id" | "totalEarnings" | "lastPayment">) => Promise<void>;
+  onFetchClients: () => Promise<void>;
 }
 
-export const AddClientDialog = ({ 
-  open, 
-  onOpenChange, 
+export const AddClientDialog = ({
+  open,
+  onOpenChange,
   onAddClient,
   onFetchClients
 }: AddClientDialogProps) => {
-  const [companyName, setCompanyName] = useState("");
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
-  const [email, setEmail] = useState("");
-  const [commissionRate, setCommissionRate] = useState("");
-  const { toast } = useToast();
-  const { user } = useAuth();
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (firstName && lastName && email && commissionRate) {
-      const parsedRate = parseFloat(commissionRate);
-      
-      if (isNaN(parsedRate) || parsedRate < 0 || parsedRate > 100) {
-        toast({
-          title: "Invalid Commission Rate",
-          description: "Commission rate must be between 0 and 100",
-          variant: "destructive"
-        });
-        return;
-      }
-      
-      try {
-        // Insert into database
-        const { data, error } = await supabase
-          .from('agents')
-          .insert({
-            user_id: user?.id, // Link to current user
-            first_name: firstName,
-            last_name: lastName,
-            company_name: companyName,
-            email,
-            commission_rate: parsedRate,
-            total_earnings: 0,
-            last_payment: new Date().toISOString().split('T')[0]
-          })
-          .select();
-
-        if (error) throw error;
-
-        if (data && data[0]) {
-          // Format for local state
-          const newClientData = {
-            id: data[0].id,
-            firstName,
-            lastName,
-            name: `${firstName} ${lastName}`,
-            companyName,
-            email,
-            commissionRate: parsedRate,
-            totalEarnings: 0,
-            lastPayment: new Date().toISOString().split('T')[0]
-          };
-          
-          // Update local state
-          onAddClient(newClientData);
-          
-          // Reset form
-          setCompanyName("");
-          setFirstName("");
-          setLastName("");
-          setEmail("");
-          setCommissionRate("");
-          
-          toast({
-            title: "Success",
-            description: "Agent added successfully to the database",
-          });
-          
-          // Refresh clients list to get the latest data
-          onFetchClients();
-          
-          // Close dialog
-          onOpenChange(false);
-        }
-      } catch (error: any) {
-        console.error('Error adding agent to database:', error);
-        toast({
-          title: "Error",
-          description: `Failed to add agent to database: ${error.message}`,
-          variant: "destructive"
-        });
-      }
-    } else {
-      toast({
-        title: "Missing Information",
-        description: "Please fill out all required fields",
-        variant: "destructive"
-      });
+  const { register, handleSubmit, reset, formState: { errors } } = useForm({
+    defaultValues: {
+      firstName: "",
+      lastName: "",
+      email: "",
+      companyName: "",
+      commissionRate: 10,
     }
+  });
+  
+  const onSubmit = async (data: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    companyName: string;
+    commissionRate: number;
+  }) => {
+    await onAddClient({
+      firstName: data.firstName,
+      lastName: data.lastName,
+      email: data.email,
+      companyName: data.companyName || null,
+      commissionRate: Number(data.commissionRate),
+      name: `${data.firstName} ${data.lastName}`,
+    });
+    reset();
+    onOpenChange(false);
+    onFetchClients();
   };
 
   return (
@@ -120,71 +56,96 @@ export const AddClientDialog = ({
         <DialogHeader>
           <DialogTitle>Add New Agent</DialogTitle>
           <DialogDescription>
-            Enter the agent details and commission rate.
+            Add a new agent to receive commission payments
           </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="companyName">Agent Name</Label>
-            <Input
-              id="companyName"
-              value={companyName}
-              onChange={(e) => setCompanyName(e.target.value)}
-              placeholder="Enter agent name"
-            />
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="firstName">First Name</Label>
+              <Input 
+                id="firstName"
+                {...register("firstName", { required: "First name is required" })}
+              />
+              {errors.firstName && (
+                <p className="text-sm text-red-500">{errors.firstName.message}</p>
+              )}
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="lastName">Last Name</Label>
+              <Input 
+                id="lastName"
+                {...register("lastName", { required: "Last name is required" })}
+              />
+              {errors.lastName && (
+                <p className="text-sm text-red-500">{errors.lastName.message}</p>
+              )}
+            </div>
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="firstName">First Name</Label>
-            <Input
-              id="firstName"
-              value={firstName}
-              onChange={(e) => setFirstName(e.target.value)}
-              placeholder="Enter first name"
-              required
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="lastName">Last Name</Label>
-            <Input
-              id="lastName"
-              value={lastName}
-              onChange={(e) => setLastName(e.target.value)}
-              placeholder="Enter last name"
-              required
-            />
-          </div>
+          
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
-            <Input
+            <Input 
               id="email"
               type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="Enter agent email"
-              required
+              {...register("email", { 
+                required: "Email is required",
+                pattern: {
+                  value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                  message: "Invalid email address"
+                }
+              })}
+            />
+            {errors.email && (
+              <p className="text-sm text-red-500">{errors.email.message}</p>
+            )}
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="companyName">Company Name (Optional)</Label>
+            <Input 
+              id="companyName"
+              {...register("companyName")}
             />
           </div>
+          
           <div className="space-y-2">
-            <Label htmlFor="commission">Commission Rate (%)</Label>
-            <Input
-              id="commission"
+            <Label htmlFor="commissionRate">Commission Rate (%)</Label>
+            <Input 
+              id="commissionRate"
               type="number"
-              step="0.1"
               min="0"
               max="100"
-              value={commissionRate}
-              onChange={(e) => setCommissionRate(e.target.value)}
-              placeholder="Enter commission rate"
-              required
+              step="0.1"
+              {...register("commissionRate", { 
+                required: "Commission rate is required",
+                min: {
+                  value: 0,
+                  message: "Commission rate cannot be negative"
+                },
+                max: {
+                  value: 100,
+                  message: "Commission rate cannot exceed 100%"
+                }
+              })}
             />
+            {errors.commissionRate && (
+              <p className="text-sm text-red-500">{errors.commissionRate.message}</p>
+            )}
           </div>
-          <div className="flex justify-end space-x-2">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+          
+          <div className="flex justify-end space-x-2 pt-4">
+            <Button 
+              type="button" 
+              variant="outline"
+              onClick={() => {
+                reset();
+                onOpenChange(false);
+              }}
+            >
               Cancel
             </Button>
-            <Button type="submit" className="bg-blue-600 hover:bg-blue-700">
-              Add Agent
-            </Button>
+            <Button type="submit">Add Agent</Button>
           </div>
         </form>
       </DialogContent>

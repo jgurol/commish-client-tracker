@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -543,11 +542,8 @@ const IndexPage = () => {
 
         {/* Stats Cards */}
         <StatsCards 
-          totalTransactionValue={totalTransactionValue} 
-          totalApprovedCommissions={totalApprovedCommissions} 
-          totalPaidCommissions={totalPaidCommissions}
-          transactionsThisMonth={getThisMonthTransactions()}
-          totalAgents={clients.length}
+          clients={clients}
+          transactions={transactions}
         />
 
         {/* Main Content Grid */}
@@ -615,6 +611,7 @@ const IndexPage = () => {
         open={isAddClientOpen}
         onOpenChange={setIsAddClientOpen}
         onAddClient={addClient}
+        onFetchClients={fetchClients}
       />
     </div>
   );
