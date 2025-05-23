@@ -43,10 +43,9 @@ export default function Admin() {
   const fetchUsers = async () => {
     setLoading(true);
     try {
+      // Use the RPC function instead of directly querying the profiles table
       const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .order('created_at', { ascending: false });
+        .rpc('get_admin_users');
 
       if (error) throw error;
       setUsers(data || []);
@@ -95,7 +94,7 @@ export default function Admin() {
       <Header />
       
       <div className="mb-6 flex justify-between items-center">
-        <h1 className="text-2xl font-bold">User Management</h1>
+        <h1 className="text-2xl font-bold text-gray-900">User Management</h1>
         <Button onClick={fetchUsers} disabled={loading}>
           {loading ? 'Loading...' : 'Refresh'}
         </Button>
