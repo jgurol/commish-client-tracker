@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -189,15 +188,23 @@ export const useIndexData = () => {
         return;
       }
 
+      console.log('[DEBUG] Raw transaction data from DB:', data);
+      console.log('[DEBUG] Looking for transaction d0b91f93-75fd-4d3c-8c8c-b41c86f05eb1 in raw data:', 
+        data?.find(t => t.id === 'd0b91f93-75fd-4d3c-8c8c-b41c86f05eb1'));
+
       // Map database transactions to our Transaction interface
       const mappedTransactions = await Promise.all(data?.map(async (transaction) => {
+        console.log(`[DEBUG] Processing transaction ${transaction.id}:`, transaction);
+        
         // Find client for this transaction
         const client = clients.find(c => c.id === transaction.client_id);
+        console.log(`[DEBUG] Found client for transaction ${transaction.id}:`, client);
         
         // Find client info for this transaction if available
         let clientInfo = null;
         if (transaction.client_info_id) {
           clientInfo = clientInfos.find(ci => ci.id === transaction.client_info_id);
+          console.log(`[DEBUG] Found client info for transaction ${transaction.id}:`, clientInfo);
         }
 
         const mappedTransaction = {
@@ -222,8 +229,16 @@ export const useIndexData = () => {
           commissionPaidDate: transaction.commission_paid_date
         };
         
+        if (transaction.id === 'd0b91f93-75fd-4d3c-8c8c-b41c86f05eb1') {
+          console.log('[DEBUG] Mapped target transaction:', mappedTransaction);
+        }
+        
         return mappedTransaction;
       }) || []);
+      
+      console.log('[DEBUG] Final mapped transactions:', mappedTransactions);
+      console.log('[DEBUG] Target transaction in final array:', 
+        mappedTransactions.find(t => t.id === 'd0b91f93-75fd-4d3c-8c8c-b41c86f05eb1'));
       
       setTransactions(mappedTransactions);
     } catch (err) {
