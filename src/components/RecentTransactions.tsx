@@ -18,7 +18,6 @@ import {
   AlertDialogTitle
 } from "@/components/ui/alert-dialog";
 import { useAuth } from "@/context/AuthContext";
-import { TransactionDebugInfo } from "@/components/TransactionDebugInfo";
 import { TransactionFilters } from "@/components/TransactionFilters";
 import { TransactionCard } from "@/components/TransactionCard";
 
@@ -56,22 +55,6 @@ export const RecentTransactions = ({
 
   // Get authentication info
   const { user, isAdmin } = useAuth();
-
-  // Display transaction count for debugging
-  const transactionCount = transactions.length;
-  
-  // Enhanced debugging
-  console.log("[RecentTransactions] Transactions received:", transactions);
-  console.log("[RecentTransactions] Current user:", user?.id);
-  console.log("[RecentTransactions] Is admin:", isAdmin);
-  console.log("[RecentTransactions] Total transactions count:", transactionCount);
-  
-  // Added debugging to check client/agent relationship
-  transactions.forEach((transaction, index) => {
-    console.log(`[RecentTransactions] Transaction ${index + 1} client ID: ${transaction.clientId}`);
-    const client = clients.find(c => c.id === transaction.clientId);
-    console.log(`[RecentTransactions] Transaction ${index + 1} client name: ${client?.name || 'Unknown'}`);
-  });
 
   // Function to determine if a transaction is from the current month
   const isCurrentMonth = (dateStr: string): boolean => {
@@ -130,7 +113,7 @@ export const RecentTransactions = ({
         <CardHeader className="flex flex-row items-center justify-between space-y-0">
           <div>
             <CardTitle className="text-lg font-semibold text-gray-900">Transactions</CardTitle>
-            <CardDescription>Commission payments ({transactionCount} total)</CardDescription>
+            <CardDescription>Commission payments ({transactions.length} total)</CardDescription>
           </div>
           <div className="flex items-center gap-4">
             <TransactionFilters
@@ -151,12 +134,6 @@ export const RecentTransactions = ({
         </CardHeader>
         <CardContent>
           <ScrollArea className="h-[500px] pr-4">
-            <TransactionDebugInfo
-              isAdmin={isAdmin}
-              transactionCount={transactionCount}
-              associatedAgentId={associatedAgentId}
-            />
-            
             <div className="space-y-3">
               {transactions.length === 0 ? (
                 <div className="text-center py-6 text-gray-500">

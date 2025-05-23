@@ -208,36 +208,26 @@ const IndexPage = () => {
     }
   };
 
-  // COMPLETELY FIXED transaction fetch function
+  // CLEANED UP transaction fetch function (removed all debugging logs)
   const fetchTransactions = async () => {
     if (!user) {
-      console.log("❌ [fetchTransactions] No user found, skipping transaction fetch");
       return;
     }
     
     try {
       setIsLoading(true);
       
-      console.log("=== TRANSACTION FETCH DEBUGGING (FIXED) ===");
-      console.log("[fetchTransactions] Current user:", user.id);
-      console.log("[fetchTransactions] User email:", user.email);
-      console.log("[fetchTransactions] User isAdmin:", isAdmin);
-      console.log("[fetchTransactions] Associated agent ID:", associatedAgentId);
-      
-      // Build the query with COMPLETELY FIXED filtering logic
+      // Build the query with filtering logic
       let query = supabase.from('transactions').select('*');
       
       // ADMIN USERS: See ALL transactions with NO filtering whatsoever
       if (isAdmin) {
-        console.log("🔍 [fetchTransactions] ADMIN MODE - NO FILTERING - fetching ALL transactions");
         // Admins see everything - absolutely no WHERE clauses
       } else {
         // NON-ADMIN USERS: Only see transactions where client_id matches their associated agent
         if (associatedAgentId) {
-          console.log(`🔍 [fetchTransactions] NON-ADMIN MODE - filtering for agent ID: ${associatedAgentId}`);
           query = query.eq('client_id', associatedAgentId);
         } else {
-          console.log("🔍 [fetchTransactions] NON-ADMIN USER without agent ID - returning empty results");
           // For non-admin users without agent ID, use a condition that will never match
           query = query.eq('id', '00000000-0000-0000-0000-000000000000');
         }
@@ -246,13 +236,11 @@ const IndexPage = () => {
       // Add ordering to ensure consistent results
       query = query.order('created_at', { ascending: false });
       
-      console.log("[fetchTransactions] Executing query...");
-      
       // Execute the query
       const { data, error } = await query;
 
       if (error) {
-        console.error('❌ [fetchTransactions] Error fetching transactions:', error);
+        console.error('Error fetching transactions:', error);
         toast({
           title: "Failed to load transactions",
           description: error.message,
@@ -261,50 +249,15 @@ const IndexPage = () => {
         return;
       }
 
-      console.log("✅ [fetchTransactions] Raw transaction data from database:", data);
-      console.log("✅ [fetchTransactions] Number of transactions fetched:", data?.length || 0);
-
-      // Log each transaction in detail
-      if (data && data.length > 0) {
-        console.log("=== INDIVIDUAL TRANSACTION DETAILS ===");
-        data.forEach((trans, index) => {
-          console.log(`[fetchTransactions] Transaction ${index + 1}:`, {
-            id: trans.id,
-            client_id: trans.client_id,
-            user_id: trans.user_id,
-            amount: trans.amount,
-            description: trans.description,
-            date: trans.date,
-            client_info_id: trans.client_info_id,
-            is_paid: trans.is_paid,
-            commission: trans.commission,
-            created_at: trans.created_at
-          });
-        });
-      } else {
-        console.log("❌ [fetchTransactions] NO TRANSACTIONS RETURNED FROM DATABASE");
-        console.log("[fetchTransactions] This could indicate:");
-        console.log("- Database is empty");
-        console.log("- RLS policies are blocking access");
-        console.log("- Query filtering is too restrictive");
-      }
-
       // Map database transactions to our Transaction interface
-      console.log("🔄 [fetchTransactions] Mapping transactions...");
-      console.log("[fetchTransactions] Available clients for mapping:", clients.map(c => ({ id: c.id, name: c.name })));
-      
       const mappedTransactions = await Promise.all(data?.map(async (transaction) => {
-        console.log(`🔄 [fetchTransactions] Processing transaction ${transaction.id} for client_id: ${transaction.client_id}`);
-        
         // Find client for this transaction
         const client = clients.find(c => c.id === transaction.client_id);
-        console.log(`[fetchTransactions] Client found for transaction ${transaction.id}:`, client?.name || "❌ NOT FOUND");
         
         // Find client info for this transaction if available
         let clientInfo = null;
         if (transaction.client_info_id) {
           clientInfo = clientInfos.find(ci => ci.id === transaction.client_info_id);
-          console.log(`[fetchTransactions] Client info found for transaction ${transaction.id}:`, clientInfo?.company_name || "❌ NOT FOUND");
         }
 
         const mappedTransaction = {
@@ -329,17 +282,12 @@ const IndexPage = () => {
           commissionPaidDate: transaction.commission_paid_date
         };
         
-        console.log(`✅ [fetchTransactions] Mapped transaction ${transaction.id}:`, mappedTransaction);
         return mappedTransaction;
       }) || []);
-
-      console.log("✅ [fetchTransactions] Final mapped transactions:", mappedTransactions);
-      console.log("✅ [fetchTransactions] Total mapped transactions:", mappedTransactions.length);
-      console.log("=== END TRANSACTION FETCH DEBUGGING ===");
       
       setTransactions(mappedTransactions);
     } catch (err) {
-      console.error('💥 [fetchTransactions] Exception in transaction fetch:', err);
+      console.error('Exception in transaction fetch:', err);
       toast({
         title: "Error",
         description: "Failed to load transaction data",
@@ -657,22 +605,6 @@ const IndexPage = () => {
       <div className="container mx-auto px-4 py-8 max-w-7xl">
         {/* Header */}
         <Header />
-
-        {/* Enhanced debugging notice */}
-        <div className="mb-4 p-4 bg-red-100 border border-red-400 rounded-lg">
-          <p className="text-red-800 font-medium">
-            🔥 CRITICAL DEBUG MODE: Transaction filtering updated
-          </p>
-          <p className="text-red-700 text-sm mt-1">
-            User ID: {user?.id} | Admin: {isAdmin ? 'Yes' : 'No'} | Agent ID: {associatedAgentId || 'None'}
-          </p>
-          <p className="text-red-700 text-sm mt-1">
-            Filter: {!isAdmin && associatedAgentId ? `client_id = ${associatedAgentId}` : 'No filter (admin mode)'}
-          </p>
-          <p className="text-red-700 text-sm mt-1">
-            Transactions displayed: {transactions.length} | Clients: {clients.length}  
-          </p>
-        </div>
 
         {/* Stats Cards */}
         <StatsCards 
