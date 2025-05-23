@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -93,7 +92,9 @@ export const EditTransactionDialog = ({ transaction, open, onOpenChange, onUpdat
           invoiceNumber: invoiceNumber || undefined,
           isPaid,
           clientInfoId: clientInfoId !== "none" ? clientInfoId : undefined,
-          clientCompanyName: selectedClientInfo?.companyName
+          clientCompanyName: selectedClientInfo?.companyName,
+          commission: transaction.commission,
+          isApproved: transaction.isApproved
         });
         onOpenChange(false);
       }

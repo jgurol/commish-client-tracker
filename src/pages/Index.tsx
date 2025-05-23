@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -54,6 +55,8 @@ export interface Transaction {
   isPaid?: boolean; // Whether the customer has paid the invoice
   clientInfoId?: string; // Reference to the client info
   clientCompanyName?: string; // Client company name for display
+  commission?: number; // Commission amount
+  isApproved?: boolean; // Whether the commission has been approved
 }
 
 const Index = () => {
@@ -198,6 +201,9 @@ const Index = () => {
       ...transaction,
       clientInfoId: transaction.clientInfoId === "none" ? undefined : transaction.clientInfoId,
       id: Date.now().toString(),
+      // Calculate commission based on client's commission rate
+      commission: transaction.amount * (clients.find(c => c.id === transaction.clientId)?.commissionRate || 0) / 100,
+      isApproved: false, // Default to not approved
     };
     
     setTransactions([processedTransaction, ...transactions]);
@@ -221,6 +227,12 @@ const Index = () => {
       ...updatedTransaction,
       clientInfoId: updatedTransaction.clientInfoId === "none" ? undefined : updatedTransaction.clientInfoId,
     };
+    
+    // If commission is not set, calculate it based on client rate
+    if (processedTransaction.commission === undefined) {
+      processedTransaction.commission = processedTransaction.amount * 
+        (clients.find(c => c.id === processedTransaction.clientId)?.commissionRate || 0) / 100;
+    }
     
     setTransactions(transactions.map(transaction => {
       if (transaction.id === processedTransaction.id) {
@@ -267,6 +279,19 @@ const Index = () => {
     }
   };
 
+  // New function to approve a commission
+  const approveCommission = (transactionId: string) => {
+    setTransactions(transactions.map(transaction => {
+      if (transaction.id === transactionId) {
+        return {
+          ...transaction,
+          isApproved: true
+        };
+      }
+      return transaction;
+    }));
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
       <div className="container mx-auto px-4 py-8 max-w-7xl">
@@ -297,6 +322,7 @@ const Index = () => {
             clientInfos={clientInfos}
             onAddTransaction={addTransaction}
             onUpdateTransaction={updateTransaction}
+            onApproveCommission={approveCommission}
           />
         </div>
 

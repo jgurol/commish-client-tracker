@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -10,17 +11,19 @@ import { EditTransactionDialog } from "@/components/EditTransactionDialog";
 interface RecentTransactionsProps {
   transactions: Transaction[];
   clients: Client[];
-  clientInfos: ClientInfo[]; // Add clientInfos prop
+  clientInfos: ClientInfo[];
   onAddTransaction: (transaction: Omit<Transaction, "id">) => void;
   onUpdateTransaction: (transaction: Transaction) => void;
+  onApproveCommission: (transactionId: string) => void;
 }
 
 export const RecentTransactions = ({ 
   transactions, 
   clients, 
-  clientInfos, // Add clientInfos
+  clientInfos,
   onAddTransaction, 
-  onUpdateTransaction 
+  onUpdateTransaction,
+  onApproveCommission
 }: RecentTransactionsProps) => {
   const [isAddTransactionOpen, setIsAddTransactionOpen] = useState(false);
   const [isEditTransactionOpen, setIsEditTransactionOpen] = useState(false);
@@ -132,6 +135,23 @@ export const RecentTransactions = ({
                           {transaction.paymentMethod === "check" ? "Check #: " : "Ref #: "}
                           {transaction.referenceNumber}
                         </span>
+                      )}
+                    </div>
+                    
+                    {/* New commission section */}
+                    <div className="flex items-center justify-between mt-3 pt-2 border-t border-gray-100">
+                      <div className={`font-medium ${transaction.isApproved ? 'text-green-600' : 'text-gray-500'}`}>
+                        Commission: ${transaction.commission?.toFixed(2) || '0.00'}
+                      </div>
+                      {!transaction.isApproved && (
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          className="text-xs h-7 border-green-200 text-green-700 hover:bg-green-50"
+                          onClick={() => onApproveCommission(transaction.id)}
+                        >
+                          <CheckCircle className="w-3 h-3 mr-1" /> Approve
+                        </Button>
                       )}
                     </div>
                   </div>
