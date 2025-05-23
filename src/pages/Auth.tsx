@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { z } from "zod";
@@ -67,6 +68,7 @@ const Auth = () => {
   const [showResetForm, setShowResetForm] = useState(false);
   const [showUpdatePasswordForm, setShowUpdatePasswordForm] = useState(false);
   const [tokenError, setTokenError] = useState<string | null>(null);
+  const [isCheckingSession, setIsCheckingSession] = useState(true);
   const { user, signIn, signUp } = useAuth();
   const { toast } = useToast();
   const location = useLocation();
@@ -82,30 +84,65 @@ const Auth = () => {
       if (hash && hash.includes('type=recovery')) {
         console.log('Password reset flow detected');
         setShowUpdatePasswordForm(true);
+        setIsCheckingSession(true);
         
         try {
           // Check if we have a valid session
           const { data, error } = await supabase.auth.getSession();
           
           if (error) {
-            console.error('Error getting session:', error);
+            console.error('Error getting session during recovery flow:', error);
             setTokenError("Invalid or expired password reset link. Please try again.");
             toast({
-              title: "Session Error",
-              description: "Unable to verify your password reset link. Please try again.",
+              title: "Reset Link Error",
+              description: "The password reset link is invalid or has expired. Please request a new one.",
               variant: "destructive"
             });
           } else if (data.session) {
             console.log('Valid session detected during password reset');
             setTokenError(null);
           } else {
-            console.log('No session found for password reset');
-            setTokenError("Invalid or expired password reset link. Please try again.");
+            console.log('No session found for password reset, attempting to exchange token');
+            const params = new URLSearchParams(hash.substring(1));
+            const accessToken = params.get('access_token');
+            const refreshToken = params.get('refresh_token');
+            
+            if (accessToken) {
+              try {
+                // Try to set session with the token from URL
+                const { data: sessionData, error: sessionError } = await supabase.auth.setSession({
+                  access_token: accessToken,
+                  refresh_token: refreshToken || '',
+                });
+                
+                if (sessionError) {
+                  console.error('Error setting session:', sessionError);
+                  setTokenError("Invalid or expired password reset link. Please request a new one.");
+                  toast({
+                    title: "Reset Link Error",
+                    description: sessionError.message || "The password reset link is invalid or has expired. Please request a new one.",
+                    variant: "destructive"
+                  });
+                } else if (sessionData.session) {
+                  console.log('Successfully set session from URL tokens');
+                  setTokenError(null);
+                }
+              } catch (err) {
+                console.error('Unexpected error setting session:', err);
+                setTokenError("An unexpected error occurred. Please try again.");
+              }
+            } else {
+              setTokenError("Invalid password reset link. Missing required parameters.");
+            }
           }
         } catch (err) {
           console.error('Unexpected error during session check:', err);
           setTokenError("An unexpected error occurred. Please try again.");
+        } finally {
+          setIsCheckingSession(false);
         }
+      } else {
+        setIsCheckingSession(false);
       }
     };
     
@@ -258,7 +295,14 @@ const Auth = () => {
               <CardDescription>Please enter your new password</CardDescription>
             </CardHeader>
             <CardContent>
-              {tokenError && (
+              {isCheckingSession && (
+                <div className="flex flex-col items-center justify-center py-8">
+                  <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-4"></div>
+                  <p className="text-sm text-gray-500">Verifying your reset link...</p>
+                </div>
+              )}
+              
+              {!isCheckingSession && tokenError && (
                 <Alert variant="destructive" className="mb-4">
                   <AlertTriangle className="h-4 w-4" />
                   <AlertTitle>Error</AlertTitle>
@@ -266,7 +310,7 @@ const Auth = () => {
                 </Alert>
               )}
               
-              {!tokenError && (
+              {!isCheckingSession && !tokenError && (
                 <Form {...updatePasswordForm}>
                   <form onSubmit={updatePasswordForm.handleSubmit(handleUpdatePasswordSubmit)} className="space-y-4">
                     <FormField
@@ -316,7 +360,7 @@ const Auth = () => {
                 </Form>
               )}
               
-              {tokenError && (
+              {!isCheckingSession && tokenError && (
                 <div className="mt-4">
                   <Button
                     type="button"
