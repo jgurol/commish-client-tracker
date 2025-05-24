@@ -22,7 +22,11 @@ interface IndexPageLayoutProps {
   onAddTransaction: (transaction: Omit<Transaction, "id">) => void;
   onUpdateTransaction: (transaction: Transaction) => void;
   onApproveCommission: (transactionId: string) => void;
-  onPayCommission: (transactionId: string, paidDate: string) => void;
+  onPayCommission: (transactionId: string, paymentData: {
+    paidDate: string;
+    paymentMethod: string;
+    referenceNumber: string;
+  }) => void;
   onDeleteTransaction: (transactionId: string) => void;
   onFetchClients: () => Promise<void>;
 }

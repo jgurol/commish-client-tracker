@@ -1,3 +1,4 @@
+
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CheckCircle, Clock, Building, FileText, Users, Pencil, DollarSign, Trash2 } from "lucide-react";
@@ -11,7 +12,11 @@ interface TransactionCardProps {
   clientInfos: ClientInfo[];
   onEditClick?: (transaction: Transaction) => void;
   onApproveCommission: (transactionId: string) => void;
-  onPayCommission?: (transactionId: string, paidDate: string) => void;
+  onPayCommission?: (transactionId: string, paymentData: {
+    paidDate: string;
+    paymentMethod: string;
+    referenceNumber: string;
+  }) => void;
   onDeleteTransaction?: (transactionId: string) => void;
   isCurrentMonth: (dateStr: string) => boolean;
 }
@@ -48,9 +53,13 @@ export const TransactionCard = ({
     setPayDialogOpen(true);
   };
 
-  const handleConfirmPayment = (paidDate: string) => {
+  const handleConfirmPayment = (paymentData: {
+    paidDate: string;
+    paymentMethod: string;
+    referenceNumber: string;
+  }) => {
     if (onPayCommission) {
-      onPayCommission(transaction.id, paidDate);
+      onPayCommission(transaction.id, paymentData);
     }
   };
 
