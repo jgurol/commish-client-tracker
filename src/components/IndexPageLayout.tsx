@@ -50,8 +50,8 @@ export const IndexPageLayout = ({
 
     switch (transactionFilter) {
       case 'unapproved':
-        // Transactions that invoices have not been paid, or commissioned
-        return transactions.filter(t => !t.isPaid || (!t.isApproved && !t.commissionPaidDate));
+        // Transactions with unpaid invoices, unpaid commissions, and unapproved status
+        return transactions.filter(t => !t.isPaid && !t.commissionPaidDate && !t.isApproved);
       
       case 'qualified':
         // Transactions with paid invoices but not commissioned or approved for commission
@@ -98,7 +98,7 @@ export const IndexPageLayout = ({
                 Recent Activity
                 {transactionFilter && (
                   <span className="ml-2 text-sm font-normal text-gray-600">
-                    (Filtered by {transactionFilter === 'unapproved' ? 'Unapproved Commissions' : 
+                    (Filtered by {transactionFilter === 'unapproved' ? 'Unpaid Commissions' : 
                                 transactionFilter === 'qualified' ? 'Qualified Commissions' :
                                 transactionFilter === 'approved' ? 'Approved Commissions' : 
                                 'Paid Commissions'})
