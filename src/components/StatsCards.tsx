@@ -1,6 +1,6 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, TrendingUp, DollarSign, Calendar, CheckCircle, Clock, AlertCircle } from "lucide-react";
+import { Users, TrendingUp, DollarSign, Calendar, CheckCircle, Clock, AlertCircle, ArrowRight } from "lucide-react";
 import { Client, Transaction } from "@/pages/Index";
 
 interface StatsCardsProps {
@@ -82,9 +82,9 @@ export const StatsCards = ({ clients, transactions }: StatsCardsProps) => {
         </Card>
       </div>
 
-      {/* Commission Flow Cards - Linear Row */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card className="bg-white shadow-lg hover:shadow-xl transition-shadow duration-200 border-0">
+      {/* Commission Flow Cards - Linear Row with Arrows */}
+      <div className="flex items-center gap-4 overflow-x-auto">
+        <Card className="bg-white shadow-lg hover:shadow-xl transition-shadow duration-200 border-0 flex-shrink-0">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-gray-600">Unapproved Commissions</CardTitle>
             <AlertCircle className="h-4 w-4 text-gray-600" />
@@ -95,7 +95,9 @@ export const StatsCards = ({ clients, transactions }: StatsCardsProps) => {
           </CardContent>
         </Card>
 
-        <Card className="bg-white shadow-lg hover:shadow-xl transition-shadow duration-200 border-0">
+        <ArrowRight className="h-6 w-6 text-gray-400 flex-shrink-0" />
+
+        <Card className="bg-white shadow-lg hover:shadow-xl transition-shadow duration-200 border-0 flex-shrink-0">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-gray-600">Qualified Commissions</CardTitle>
             <Calendar className="h-4 w-4 text-orange-600" />
@@ -106,7 +108,9 @@ export const StatsCards = ({ clients, transactions }: StatsCardsProps) => {
           </CardContent>
         </Card>
 
-        <Card className="bg-white shadow-lg hover:shadow-xl transition-shadow duration-200 border-0">
+        <ArrowRight className="h-6 w-6 text-gray-400 flex-shrink-0" />
+
+        <Card className="bg-white shadow-lg hover:shadow-xl transition-shadow duration-200 border-0 flex-shrink-0">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-gray-600">Approved Commissions</CardTitle>
             <Clock className="h-4 w-4 text-amber-600" />
@@ -117,7 +121,9 @@ export const StatsCards = ({ clients, transactions }: StatsCardsProps) => {
           </CardContent>
         </Card>
 
-        <Card className="bg-white shadow-lg hover:shadow-xl transition-shadow duration-200 border-0">
+        <ArrowRight className="h-6 w-6 text-gray-400 flex-shrink-0" />
+
+        <Card className="bg-white shadow-lg hover:shadow-xl transition-shadow duration-200 border-0 flex-shrink-0">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-gray-600">Paid Commissions</CardTitle>
             <CheckCircle className="h-4 w-4 text-green-600" />
