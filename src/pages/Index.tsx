@@ -1,3 +1,4 @@
+
 import { IndexPageLayout } from "@/components/IndexPageLayout";
 import { useIndexData } from "@/hooks/useIndexData";
 import { useTransactionActions } from "@/hooks/useTransactionActions";
@@ -76,7 +77,7 @@ const Index = () => {
     approveCommission,
     payCommission,
     deleteTransaction
-  } = useTransactionActions();
+  } = useTransactionActions(transactions, setTransactions);
 
   const { addClient } = useClientActions(clients, setClients, fetchClients);
 
