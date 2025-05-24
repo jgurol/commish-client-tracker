@@ -1,13 +1,16 @@
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, TrendingUp, DollarSign, Calendar, CheckCircle, Clock, AlertCircle, ArrowRight } from "lucide-react";
-import { Client, Transaction } from "@/pages/Index";
+import { Users, TrendingUp, DollarSign, Calendar, CheckCircle, Clock, AlertCircle, ArrowRight, Building } from "lucide-react";
+import { Client, Transaction, ClientInfo } from "@/pages/Index";
 
 interface StatsCardsProps {
   clients: Client[];
   transactions: Transaction[];
+  clientInfos: ClientInfo[];
+  isAdmin: boolean;
 }
 
-export const StatsCards = ({ clients, transactions }: StatsCardsProps) => {
+export const StatsCards = ({ clients, transactions, clientInfos, isAdmin }: StatsCardsProps) => {
   // Safely calculate totals with null checks
   const totalRevenue = transactions && transactions.length > 0
     ? transactions.reduce((sum, transaction) => sum + transaction.amount, 0)
@@ -47,16 +50,42 @@ export const StatsCards = ({ clients, transactions }: StatsCardsProps) => {
     <div className="space-y-6 mb-8">
       {/* Basic Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card className="bg-white shadow-lg hover:shadow-xl transition-shadow duration-200 border-0">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">Total Agents</CardTitle>
-            <Users className="h-4 w-4 text-blue-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-gray-900">{clients ? clients.length : 0}</div>
-            <p className="text-xs text-gray-500">Active commission agents</p>
-          </CardContent>
-        </Card>
+        {isAdmin ? (
+          <>
+            <Card className="bg-white shadow-lg hover:shadow-xl transition-shadow duration-200 border-0">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium text-gray-600">Total Agents</CardTitle>
+                <Users className="h-4 w-4 text-blue-600" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-gray-900">{clients ? clients.length : 0}</div>
+                <p className="text-xs text-gray-500">Active commission agents</p>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-white shadow-lg hover:shadow-xl transition-shadow duration-200 border-0">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium text-gray-600">Total Clients</CardTitle>
+                <Building className="h-4 w-4 text-purple-600" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-gray-900">{clientInfos ? clientInfos.length : 0}</div>
+                <p className="text-xs text-gray-500">Client companies</p>
+              </CardContent>
+            </Card>
+          </>
+        ) : (
+          <Card className="bg-white shadow-lg hover:shadow-xl transition-shadow duration-200 border-0">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-gray-600">Total Clients</CardTitle>
+              <Building className="h-4 w-4 text-purple-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-gray-900">{clientInfos ? clientInfos.length : 0}</div>
+              <p className="text-xs text-gray-500">Client companies</p>
+            </CardContent>
+          </Card>
+        )}
 
         <Card className="bg-white shadow-lg hover:shadow-xl transition-shadow duration-200 border-0">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">

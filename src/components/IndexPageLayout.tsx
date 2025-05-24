@@ -57,6 +57,8 @@ export const IndexPageLayout = ({
         <StatsCards 
           clients={clients}
           transactions={transactions}
+          clientInfos={clientInfos}
+          isAdmin={isAdmin}
         />
 
         {/* Quick Actions Card - only show for admins */}
