@@ -21,6 +21,7 @@ export const PayCommissionDialog = ({
 }: PayCommissionDialogProps) => {
   const [paidDate, setPaidDate] = useState(new Date().toISOString().split('T')[0]);
   const [paymentMethod, setPaymentMethod] = useState("check");
+  const [referenceNumber, setReferenceNumber] = useState("");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -30,6 +31,7 @@ export const PayCommissionDialog = ({
       // Reset form
       setPaidDate(new Date().toISOString().split('T')[0]);
       setPaymentMethod("check");
+      setReferenceNumber("");
     }
   };
 
@@ -60,6 +62,32 @@ export const PayCommissionDialog = ({
               </div>
             </RadioGroup>
           </div>
+
+          {paymentMethod === "check" && (
+            <div className="space-y-2">
+              <Label htmlFor="checkNumber">Check #</Label>
+              <Input
+                id="checkNumber"
+                type="text"
+                value={referenceNumber}
+                onChange={(e) => setReferenceNumber(e.target.value)}
+                placeholder="Enter check number"
+              />
+            </div>
+          )}
+
+          {paymentMethod === "zelle" && (
+            <div className="space-y-2">
+              <Label htmlFor="zelleRef">Zelle Ref#</Label>
+              <Input
+                id="zelleRef"
+                type="text"
+                value={referenceNumber}
+                onChange={(e) => setReferenceNumber(e.target.value)}
+                placeholder="Enter Zelle reference number"
+              />
+            </div>
+          )}
 
           <div className="space-y-2">
             <Label htmlFor="paidDate">Date Paid</Label>
