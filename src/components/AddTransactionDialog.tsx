@@ -10,6 +10,7 @@ import { Transaction, Client, ClientInfo } from "@/pages/Index";
 import { BasicInfoTab } from "./BasicInfoTab";
 import { InvoiceDetailsTab } from "./InvoiceDetailsTab";
 import { PaymentTab } from "./PaymentTab";
+import { getTodayInTimezone } from "@/utils/dateUtils";
 
 interface AddTransactionDialogProps {
   open: boolean;
@@ -23,7 +24,7 @@ export const AddTransactionDialog = ({ open, onOpenChange, onAddTransaction, cli
   const [clientId, setClientId] = useState("");
   const [clientInfoId, setClientInfoId] = useState("");
   const [amount, setAmount] = useState("");
-  const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+  const [date, setDate] = useState("");
   const [description, setDescription] = useState("");
   const [datePaid, setDatePaid] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("unpaid");
@@ -35,6 +36,13 @@ export const AddTransactionDialog = ({ open, onOpenChange, onAddTransaction, cli
   const [commissionPaidDate, setCommissionPaidDate] = useState("");
   const [commissionOverride, setCommissionOverride] = useState("");
   const [isApproved, setIsApproved] = useState(false);
+  
+  // Initialize date with today's date in the configured timezone
+  useEffect(() => {
+    if (!date) {
+      setDate(getTodayInTimezone());
+    }
+  }, []);
   
   // Debug logging
   console.log("[AddTransactionDialog] Available agents:", clients);
@@ -107,7 +115,7 @@ export const AddTransactionDialog = ({ open, onOpenChange, onAddTransaction, cli
         setClientId("");
         setClientInfoId("");
         setAmount("");
-        setDate(new Date().toISOString().split('T')[0]);
+        setDate(getTodayInTimezone());
         setDescription("");
         setDatePaid("");
         setPaymentMethod("unpaid");

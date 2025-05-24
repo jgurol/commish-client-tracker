@@ -45,6 +45,22 @@ const months = [
   { value: "12", label: "Dec" },
 ];
 
+// Helper function to format date for display using timezone
+const formatDateForDisplay = (dateString: string | undefined): string => {
+  if (!dateString) return "";
+  
+  // If it's in YYYY-MM-DD format, parse and format for display
+  if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
+    const date = new Date(dateString + 'T00:00:00');
+    return date.toLocaleDateString();
+  }
+  
+  // Otherwise, try to parse and format
+  const date = new Date(dateString);
+  if (isNaN(date.getTime())) return dateString;
+  return date.toLocaleDateString();
+};
+
 export const TransactionTable = ({
   transactions,
   clientInfos,
@@ -135,10 +151,10 @@ export const TransactionTable = ({
                 
                 <TableCell>
                   <div className="text-sm">
-                    <div>{new Date(transaction.date).toLocaleDateString()}</div>
+                    <div>{formatDateForDisplay(transaction.date)}</div>
                     {transaction.datePaid && (
                       <div className="text-xs text-green-600">
-                        Paid: {new Date(transaction.datePaid).toLocaleDateString()}
+                        Paid: {formatDateForDisplay(transaction.datePaid)}
                       </div>
                     )}
                   </div>
@@ -178,7 +194,7 @@ export const TransactionTable = ({
                       ${transaction.commission?.toFixed(2) || '0.00'}
                       {transaction.commissionPaidDate && (
                         <div className="text-xs">
-                          Paid: {new Date(transaction.commissionPaidDate).toLocaleDateString()}
+                          Paid: {formatDateForDisplay(transaction.commissionPaidDate)}
                         </div>
                       )}
                     </div>
