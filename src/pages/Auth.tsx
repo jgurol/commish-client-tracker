@@ -241,7 +241,7 @@ const Auth = () => {
             <CardHeader className="text-center">
               <div className="flex justify-center mb-4">
                 <img 
-                  src="/lovable-uploads/fee4c43f-953a-49cd-8b4e-cf0ef70a70bd.png" 
+                  src="/lovable-uploads/e5be9154-ed00-490e-b242-16319351487f.png" 
                   alt="California Telecom" 
                   className="h-16 w-auto"
                 />
@@ -273,7 +273,7 @@ const Auth = () => {
             <CardHeader className="text-center">
               <div className="flex justify-center mb-4">
                 <img 
-                  src="/lovable-uploads/fee4c43f-953a-49cd-8b4e-cf0ef70a70bd.png" 
+                  src="/lovable-uploads/e5be9154-ed00-490e-b242-16319351487f.png" 
                   alt="California Telecom" 
                   className="h-16 w-auto"
                 />
@@ -302,7 +302,7 @@ const Auth = () => {
           <CardHeader className="text-center">
             <div className="flex justify-center mb-4">
               <img 
-                src="/lovable-uploads/fee4c43f-953a-49cd-8b4e-cf0ef70a70bd.png" 
+                src="/lovable-uploads/e5be9154-ed00-490e-b242-16319351487f.png" 
                 alt="California Telecom" 
                 className="h-16 w-auto"
               />
