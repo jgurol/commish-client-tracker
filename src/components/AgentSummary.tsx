@@ -9,14 +9,15 @@ import { Client, Transaction } from "@/pages/Index";
 interface AgentSummaryProps {
   clients: Client[];
   transactions: Transaction[];
+  allTransactions: Transaction[];
   isAdmin: boolean;
   activeFilter?: string | null;
 }
 
-export function AgentSummary({ clients, transactions, isAdmin, activeFilter }: AgentSummaryProps) {
-  // Calculate total approved commissions for each agent (all approved commissions regardless of payment status)
+export function AgentSummary({ clients, transactions, allTransactions, isAdmin, activeFilter }: AgentSummaryProps) {
+  // Calculate total approved commissions for each agent using ALL transactions (not filtered ones)
   const getTotalApprovedCommissions = (agentId: string) => {
-    return transactions
+    return allTransactions
       .filter(t => t.clientId === agentId && t.isApproved)
       .reduce((sum, t) => sum + (t.commission || 0), 0);
   };
