@@ -167,7 +167,7 @@ export const TransactionTable = ({
                   </div>
                   
                   {/* Payment Method Badge - moved here from Invoice column */}
-                  {transaction.paymentMethod && transaction.isPaid && (
+                  {transaction.paymentMethod && transaction.isPaid && transaction.paymentMethod !== "unpaid" && (
                     <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200 w-fit">
                       {transaction.paymentMethod === "check" ? "Check" : "Zelle"}
                     </Badge>
