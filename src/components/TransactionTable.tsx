@@ -1,3 +1,4 @@
+
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CheckCircle, Clock, DollarSign, Pencil, Trash2 } from "lucide-react";
@@ -14,6 +15,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useAuth } from "@/context/AuthContext";
 import { useState } from "react";
 import { PayCommissionDialog } from "./PayCommissionDialog";
+import { formatDateForDisplay } from "@/utils/dateUtils";
 
 interface TransactionTableProps {
   transactions: Transaction[];
@@ -44,22 +46,6 @@ const months = [
   { value: "11", label: "Nov" },
   { value: "12", label: "Dec" },
 ];
-
-// Helper function to format date for display using timezone
-const formatDateForDisplay = (dateString: string | undefined): string => {
-  if (!dateString) return "";
-  
-  // If it's in YYYY-MM-DD format, parse and format for display
-  if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
-    const date = new Date(dateString + 'T00:00:00');
-    return date.toLocaleDateString();
-  }
-  
-  // Otherwise, try to parse and format
-  const date = new Date(dateString);
-  if (isNaN(date.getTime())) return dateString;
-  return date.toLocaleDateString();
-};
 
 export const TransactionTable = ({
   transactions,
@@ -121,11 +107,6 @@ export const TransactionTable = ({
                         : "No Client Company"
                       }
                     </div>
-                    {transaction.clientInfoId && transaction.clientInfoId !== "none" && (
-                      <div className="text-xs text-gray-500">
-                        Contact: {clientInfos.find(ci => ci.id === transaction.clientInfoId)?.contact_name || "N/A"}
-                      </div>
-                    )}
                     {transaction.description && (
                       <div className="text-sm text-gray-500 truncate max-w-[200px] mt-1">
                         {transaction.description}

@@ -1,3 +1,4 @@
+
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CheckCircle, Clock, Building, FileText, Users, Pencil, DollarSign, Trash2 } from "lucide-react";
@@ -5,7 +6,7 @@ import { Transaction, ClientInfo } from "@/pages/Index";
 import { useAuth } from "@/context/AuthContext";
 import { useState } from "react";
 import { PayCommissionDialog } from "./PayCommissionDialog";
-import { formatDateForInput } from "@/utils/dateUtils";
+import { formatDateForDisplay } from "@/utils/dateUtils";
 
 interface TransactionCardProps {
   transaction: Transaction;
@@ -36,22 +37,6 @@ const months = [
   { value: "11", label: "November" },
   { value: "12", label: "December" },
 ];
-
-// Helper function to format date for display using timezone
-const formatDateForDisplay = (dateString: string | undefined): string => {
-  if (!dateString) return "";
-  
-  // If it's in YYYY-MM-DD format, parse and format for display
-  if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
-    const date = new Date(dateString + 'T00:00:00');
-    return date.toLocaleDateString();
-  }
-  
-  // Otherwise, try to parse and format
-  const date = new Date(dateString);
-  if (isNaN(date.getTime())) return dateString;
-  return date.toLocaleDateString();
-};
 
 export const TransactionCard = ({
   transaction,
