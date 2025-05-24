@@ -77,7 +77,7 @@ const Index = () => {
     approveCommission,
     payCommission,
     deleteTransaction
-  } = useTransactionActions(transactions, setTransactions);
+  } = useTransactionActions(clients, fetchTransactions);
 
   const { addClient } = useClientActions(clients, setClients, fetchClients);
 
