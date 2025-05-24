@@ -8,6 +8,7 @@ import { InvoiceDetailsTab } from "./InvoiceDetailsTab";
 import { PaymentTab } from "./PaymentTab";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { formatDateForInput, createDateString } from "@/utils/dateUtils";
 
 interface EditTransactionDialogProps {
   transaction: Transaction | null;
@@ -17,44 +18,6 @@ interface EditTransactionDialogProps {
   clients: Client[];
   clientInfos: ClientInfo[];
 }
-
-// Helper function to format date for input field (YYYY-MM-DD) - using local date
-const formatDateForInput = (dateString: string | undefined): string => {
-  if (!dateString) return "";
-  
-  console.log("[formatDateForInput] Input dateString:", dateString);
-  
-  // If it's already in YYYY-MM-DD format, return as is
-  if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
-    console.log("[formatDateForInput] Already in YYYY-MM-DD format, returning:", dateString);
-    return dateString;
-  }
-  
-  // Parse the date string directly without timezone conversion
-  const date = new Date(dateString + 'T00:00:00'); // Add time to avoid timezone issues
-  if (isNaN(date.getTime())) {
-    console.log("[formatDateForInput] Invalid date, returning empty string");
-    return "";
-  }
-  
-  // Use local date methods to avoid timezone shifts
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  
-  const result = `${year}-${month}-${day}`;
-  console.log("[formatDateForInput] Formatted result:", result);
-  return result;
-};
-
-// Helper function to create a date string from input (keeps it in YYYY-MM-DD format)
-const createDateString = (inputValue: string): string => {
-  console.log("[createDateString] Input value:", inputValue);
-  if (!inputValue) return "";
-  // Return the input value as-is since it's already in YYYY-MM-DD format
-  console.log("[createDateString] Returning:", inputValue);
-  return inputValue;
-};
 
 export const EditTransactionDialog = ({ transaction, open, onOpenChange, onUpdateTransaction, clients, clientInfos }: EditTransactionDialogProps) => {
   const [clientId, setClientId] = useState("");
@@ -87,14 +50,14 @@ export const EditTransactionDialog = ({ transaction, open, onOpenChange, onUpdat
       setClientInfoId(transaction.clientInfoId || "none");
       setAmount(transaction.amount.toString());
       
-      // Format the transaction date for input
+      // Format the transaction date for input using timezone-aware utilities
       const formattedDate = formatDateForInput(transaction.date);
       console.log("[EditTransactionDialog] Setting transaction date to:", formattedDate);
       setDate(formattedDate);
       
       setDescription(transaction.description);
       
-      // Format the date paid for input
+      // Format the date paid for input using timezone-aware utilities
       const formattedDatePaid = formatDateForInput(transaction.datePaid);
       console.log("[EditTransactionDialog] Setting date paid to:", formattedDatePaid);
       setDatePaid(formattedDatePaid);

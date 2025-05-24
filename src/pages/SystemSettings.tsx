@@ -8,8 +8,9 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { Separator } from "@/components/ui/separator";
-import { Settings, Shield, AlertTriangle } from "lucide-react";
+import { Settings, Shield, AlertTriangle, Clock } from "lucide-react";
 import { Navigate } from "react-router-dom";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export default function SystemSettings() {
   const { user, isAdmin } = useAuth();
@@ -18,8 +19,29 @@ export default function SystemSettings() {
   const [settings, setSettings] = useState({
     defaultCommissionRate: "15",
     companyName: "California Telecom",
-    supportEmail: "support@californiatelecom.com"
+    supportEmail: "support@californiatelecom.com",
+    timezone: "America/Los_Angeles"
   });
+
+  // Common timezones for the select dropdown
+  const timezones = [
+    { value: "America/Los_Angeles", label: "Pacific Time (PT)" },
+    { value: "America/Denver", label: "Mountain Time (MT)" },
+    { value: "America/Chicago", label: "Central Time (CT)" },
+    { value: "America/New_York", label: "Eastern Time (ET)" },
+    { value: "America/Phoenix", label: "Arizona Time (MST)" },
+    { value: "America/Anchorage", label: "Alaska Time (AKST)" },
+    { value: "Pacific/Honolulu", label: "Hawaii Time (HST)" },
+    { value: "UTC", label: "UTC (Coordinated Universal Time)" }
+  ];
+
+  // Load settings from localStorage on component mount
+  useEffect(() => {
+    const savedTimezone = localStorage.getItem('app_timezone');
+    if (savedTimezone) {
+      setSettings(prev => ({ ...prev, timezone: savedTimezone }));
+    }
+  }, []);
 
   // Redirect non-admin users
   if (!isAdmin) {
@@ -31,8 +53,9 @@ export default function SystemSettings() {
     setLoading(true);
 
     try {
-      // For now, we'll just show a success message since we haven't implemented
-      // a system settings table yet. This can be expanded later.
+      // Save timezone to localStorage for now
+      localStorage.setItem('app_timezone', settings.timezone);
+      
       toast({
         title: "Settings updated",
         description: "System configuration has been updated successfully",
@@ -115,6 +138,48 @@ export default function SystemSettings() {
 
               <Button type="submit" disabled={loading}>
                 {loading ? "Updating..." : "Update Settings"}
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Clock className="h-5 w-5" />
+              Date & Time Settings
+            </CardTitle>
+            <CardDescription>
+              Configure timezone and date handling preferences
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleUpdateSettings} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="timezone">Application Timezone</Label>
+                <Select 
+                  value={settings.timezone} 
+                  onValueChange={(value) => setSettings({ ...settings, timezone: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select timezone" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {timezones.map((tz) => (
+                      <SelectItem key={tz.value} value={tz.value}>
+                        {tz.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <div className="text-xs text-gray-500">
+                  This setting affects how dates are displayed and processed throughout the application.
+                  Current setting: {settings.timezone}
+                </div>
+              </div>
+
+              <Button type="submit" disabled={loading}>
+                {loading ? "Updating..." : "Update Timezone Settings"}
               </Button>
             </form>
           </CardContent>
