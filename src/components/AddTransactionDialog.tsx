@@ -407,7 +407,7 @@ export const AddTransactionDialog = ({ open, onOpenChange, onAddTransaction, cli
             </Button>
             <Button 
               type="submit" 
-              className="bg-green-600 hover:bg-green-700"
+              className="bg-blue-600 hover:bg-blue-700"
               disabled={!selectedAgent || clientInfos.length === 0}
             >
               Add Transaction
