@@ -78,6 +78,39 @@ export const EditTransactionDialog = ({ transaction, open, onOpenChange, onUpdat
     }
   }, [clientId, clientInfos]);
 
+  const handleImmediateUpdate = () => {
+    // Immediately save the current state to database when "unpaid" is selected
+    if (transaction && clientId && amount && date) {
+      const selectedClient = clients.find(client => client.id === clientId);
+      const selectedClientInfo = clientInfoId && clientInfoId !== "none" ? clientInfos.find(info => info.id === clientInfoId) : null;
+      
+      if (selectedClient) {
+        onUpdateTransaction({
+          id: transaction.id,
+          clientId,
+          clientName: selectedClient.name,
+          companyName: selectedClient.companyName || selectedClient.name,
+          amount: parseFloat(amount),
+          date,
+          description: description || "",
+          datePaid: datePaid || undefined,
+          paymentMethod,
+          referenceNumber: referenceNumber || undefined,
+          invoiceMonth: invoiceMonth || undefined,
+          invoiceYear: invoiceYear || undefined,
+          invoiceNumber: invoiceNumber || undefined,
+          isPaid,
+          clientInfoId: clientInfoId !== "none" ? clientInfoId : undefined,
+          clientCompanyName: selectedClientInfo?.company_name,
+          commission: transaction.commission,
+          isApproved,
+          commissionPaidDate: commissionPaidDate || undefined,
+          commissionOverride: commissionOverride ? parseFloat(commissionOverride) : undefined
+        });
+      }
+    }
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (transaction && clientId && amount && date) {
@@ -214,6 +247,7 @@ export const EditTransactionDialog = ({ transaction, open, onOpenChange, onUpdat
                   setCommissionPaidDate={setCommissionPaidDate}
                   isApproved={isApproved}
                   setIsApproved={setIsApproved}
+                  onImmediateUpdate={handleImmediateUpdate}
                 />
               </TabsContent>
             </Tabs>

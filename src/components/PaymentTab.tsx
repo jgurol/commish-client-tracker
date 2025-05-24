@@ -18,6 +18,7 @@ interface PaymentTabProps {
   setCommissionPaidDate: (value: string) => void;
   isApproved: boolean;
   setIsApproved: (value: boolean) => void;
+  onImmediateUpdate?: () => void;
 }
 
 export const PaymentTab = ({
@@ -31,13 +32,18 @@ export const PaymentTab = ({
   commissionPaidDate,
   setCommissionPaidDate,
   isApproved,
-  setIsApproved
+  setIsApproved,
+  onImmediateUpdate
 }: PaymentTabProps) => {
   const handlePaymentMethodChange = (value: string) => {
     setPaymentMethod(value);
     if (value === "unpaid") {
       setDatePaid("");
       setReferenceNumber("");
+      // Trigger immediate update to save changes to database
+      if (onImmediateUpdate) {
+        onImmediateUpdate();
+      }
     }
   };
 
