@@ -45,10 +45,6 @@ export function NavigationBar() {
                   <ListItem href="/settings/profile" title="Profile Settings" Icon={Settings}>
                     Manage your account preferences and personal information
                   </ListItem>
-
-                  <ListItem href="/settings/billing" title="Billing" Icon={FileText}>
-                    View invoices, payment history, and manage billing settings
-                  </ListItem>
                   
                   {isAdmin && (
                     <>
