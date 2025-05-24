@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import {
@@ -240,6 +239,13 @@ const Auth = () => {
         <div className="w-full max-w-md">
           <Card className="border-0 shadow-xl">
             <CardHeader className="text-center">
+              <div className="flex justify-center mb-4">
+                <img 
+                  src="/lovable-uploads/fee4c43f-953a-49cd-8b4e-cf0ef70a70bd.png" 
+                  alt="California Telecom" 
+                  className="h-16 w-auto"
+                />
+              </div>
               <CardTitle className="text-2xl font-bold">Set New Password</CardTitle>
               <CardDescription>Please enter your new password</CardDescription>
             </CardHeader>
@@ -265,6 +271,13 @@ const Auth = () => {
         <div className="w-full max-w-md">
           <Card className="border-0 shadow-xl">
             <CardHeader className="text-center">
+              <div className="flex justify-center mb-4">
+                <img 
+                  src="/lovable-uploads/fee4c43f-953a-49cd-8b4e-cf0ef70a70bd.png" 
+                  alt="California Telecom" 
+                  className="h-16 w-auto"
+                />
+              </div>
               <CardTitle className="text-2xl font-bold">Reset Password</CardTitle>
               <CardDescription>Enter your email to receive a password reset link</CardDescription>
             </CardHeader>
@@ -287,6 +300,13 @@ const Auth = () => {
       <div className="w-full max-w-md">
         <Card className="border-0 shadow-xl">
           <CardHeader className="text-center">
+            <div className="flex justify-center mb-4">
+              <img 
+                src="/lovable-uploads/fee4c43f-953a-49cd-8b4e-cf0ef70a70bd.png" 
+                alt="California Telecom" 
+                className="h-16 w-auto"
+              />
+            </div>
             <CardTitle className="text-2xl font-bold">Commission Tracker</CardTitle>
             <CardDescription>Sign in to manage your commissions</CardDescription>
           </CardHeader>
