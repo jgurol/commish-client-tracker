@@ -1,5 +1,7 @@
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, TrendingUp, DollarSign, Calendar, CheckCircle, Clock, AlertCircle, ArrowRight, Building } from "lucide-react";
+import { Link } from "react-router-dom";
 import { Client, Transaction, ClientInfo } from "@/pages/Index";
 
 interface StatsCardsProps {
@@ -64,39 +66,45 @@ export const StatsCards = ({ clients, transactions, clientInfos, isAdmin, associ
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {isAdmin ? (
           <>
-            <Card className="bg-white shadow-lg hover:shadow-xl transition-shadow duration-200 border-0">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-gray-600">Total Agents</CardTitle>
-                <Users className="h-4 w-4 text-blue-600" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-gray-900">{clients ? clients.length : 0}</div>
-                <p className="text-xs text-gray-500">Active commission agents</p>
-              </CardContent>
-            </Card>
+            <Link to="/agent-management" className="block">
+              <Card className="bg-white shadow-lg hover:shadow-xl transition-shadow duration-200 border-0 hover:scale-105 transform cursor-pointer">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium text-gray-600">Total Agents</CardTitle>
+                  <Users className="h-4 w-4 text-blue-600" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-gray-900">{clients ? clients.length : 0}</div>
+                  <p className="text-xs text-gray-500">Active commission agents</p>
+                </CardContent>
+              </Card>
+            </Link>
 
-            <Card className="bg-white shadow-lg hover:shadow-xl transition-shadow duration-200 border-0">
+            <Link to="/client-management" className="block">
+              <Card className="bg-white shadow-lg hover:shadow-xl transition-shadow duration-200 border-0 hover:scale-105 transform cursor-pointer">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium text-gray-600">Total Clients</CardTitle>
+                  <Building className="h-4 w-4 text-purple-600" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-gray-900">{getClientInfoCount()}</div>
+                  <p className="text-xs text-gray-500">Client companies</p>
+                </CardContent>
+              </Card>
+            </Link>
+          </>
+        ) : (
+          <Link to="/client-management" className="block">
+            <Card className="bg-white shadow-lg hover:shadow-xl transition-shadow duration-200 border-0 hover:scale-105 transform cursor-pointer">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium text-gray-600">Total Clients</CardTitle>
                 <Building className="h-4 w-4 text-purple-600" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold text-gray-900">{getClientInfoCount()}</div>
-                <p className="text-xs text-gray-500">Client companies</p>
+                <p className="text-xs text-gray-500">Associated client companies</p>
               </CardContent>
             </Card>
-          </>
-        ) : (
-          <Card className="bg-white shadow-lg hover:shadow-xl transition-shadow duration-200 border-0">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">Total Clients</CardTitle>
-              <Building className="h-4 w-4 text-purple-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-gray-900">{getClientInfoCount()}</div>
-              <p className="text-xs text-gray-500">Associated client companies</p>
-            </CardContent>
-          </Card>
+          </Link>
         )}
 
         <Card className="bg-white shadow-lg hover:shadow-xl transition-shadow duration-200 border-0">
