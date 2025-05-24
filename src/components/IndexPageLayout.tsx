@@ -142,7 +142,8 @@ export const IndexPageLayout = ({
               <AgentSummary 
                 clients={clients} 
                 transactions={filteredTransactions}
-                isAdmin={isAdmin} 
+                isAdmin={isAdmin}
+                activeFilter={transactionFilter}
               />
             </div>
           </div>

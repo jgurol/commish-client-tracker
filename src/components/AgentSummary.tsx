@@ -10,9 +10,10 @@ interface AgentSummaryProps {
   clients: Client[];
   transactions: Transaction[];
   isAdmin: boolean;
+  activeFilter?: string | null;
 }
 
-export function AgentSummary({ clients, transactions, isAdmin }: AgentSummaryProps) {
+export function AgentSummary({ clients, transactions, isAdmin, activeFilter }: AgentSummaryProps) {
   // Calculate total approved commissions for each agent (all approved commissions regardless of payment status)
   const getTotalApprovedCommissions = (agentId: string) => {
     return transactions
@@ -29,13 +30,18 @@ export function AgentSummary({ clients, transactions, isAdmin }: AgentSummaryPro
     .sort((a, b) => b.totalApprovedCommissions - a.totalApprovedCommissions)
     .slice(0, 3);
 
+  // Determine what to show based on active filter
+  const shouldShowApprovedCommissions = activeFilter === 'unapproved';
+  const cardTitle = shouldShowApprovedCommissions ? "Approved Commissions" : "Agent Summary";
+  const cardDescription = shouldShowApprovedCommissions ? "Total approved commissions by agent" : "Top agents by approved commissions";
+
   return (
     <Card className="bg-white shadow border-0">
       <CardHeader className="pb-2">
         <div className="flex justify-between items-center">
           <div>
-            <CardTitle className="text-lg font-medium text-gray-900">Agent Summary</CardTitle>
-            <CardDescription>Top agents by approved commissions</CardDescription>
+            <CardTitle className="text-lg font-medium text-gray-900">{cardTitle}</CardTitle>
+            <CardDescription>{cardDescription}</CardDescription>
           </div>
           <Link to="/agent-management">
             <Button variant="ghost" size="sm" className="text-blue-600 hover:text-blue-800 hover:bg-blue-50">
