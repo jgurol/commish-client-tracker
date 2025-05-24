@@ -13,6 +13,7 @@ import FixAccount from "./pages/FixAccount";
 import ClientManagement from "./pages/ClientManagement";
 import AgentManagement from "./pages/AgentManagement";
 import ProfileSettings from "./pages/ProfileSettings";
+import Billing from "./pages/Billing";
 import { NavigationBar } from "./components/NavigationBar";
 
 // Create a new query client with forceRefetch to ensure fresh data
@@ -92,6 +93,11 @@ const AppRoutes = () => {
         <Route path="/settings/profile" element={
           <ProtectedRoute>
             <ProfileSettings />
+          </ProtectedRoute>
+        } />
+        <Route path="/settings/billing" element={
+          <ProtectedRoute>
+            <Billing />
           </ProtectedRoute>
         } />
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
