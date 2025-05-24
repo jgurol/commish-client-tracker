@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -26,7 +25,7 @@ export const AddTransactionDialog = ({ open, onOpenChange, onAddTransaction, cli
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [description, setDescription] = useState("");
   const [datePaid, setDatePaid] = useState("");
-  const [paymentMethod, setPaymentMethod] = useState("check");
+  const [paymentMethod, setPaymentMethod] = useState("unpaid");
   const [referenceNumber, setReferenceNumber] = useState("");
   const [invoiceMonth, setInvoiceMonth] = useState("");
   const [invoiceYear, setInvoiceYear] = useState("");
@@ -110,7 +109,7 @@ export const AddTransactionDialog = ({ open, onOpenChange, onAddTransaction, cli
         setDate(new Date().toISOString().split('T')[0]);
         setDescription("");
         setDatePaid("");
-        setPaymentMethod("check");
+        setPaymentMethod("unpaid");
         setReferenceNumber("");
         setInvoiceMonth("");
         setInvoiceYear("");
@@ -151,7 +150,7 @@ export const AddTransactionDialog = ({ open, onOpenChange, onAddTransaction, cli
             <TabsList className="grid grid-cols-3 mb-4">
               <TabsTrigger value="basic">Basic Info</TabsTrigger>
               <TabsTrigger value="invoice">Invoice Details</TabsTrigger>
-              <TabsTrigger value="payment">Payment</TabsTrigger>
+              <TabsTrigger value="payment">Commission</TabsTrigger>
             </TabsList>
             
             <TabsContent value="basic">
@@ -292,8 +291,6 @@ export const AddTransactionDialog = ({ open, onOpenChange, onAddTransaction, cli
             <TabsContent value="payment">
               <PaymentTab
                 isPaid={isPaid}
-                datePaid={datePaid}
-                setDatePaid={setDatePaid}
                 paymentMethod={paymentMethod}
                 setPaymentMethod={setPaymentMethod}
                 referenceNumber={referenceNumber}

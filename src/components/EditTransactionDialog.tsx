@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -47,7 +48,7 @@ export const EditTransactionDialog = ({ transaction, open, onOpenChange, onUpdat
       setDate(transaction.date);
       setDescription(transaction.description);
       setDatePaid(transaction.datePaid || "");
-      setPaymentMethod(transaction.paymentMethod || "check");
+      setPaymentMethod(transaction.paymentMethod || "unpaid");
       setReferenceNumber(transaction.referenceNumber || "");
       setInvoiceMonth(transaction.invoiceMonth || "");
       setInvoiceYear(transaction.invoiceYear || "");
@@ -173,7 +174,7 @@ export const EditTransactionDialog = ({ transaction, open, onOpenChange, onUpdat
               <TabsList className="grid grid-cols-3 mb-4">
                 <TabsTrigger value="basic">Basic Info</TabsTrigger>
                 <TabsTrigger value="invoice">Invoice Details</TabsTrigger>
-                <TabsTrigger value="payment">Payment</TabsTrigger>
+                <TabsTrigger value="payment">Commission</TabsTrigger>
               </TabsList>
               
               <TabsContent value="basic">
@@ -237,8 +238,6 @@ export const EditTransactionDialog = ({ transaction, open, onOpenChange, onUpdat
               <TabsContent value="payment">
                 <PaymentTab
                   isPaid={isPaid}
-                  datePaid={datePaid}
-                  setDatePaid={setDatePaid}
                   paymentMethod={paymentMethod}
                   setPaymentMethod={setPaymentMethod}
                   referenceNumber={referenceNumber}
