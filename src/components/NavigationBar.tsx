@@ -26,6 +26,7 @@ export function NavigationBar() {
             alt="California Telecom" 
             className="h-12 w-auto"
           />
+          <h1 className="text-2xl font-bold text-gray-900">Commission Tracker</h1>
         </Link>
 
         <NavigationMenu>
