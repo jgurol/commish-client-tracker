@@ -41,7 +41,36 @@ export const IndexPageLayout = ({
   onFetchClients
 }: IndexPageLayoutProps) => {
   const [isAddClientOpen, setIsAddClientOpen] = useState(false);
+  const [transactionFilter, setTransactionFilter] = useState<string | null>(null);
   const { isAdmin } = useAuth();
+
+  // Filter transactions based on the selected filter
+  const getFilteredTransactions = () => {
+    if (!transactionFilter) return transactions;
+
+    switch (transactionFilter) {
+      case 'unapproved':
+        // Transactions that invoices have not been paid, or commissioned
+        return transactions.filter(t => !t.isPaid || (!t.isApproved && !t.commissionPaidDate));
+      
+      case 'qualified':
+        // Transactions with paid invoices but not commissioned or approved for commission
+        return transactions.filter(t => t.isPaid && !t.isApproved && !t.commissionPaidDate);
+      
+      case 'approved':
+        // Transactions that are paid invoices and have been approved
+        return transactions.filter(t => t.isPaid && t.isApproved && !t.commissionPaidDate);
+      
+      case 'paid':
+        // Transactions that are paid invoice, commission paid
+        return transactions.filter(t => t.isPaid && t.commissionPaidDate);
+      
+      default:
+        return transactions;
+    }
+  };
+
+  const filteredTransactions = getFilteredTransactions();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
@@ -56,6 +85,8 @@ export const IndexPageLayout = ({
           clientInfos={clientInfos}
           isAdmin={isAdmin}
           associatedAgentId={associatedAgentId}
+          onFilterChange={setTransactionFilter}
+          activeFilter={transactionFilter}
         />
 
         {/* Main Content - Transactions taking full width */}
@@ -63,11 +94,29 @@ export const IndexPageLayout = ({
           {/* Transactions Section - Full Width */}
           <div>
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold text-gray-900">Recent Activity</h2>
+              <h2 className="text-xl font-bold text-gray-900">
+                Recent Activity
+                {transactionFilter && (
+                  <span className="ml-2 text-sm font-normal text-gray-600">
+                    (Filtered by {transactionFilter === 'unapproved' ? 'Unapproved Commissions' : 
+                                transactionFilter === 'qualified' ? 'Qualified Commissions' :
+                                transactionFilter === 'approved' ? 'Approved Commissions' : 
+                                'Paid Commissions'})
+                  </span>
+                )}
+              </h2>
+              {transactionFilter && (
+                <button
+                  onClick={() => setTransactionFilter(null)}
+                  className="text-sm text-blue-600 hover:text-blue-800 underline"
+                >
+                  Clear Filter
+                </button>
+              )}
             </div>
             
             <RecentTransactions 
-              transactions={transactions} 
+              transactions={filteredTransactions} 
               clients={clients}
               clientInfos={clientInfos}
               onAddTransaction={onAddTransaction}
@@ -84,7 +133,7 @@ export const IndexPageLayout = ({
             {/* Commission Chart */}
             <div className="lg:col-span-2">
               <CommissionChart 
-                transactions={transactions} 
+                transactions={filteredTransactions} 
               />
             </div>
 
@@ -92,7 +141,7 @@ export const IndexPageLayout = ({
             <div>
               <AgentSummary 
                 clients={clients} 
-                transactions={transactions}
+                transactions={filteredTransactions}
                 isAdmin={isAdmin} 
               />
             </div>

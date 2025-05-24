@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, TrendingUp, DollarSign, Calendar, CheckCircle, Clock, AlertCircle, ArrowRight, Building } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -10,9 +9,19 @@ interface StatsCardsProps {
   clientInfos: ClientInfo[];
   isAdmin: boolean;
   associatedAgentId?: string | null;
+  onFilterChange?: (filter: string | null) => void;
+  activeFilter?: string | null;
 }
 
-export const StatsCards = ({ clients, transactions, clientInfos, isAdmin, associatedAgentId }: StatsCardsProps) => {
+export const StatsCards = ({ 
+  clients, 
+  transactions, 
+  clientInfos, 
+  isAdmin, 
+  associatedAgentId,
+  onFilterChange,
+  activeFilter
+}: StatsCardsProps) => {
   // Safely calculate totals with null checks
   const totalRevenue = transactions && transactions.length > 0
     ? transactions.reduce((sum, transaction) => sum + transaction.amount, 0)
@@ -57,6 +66,13 @@ export const StatsCards = ({ clients, transactions, clientInfos, isAdmin, associ
       return clientInfos 
         ? clientInfos.filter(clientInfo => clientInfo.agent_id === associatedAgentId).length 
         : 0;
+    }
+  };
+
+  const handleFilterClick = (filterType: string) => {
+    if (onFilterChange) {
+      // If clicking the same filter, clear it; otherwise set the new filter
+      onFilterChange(activeFilter === filterType ? null : filterType);
     }
   };
 
@@ -132,7 +148,12 @@ export const StatsCards = ({ clients, transactions, clientInfos, isAdmin, associ
 
       {/* Commission Flow Cards - Linear Row with Arrows */}
       <div className="flex items-center gap-4 overflow-x-auto">
-        <Card className="bg-white shadow-lg hover:shadow-xl transition-shadow duration-200 border-0 flex-shrink-0">
+        <Card 
+          className={`bg-white shadow-lg hover:shadow-xl transition-all duration-200 border-0 flex-shrink-0 cursor-pointer hover:scale-105 ${
+            activeFilter === 'unapproved' ? 'ring-2 ring-gray-600 ring-opacity-50' : ''
+          }`}
+          onClick={() => handleFilterClick('unapproved')}
+        >
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-gray-600">Unapproved Commissions</CardTitle>
             <AlertCircle className="h-4 w-4 text-gray-600" />
@@ -145,7 +166,12 @@ export const StatsCards = ({ clients, transactions, clientInfos, isAdmin, associ
 
         <ArrowRight className="h-6 w-6 text-gray-400 flex-shrink-0" />
 
-        <Card className="bg-white shadow-lg hover:shadow-xl transition-shadow duration-200 border-0 flex-shrink-0">
+        <Card 
+          className={`bg-white shadow-lg hover:shadow-xl transition-all duration-200 border-0 flex-shrink-0 cursor-pointer hover:scale-105 ${
+            activeFilter === 'qualified' ? 'ring-2 ring-orange-600 ring-opacity-50' : ''
+          }`}
+          onClick={() => handleFilterClick('qualified')}
+        >
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-gray-600">Qualified Commissions</CardTitle>
             <Calendar className="h-4 w-4 text-orange-600" />
@@ -158,7 +184,12 @@ export const StatsCards = ({ clients, transactions, clientInfos, isAdmin, associ
 
         <ArrowRight className="h-6 w-6 text-gray-400 flex-shrink-0" />
 
-        <Card className="bg-white shadow-lg hover:shadow-xl transition-shadow duration-200 border-0 flex-shrink-0">
+        <Card 
+          className={`bg-white shadow-lg hover:shadow-xl transition-all duration-200 border-0 flex-shrink-0 cursor-pointer hover:scale-105 ${
+            activeFilter === 'approved' ? 'ring-2 ring-amber-600 ring-opacity-50' : ''
+          }`}
+          onClick={() => handleFilterClick('approved')}
+        >
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-gray-600">Approved Commissions</CardTitle>
             <Clock className="h-4 w-4 text-amber-600" />
@@ -171,7 +202,12 @@ export const StatsCards = ({ clients, transactions, clientInfos, isAdmin, associ
 
         <ArrowRight className="h-6 w-6 text-gray-400 flex-shrink-0" />
 
-        <Card className="bg-white shadow-lg hover:shadow-xl transition-shadow duration-200 border-0 flex-shrink-0">
+        <Card 
+          className={`bg-white shadow-lg hover:shadow-xl transition-all duration-200 border-0 flex-shrink-0 cursor-pointer hover:scale-105 ${
+            activeFilter === 'paid' ? 'ring-2 ring-green-600 ring-opacity-50' : ''
+          }`}
+          onClick={() => handleFilterClick('paid')}
+        >
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-gray-600">Paid Commissions</CardTitle>
             <CheckCircle className="h-4 w-4 text-green-600" />
