@@ -33,15 +33,11 @@ export const PaymentTab = ({
   isApproved,
   setIsApproved
 }: PaymentTabProps) => {
-  const handleClearPaymentMethod = () => {
-    setPaymentMethod("");
-    setReferenceNumber("");
-  };
-
   const handlePaymentMethodChange = (value: string) => {
     setPaymentMethod(value);
     if (value === "unpaid") {
       setDatePaid("");
+      setReferenceNumber("");
     }
   };
 
@@ -50,22 +46,7 @@ export const PaymentTab = ({
       {isPaid && (
         <>
           <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <Label>Payment Method</Label>
-              {paymentMethod && (
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={handleClearPaymentMethod}
-                  className="h-6 px-2 text-xs"
-                  title="Clear payment method"
-                >
-                  <X className="h-3 w-3 mr-1" />
-                  Clear
-                </Button>
-              )}
-            </div>
+            <Label>Payment Method</Label>
             <RadioGroup 
               value={paymentMethod} 
               onValueChange={handlePaymentMethodChange}
