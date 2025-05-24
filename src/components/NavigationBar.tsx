@@ -19,9 +19,12 @@ export function NavigationBar() {
   return (
     <div className="w-full bg-white border-b border-gray-200 py-2 px-4 mb-6">
       <div className="container mx-auto flex justify-between items-center">
-        <Link to="/" className="text-xl font-bold text-blue-600 flex items-center gap-2">
-          <Home className="h-5 w-5" />
-          Commission Tracker
+        <Link to="/" className="flex items-center gap-3">
+          <img 
+            src="/lovable-uploads/fee4c43f-953a-49cd-8b4e-cf0ef70a70bd.png" 
+            alt="California Telecom" 
+            className="h-8 w-auto"
+          />
         </Link>
 
         <NavigationMenu>
