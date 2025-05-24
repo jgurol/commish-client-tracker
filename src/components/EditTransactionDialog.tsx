@@ -7,6 +7,8 @@ import { Transaction, Client, ClientInfo } from "@/pages/Index";
 import { BasicInfoTab } from "./BasicInfoTab";
 import { InvoiceDetailsTab } from "./InvoiceDetailsTab";
 import { PaymentTab } from "./PaymentTab";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 interface EditTransactionDialogProps {
   transaction: Transaction | null;
@@ -32,6 +34,7 @@ export const EditTransactionDialog = ({ transaction, open, onOpenChange, onUpdat
   const [isPaid, setIsPaid] = useState(false);
   const [commissionPaidDate, setCommissionPaidDate] = useState("");
   const [isApproved, setIsApproved] = useState(false);
+  const [commissionOverride, setCommissionOverride] = useState("");
 
   // Filter client infos based on selected agent
   const [filteredClientInfos, setFilteredClientInfos] = useState<ClientInfo[]>(clientInfos);
@@ -53,6 +56,7 @@ export const EditTransactionDialog = ({ transaction, open, onOpenChange, onUpdat
       setIsPaid(transaction.isPaid || false);
       setCommissionPaidDate(transaction.commissionPaidDate || "");
       setIsApproved(transaction.isApproved || false);
+      setCommissionOverride(transaction.commissionOverride?.toString() || "");
     }
   }, [transaction]);
 
@@ -101,12 +105,26 @@ export const EditTransactionDialog = ({ transaction, open, onOpenChange, onUpdat
           clientCompanyName: selectedClientInfo?.company_name,
           commission: transaction.commission,
           isApproved,
-          commissionPaidDate: commissionPaidDate || undefined
+          commissionPaidDate: commissionPaidDate || undefined,
+          commissionOverride: commissionOverride ? parseFloat(commissionOverride) : undefined
         });
         onOpenChange(false);
       }
     }
   };
+
+  const selectedAgent = clientId ? clients.find(c => c.id === clientId) : null;
+  const selectedClientInfo = clientInfoId && clientInfoId !== "none" ? clientInfos.find(info => info.id === clientInfoId) : null;
+
+  // Calculate effective commission rate for display
+  const getEffectiveCommissionRate = () => {
+    if (commissionOverride) return parseFloat(commissionOverride);
+    if (selectedClientInfo?.commission_override) return selectedClientInfo.commission_override;
+    if (selectedAgent) return selectedAgent.commissionRate;
+    return null;
+  };
+
+  const effectiveRate = getEffectiveCommissionRate();
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -127,21 +145,46 @@ export const EditTransactionDialog = ({ transaction, open, onOpenChange, onUpdat
               </TabsList>
               
               <TabsContent value="basic">
-                <BasicInfoTab
-                  clientId={clientId}
-                  setClientId={setClientId}
-                  clientInfoId={clientInfoId}
-                  setClientInfoId={setClientInfoId}
-                  amount={amount}
-                  setAmount={setAmount}
-                  date={date}
-                  setDate={setDate}
-                  description={description}
-                  setDescription={setDescription}
-                  clients={clients}
-                  clientInfos={clientInfos}
-                  filteredClientInfos={filteredClientInfos}
-                />
+                <div className="space-y-4">
+                  <BasicInfoTab
+                    clientId={clientId}
+                    setClientId={setClientId}
+                    clientInfoId={clientInfoId}
+                    setClientInfoId={setClientInfoId}
+                    amount={amount}
+                    setAmount={setAmount}
+                    date={date}
+                    setDate={setDate}
+                    description={description}
+                    setDescription={setDescription}
+                    clients={clients}
+                    clientInfos={clientInfos}
+                    filteredClientInfos={filteredClientInfos}
+                  />
+                  
+                  {/* Commission Override */}
+                  <div className="space-y-2">
+                    <Label htmlFor="edit-commissionOverride">Transaction Commission Override (%)</Label>
+                    <Input
+                      id="edit-commissionOverride"
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      max="100"
+                      value={commissionOverride}
+                      onChange={(e) => setCommissionOverride(e.target.value)}
+                      placeholder="Enter commission rate override (optional)"
+                    />
+                    <div className="text-xs text-gray-500">
+                      Optional. This will override both client and agent commission rates for this transaction.
+                      {effectiveRate && (
+                        <div className="mt-1 font-medium text-blue-600">
+                          Effective rate: {effectiveRate}%
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
               </TabsContent>
               
               <TabsContent value="invoice">

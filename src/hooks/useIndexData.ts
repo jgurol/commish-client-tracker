@@ -254,7 +254,8 @@ export const useIndexData = () => {
           isApproved: transaction.is_approved,
           clientInfoId: transaction.client_info_id,
           clientCompanyName: clientInfo?.company_name,
-          commissionPaidDate: transaction.commission_paid_date
+          commissionPaidDate: transaction.commission_paid_date,
+          commissionOverride: transaction.commission_override
         };
       });
       

@@ -38,6 +38,7 @@ export interface Transaction {
   clientInfoId?: string;
   clientCompanyName?: string;
   commissionPaidDate?: string;
+  commissionOverride?: number;
 }
 
 // Define the ClientInfo type
@@ -54,6 +55,7 @@ export interface ClientInfo {
   agent_id: string | null;
   created_at: string;
   updated_at: string;
+  commission_override?: number | null;
 }
 
 const Index = () => {

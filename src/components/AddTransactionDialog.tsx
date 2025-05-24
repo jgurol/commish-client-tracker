@@ -33,6 +33,7 @@ export const AddTransactionDialog = ({ open, onOpenChange, onAddTransaction, cli
   const [invoiceNumber, setInvoiceNumber] = useState("");
   const [isPaid, setIsPaid] = useState(false);
   const [commissionPaidDate, setCommissionPaidDate] = useState("");
+  const [commissionOverride, setCommissionOverride] = useState("");
   
   // Debug logging
   console.log("[AddTransactionDialog] Available agents:", clients);
@@ -103,7 +104,8 @@ export const AddTransactionDialog = ({ open, onOpenChange, onAddTransaction, cli
           isPaid,
           clientInfoId: clientInfoId !== "none" ? clientInfoId : undefined,
           clientCompanyName: selectedClientInfo?.company_name,
-          commissionPaidDate: commissionPaidDate || undefined
+          commissionPaidDate: commissionPaidDate || undefined,
+          commissionOverride: commissionOverride ? parseFloat(commissionOverride) : undefined
         });
         
         // Reset form
@@ -120,12 +122,24 @@ export const AddTransactionDialog = ({ open, onOpenChange, onAddTransaction, cli
         setInvoiceNumber("");
         setIsPaid(false);
         setCommissionPaidDate("");
+        setCommissionOverride("");
         onOpenChange(false);
       }
     }
   };
 
   const selectedAgent = clientId ? clients.find(c => c.id === clientId) : null;
+  const selectedClientInfo = clientInfoId && clientInfoId !== "none" ? clientInfos.find(info => info.id === clientInfoId) : null;
+
+  // Calculate effective commission rate for display
+  const getEffectiveCommissionRate = () => {
+    if (commissionOverride) return parseFloat(commissionOverride);
+    if (selectedClientInfo?.commission_override) return selectedClientInfo.commission_override;
+    if (selectedAgent) return selectedAgent.commissionRate;
+    return null;
+  };
+
+  const effectiveRate = getEffectiveCommissionRate();
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -161,6 +175,11 @@ export const AddTransactionDialog = ({ open, onOpenChange, onAddTransaction, cli
                       clientInfos.map((clientInfo) => (
                         <SelectItem key={clientInfo.id} value={clientInfo.id}>
                           {clientInfo.company_name}
+                          {clientInfo.commission_override && (
+                            <span className="text-xs text-blue-600 ml-2">
+                              ({clientInfo.commission_override}% override)
+                            </span>
+                          )}
                         </SelectItem>
                       ))
                     )}
@@ -179,12 +198,38 @@ export const AddTransactionDialog = ({ open, onOpenChange, onAddTransaction, cli
                   <Label>Associated Agent</Label>
                   <div className="border rounded-md px-3 py-2 bg-muted text-muted-foreground">
                     {selectedAgent.name} {selectedAgent.companyName && `(${selectedAgent.companyName})`}
+                    <div className="text-xs text-blue-600">
+                      Agent Rate: {selectedAgent.commissionRate}%
+                    </div>
                   </div>
                   <div className="text-xs text-green-600">
                     ✓ Agent automatically selected based on client
                   </div>
                 </div>
               )}
+
+              {/* Commission Override */}
+              <div className="space-y-2">
+                <Label htmlFor="commissionOverride">Transaction Commission Override (%)</Label>
+                <Input
+                  id="commissionOverride"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  max="100"
+                  value={commissionOverride}
+                  onChange={(e) => setCommissionOverride(e.target.value)}
+                  placeholder="Enter commission rate override (optional)"
+                />
+                <div className="text-xs text-gray-500">
+                  Optional. This will override both client and agent commission rates for this transaction.
+                  {effectiveRate && (
+                    <div className="mt-1 font-medium text-blue-600">
+                      Effective rate: {effectiveRate}%
+                    </div>
+                  )}
+                </div>
+              </div>
 
               {/* Warning if no agent is associated */}
               {clientInfoId && clientInfoId !== "none" && !selectedAgent && (

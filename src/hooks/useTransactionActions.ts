@@ -11,24 +11,52 @@ export const useTransactionActions = (
   const { user } = useAuth();
   const { toast } = useToast();
 
+  // Helper function to calculate commission using override hierarchy
+  const calculateCommission = async (
+    amount: number,
+    clientId: string,
+    clientInfoId?: string,
+    transactionOverride?: number
+  ): Promise<number> => {
+    // 1. Transaction override takes highest precedence
+    if (transactionOverride !== undefined && transactionOverride !== null) {
+      return (transactionOverride / 100) * amount;
+    }
+
+    // 2. Client override takes second precedence
+    if (clientInfoId) {
+      const { data: clientInfo } = await supabase
+        .from('client_info')
+        .select('commission_override')
+        .eq('id', clientInfoId)
+        .single();
+
+      if (clientInfo?.commission_override !== null && clientInfo?.commission_override !== undefined) {
+        return (clientInfo.commission_override / 100) * amount;
+      }
+    }
+
+    // 3. Agent commission rate is the default
+    const client = clients.find(c => c.id === clientId);
+    if (client) {
+      return (client.commissionRate / 100) * amount;
+    }
+
+    return 0;
+  };
+
   // Function to add a new transaction to Supabase
   const addTransaction = async (newTransaction: Omit<Transaction, "id">) => {
     if (!user) return;
     
     try {
-      // Find the client to get their commission rate
-      const client = clients.find(c => c.id === newTransaction.clientId);
-      if (!client) {
-        toast({
-          title: "Error",
-          description: "Client not found",
-          variant: "destructive"
-        });
-        return;
-      }
-
-      // Calculate commission based on client's rate
-      const commission = (client.commissionRate / 100) * newTransaction.amount;
+      // Calculate commission using override hierarchy
+      const commission = await calculateCommission(
+        newTransaction.amount,
+        newTransaction.clientId,
+        newTransaction.clientInfoId,
+        newTransaction.commissionOverride
+      );
 
       const { data, error } = await supabase
         .from('transactions')
@@ -46,6 +74,7 @@ export const useTransactionActions = (
           invoice_number: newTransaction.invoiceNumber,
           is_paid: newTransaction.isPaid || false,
           commission: commission,
+          commission_override: newTransaction.commissionOverride || null,
           is_approved: false, // Default to not approved
           commission_paid_date: newTransaction.commissionPaidDate || null,
           user_id: user.id
@@ -63,9 +92,11 @@ export const useTransactionActions = (
       } else if (data) {
         // Refresh transactions to get the new one
         fetchTransactions();
+        
+        const client = clients.find(c => c.id === newTransaction.clientId);
         toast({
           title: "Transaction added",
-          description: `Transaction for ${client.name} has been added successfully.`,
+          description: `Transaction for ${client?.name} has been added successfully.`,
         });
       }
     } catch (err) {
@@ -83,19 +114,13 @@ export const useTransactionActions = (
     if (!user) return;
     
     try {
-      // Find the client to get their commission rate
-      const client = clients.find(c => c.id === updatedTransaction.clientId);
-      if (!client) {
-        toast({
-          title: "Error",
-          description: "Client not found",
-          variant: "destructive"
-        });
-        return;
-      }
-
-      // Calculate commission based on client's rate
-      const commission = (client.commissionRate / 100) * updatedTransaction.amount;
+      // Calculate commission using override hierarchy
+      const commission = await calculateCommission(
+        updatedTransaction.amount,
+        updatedTransaction.clientId,
+        updatedTransaction.clientInfoId,
+        updatedTransaction.commissionOverride
+      );
 
       const { data, error } = await supabase
         .from('transactions')
@@ -113,6 +138,7 @@ export const useTransactionActions = (
           invoice_number: updatedTransaction.invoiceNumber,
           is_paid: updatedTransaction.isPaid || false,
           commission: commission,
+          commission_override: updatedTransaction.commissionOverride || null,
           is_approved: updatedTransaction.isApproved || false,
           commission_paid_date: updatedTransaction.commissionPaidDate || null
         })
@@ -130,9 +156,11 @@ export const useTransactionActions = (
       } else {
         // Refresh transactions to get the updated one
         fetchTransactions();
+        
+        const client = clients.find(c => c.id === updatedTransaction.clientId);
         toast({
           title: "Transaction updated",
-          description: `Transaction for ${client.name} has been updated successfully.`,
+          description: `Transaction for ${client?.name} has been updated successfully.`,
         });
       }
     } catch (err) {

@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -33,6 +34,9 @@ export const EditClientInfoDialog = ({
   const [notes, setNotes] = useState(clientInfo.notes || "");
   const [revioId, setRevioId] = useState(clientInfo.revio_id || "");
   const [agentId, setAgentId] = useState<string | null>(clientInfo.agent_id || null);
+  const [commissionOverride, setCommissionOverride] = useState<string>(
+    clientInfo.commission_override?.toString() || ""
+  );
   const [agents, setAgents] = useState<Agent[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -51,6 +55,7 @@ export const EditClientInfoDialog = ({
     setNotes(clientInfo.notes || "");
     setRevioId(clientInfo.revio_id || "");
     setAgentId(clientInfo.agent_id || null);
+    setCommissionOverride(clientInfo.commission_override?.toString() || "");
   }, [clientInfo]);
 
   const fetchAgents = async () => {
@@ -87,7 +92,8 @@ export const EditClientInfoDialog = ({
           address: address || null,
           notes: notes || null,
           revio_id: revioId || null,
-          agent_id: agentId === "none" ? null : agentId
+          agent_id: agentId === "none" ? null : agentId,
+          commission_override: commissionOverride ? parseFloat(commissionOverride) : null
         });
         onOpenChange(false);
       } catch (err) {
@@ -152,6 +158,22 @@ export const EditClientInfoDialog = ({
               </SelectContent>
             </Select>
             {isLoading && <p className="text-sm text-muted-foreground">Loading agents...</p>}
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="edit-commissionOverride">Commission Override (%)</Label>
+            <Input
+              id="edit-commissionOverride"
+              type="number"
+              step="0.01"
+              min="0"
+              max="100"
+              value={commissionOverride}
+              onChange={(e) => setCommissionOverride(e.target.value)}
+              placeholder="Enter commission rate override (optional)"
+            />
+            <p className="text-xs text-muted-foreground">
+              Optional. This will override the agent's commission rate for this client's transactions.
+            </p>
           </div>
           <div className="space-y-2">
             <Label htmlFor="edit-notes">Notes</Label>

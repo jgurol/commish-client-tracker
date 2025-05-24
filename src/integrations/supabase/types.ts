@@ -55,6 +55,7 @@ export type Database = {
         Row: {
           address: string | null
           agent_id: string | null
+          commission_override: number | null
           company_name: string
           contact_name: string | null
           created_at: string
@@ -69,6 +70,7 @@ export type Database = {
         Insert: {
           address?: string | null
           agent_id?: string | null
+          commission_override?: number | null
           company_name: string
           contact_name?: string | null
           created_at?: string
@@ -83,6 +85,7 @@ export type Database = {
         Update: {
           address?: string | null
           agent_id?: string | null
+          commission_override?: number | null
           company_name?: string
           contact_name?: string | null
           created_at?: string
@@ -154,6 +157,7 @@ export type Database = {
           client_id: string
           client_info_id: string | null
           commission: number | null
+          commission_override: number | null
           commission_paid_date: string | null
           created_at: string
           date: string
@@ -175,6 +179,7 @@ export type Database = {
           client_id: string
           client_info_id?: string | null
           commission?: number | null
+          commission_override?: number | null
           commission_paid_date?: string | null
           created_at?: string
           date: string
@@ -196,6 +201,7 @@ export type Database = {
           client_id?: string
           client_info_id?: string | null
           commission?: number | null
+          commission_override?: number | null
           commission_paid_date?: string | null
           created_at?: string
           date?: string
