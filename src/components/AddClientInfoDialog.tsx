@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -24,7 +23,6 @@ interface Agent {
 
 export const AddClientInfoDialog = ({ open, onOpenChange, onAddClientInfo }: AddClientInfoDialogProps) => {
   const [companyName, setCompanyName] = useState("");
-  const [address, setAddress] = useState("");
   const [notes, setNotes] = useState("");
   const [revioId, setRevioId] = useState("");
   const [agentId, setAgentId] = useState<string | null>(null);
@@ -69,7 +67,7 @@ export const AddClientInfoDialog = ({ open, onOpenChange, onAddClientInfo }: Add
           contact_name: null,
           email: null,
           phone: null,
-          address: address || null,
+          address: null,
           notes: notes || null,
           revio_id: revioId || null,
           agent_id: agentId === "none" ? null : agentId
@@ -86,7 +84,6 @@ export const AddClientInfoDialog = ({ open, onOpenChange, onAddClientInfo }: Add
 
   const resetForm = () => {
     setCompanyName("");
-    setAddress("");
     setNotes("");
     setRevioId("");
     setAgentId(null);
@@ -113,15 +110,6 @@ export const AddClientInfoDialog = ({ open, onOpenChange, onAddClientInfo }: Add
               onChange={(e) => setCompanyName(e.target.value)}
               placeholder="Enter company name"
               required
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="address">Address</Label>
-            <Input
-              id="address"
-              value={address}
-              onChange={(e) => setAddress(e.target.value)}
-              placeholder="Enter address"
             />
           </div>
           <div className="space-y-2">

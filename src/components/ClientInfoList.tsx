@@ -86,7 +86,6 @@ export const ClientInfoList = ({ clientInfos, onUpdateClientInfo, agentMapping =
             <TableHeader>
               <TableRow>
                 <TableHead>Company Name</TableHead>
-                <TableHead>Address</TableHead>
                 <TableHead>Revio ID</TableHead>
                 <TableHead>Associated Agent</TableHead>
                 <TableHead>Last Updated</TableHead>
@@ -97,7 +96,6 @@ export const ClientInfoList = ({ clientInfos, onUpdateClientInfo, agentMapping =
               {clientInfos.map((clientInfo) => (
                 <TableRow key={clientInfo.id}>
                   <TableCell className="font-medium">{clientInfo.company_name}</TableCell>
-                  <TableCell>{clientInfo.address || "-"}</TableCell>
                   <TableCell className="font-mono text-sm">{clientInfo.revio_id || "-"}</TableCell>
                   <TableCell>{getAgentName(clientInfo.agent_id)}</TableCell>
                   <TableCell>{new Date(clientInfo.updated_at).toLocaleDateString()}</TableCell>
