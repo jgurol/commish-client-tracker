@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Header } from "@/components/Header";
 import { StatsCards } from "@/components/StatsCards";
@@ -5,10 +6,6 @@ import { RecentTransactions } from "@/components/RecentTransactions";
 import { CommissionChart } from "@/components/CommissionChart";
 import { AgentSummary } from "@/components/AgentSummary";
 import { AddClientDialog } from "@/components/AddClientDialog";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { UserCog, Building } from "lucide-react";
-import { Link } from "react-router-dom";
 import { Client, Transaction, ClientInfo } from "@/pages/Index";
 import { useAuth } from "@/context/AuthContext";
 
@@ -60,33 +57,6 @@ export const IndexPageLayout = ({
           isAdmin={isAdmin}
           associatedAgentId={associatedAgentId}
         />
-
-        {/* Quick Actions Card - only show for admins */}
-        {isAdmin && (
-          <div className="mb-6">
-            <Card className="bg-white shadow border-0">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-lg font-medium text-gray-900">Quick Actions</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex gap-3">
-                  <Link to="/agent-management">
-                    <Button variant="outline" className="justify-start">
-                      <UserCog className="mr-2 h-4 w-4" />
-                      Manage Agents
-                    </Button>
-                  </Link>
-                  <Link to="/client-management">
-                    <Button variant="outline" className="justify-start">
-                      <Building className="mr-2 h-4 w-4" />
-                      Manage Clients
-                    </Button>
-                  </Link>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        )}
 
         {/* Main Content - Transactions taking full width */}
         <div className="space-y-6">
