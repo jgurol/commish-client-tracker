@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Header } from "@/components/Header";
 import { StatsCards } from "@/components/StatsCards";
@@ -59,6 +58,7 @@ export const IndexPageLayout = ({
           transactions={transactions}
           clientInfos={clientInfos}
           isAdmin={isAdmin}
+          associatedAgentId={associatedAgentId}
         />
 
         {/* Quick Actions Card - only show for admins */}

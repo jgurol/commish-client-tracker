@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, TrendingUp, DollarSign, Calendar, CheckCircle, Clock, AlertCircle, ArrowRight, Building } from "lucide-react";
 import { Client, Transaction, ClientInfo } from "@/pages/Index";
@@ -8,9 +7,10 @@ interface StatsCardsProps {
   transactions: Transaction[];
   clientInfos: ClientInfo[];
   isAdmin: boolean;
+  associatedAgentId?: string | null;
 }
 
-export const StatsCards = ({ clients, transactions, clientInfos, isAdmin }: StatsCardsProps) => {
+export const StatsCards = ({ clients, transactions, clientInfos, isAdmin, associatedAgentId }: StatsCardsProps) => {
   // Safely calculate totals with null checks
   const totalRevenue = transactions && transactions.length > 0
     ? transactions.reduce((sum, transaction) => sum + transaction.amount, 0)
@@ -46,6 +46,18 @@ export const StatsCards = ({ clients, transactions, clientInfos, isAdmin }: Stat
         .reduce((sum, t) => sum + (t.commission || 0), 0)
     : 0;
 
+  // Filter client infos for agents - only show clients associated with this agent
+  const getClientInfoCount = () => {
+    if (isAdmin) {
+      return clientInfos ? clientInfos.length : 0;
+    } else {
+      // For agents, only count client infos where agent_id matches associatedAgentId
+      return clientInfos 
+        ? clientInfos.filter(clientInfo => clientInfo.agent_id === associatedAgentId).length 
+        : 0;
+    }
+  };
+
   return (
     <div className="space-y-6 mb-8">
       {/* Basic Stats */}
@@ -69,7 +81,7 @@ export const StatsCards = ({ clients, transactions, clientInfos, isAdmin }: Stat
                 <Building className="h-4 w-4 text-purple-600" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-gray-900">{clientInfos ? clientInfos.length : 0}</div>
+                <div className="text-2xl font-bold text-gray-900">{getClientInfoCount()}</div>
                 <p className="text-xs text-gray-500">Client companies</p>
               </CardContent>
             </Card>
@@ -81,8 +93,8 @@ export const StatsCards = ({ clients, transactions, clientInfos, isAdmin }: Stat
               <Building className="h-4 w-4 text-purple-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-gray-900">{clientInfos ? clientInfos.length : 0}</div>
-              <p className="text-xs text-gray-500">Client companies</p>
+              <div className="text-2xl font-bold text-gray-900">{getClientInfoCount()}</div>
+              <p className="text-xs text-gray-500">Associated client companies</p>
             </CardContent>
           </Card>
         )}
