@@ -1,4 +1,5 @@
 
+
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CheckCircle, Clock, DollarSign, Pencil, Trash2 } from "lucide-react";
@@ -126,7 +127,7 @@ export const TransactionTable = ({
                 
                 <TableCell>
                   <Badge variant="outline" className="font-mono">
-                    ${transaction.amount.toLocaleString()}
+                    ${transaction.amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </Badge>
                 </TableCell>
                 
@@ -275,3 +276,4 @@ export const TransactionTable = ({
     </>
   );
 };
+
