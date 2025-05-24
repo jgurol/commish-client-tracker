@@ -18,31 +18,41 @@ interface EditTransactionDialogProps {
   clientInfos: ClientInfo[];
 }
 
-// Helper function to format date for input field (YYYY-MM-DD) - pure string handling
+// Helper function to format date for input field (YYYY-MM-DD) - using local date
 const formatDateForInput = (dateString: string | undefined): string => {
   if (!dateString) return "";
   
+  console.log("[formatDateForInput] Input dateString:", dateString);
+  
   // If it's already in YYYY-MM-DD format, return as is
   if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
+    console.log("[formatDateForInput] Already in YYYY-MM-DD format, returning:", dateString);
     return dateString;
   }
   
-  // Handle other date formats by parsing without timezone conversion
-  const date = new Date(dateString);
-  if (isNaN(date.getTime())) return "";
+  // Parse the date string directly without timezone conversion
+  const date = new Date(dateString + 'T00:00:00'); // Add time to avoid timezone issues
+  if (isNaN(date.getTime())) {
+    console.log("[formatDateForInput] Invalid date, returning empty string");
+    return "";
+  }
   
-  // Get UTC components to avoid any timezone shifts
-  const year = date.getUTCFullYear();
-  const month = String(date.getUTCMonth() + 1).padStart(2, '0');
-  const day = String(date.getUTCDate()).padStart(2, '0');
+  // Use local date methods to avoid timezone shifts
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
   
-  return `${year}-${month}-${day}`;
+  const result = `${year}-${month}-${day}`;
+  console.log("[formatDateForInput] Formatted result:", result);
+  return result;
 };
 
 // Helper function to create a date string from input (keeps it in YYYY-MM-DD format)
 const createDateString = (inputValue: string): string => {
+  console.log("[createDateString] Input value:", inputValue);
   if (!inputValue) return "";
-  // Ensure it's in YYYY-MM-DD format and return as-is
+  // Return the input value as-is since it's already in YYYY-MM-DD format
+  console.log("[createDateString] Returning:", inputValue);
   return inputValue;
 };
 
@@ -76,9 +86,19 @@ export const EditTransactionDialog = ({ transaction, open, onOpenChange, onUpdat
       setClientId(transaction.clientId);
       setClientInfoId(transaction.clientInfoId || "none");
       setAmount(transaction.amount.toString());
-      setDate(formatDateForInput(transaction.date)); // Main transaction date
+      
+      // Format the transaction date for input
+      const formattedDate = formatDateForInput(transaction.date);
+      console.log("[EditTransactionDialog] Setting transaction date to:", formattedDate);
+      setDate(formattedDate);
+      
       setDescription(transaction.description);
-      setDatePaid(formatDateForInput(transaction.datePaid)); // Invoice paid date
+      
+      // Format the date paid for input
+      const formattedDatePaid = formatDateForInput(transaction.datePaid);
+      console.log("[EditTransactionDialog] Setting date paid to:", formattedDatePaid);
+      setDatePaid(formattedDatePaid);
+      
       setPaymentMethod(transaction.paymentMethod || "unpaid");
       setReferenceNumber(transaction.referenceNumber || "");
       setInvoiceMonth(transaction.invoiceMonth || "");
@@ -88,9 +108,6 @@ export const EditTransactionDialog = ({ transaction, open, onOpenChange, onUpdat
       setCommissionPaidDate(formatDateForInput(transaction.commissionPaidDate));
       setIsApproved(transaction.isApproved || false);
       setCommissionOverride(transaction.commissionOverride?.toString() || "");
-      
-      console.log("[EditTransactionDialog] Formatted transaction date:", formatDateForInput(transaction.date));
-      console.log("[EditTransactionDialog] Formatted date paid:", formatDateForInput(transaction.datePaid));
     }
   }, [transaction]);
 
@@ -119,8 +136,8 @@ export const EditTransactionDialog = ({ transaction, open, onOpenChange, onUpdat
       const selectedClient = clients.find(client => client.id === clientId);
       const selectedClientInfo = clientInfoId && clientInfoId !== "none" ? clientInfos.find(info => info.id === clientInfoId) : null;
       
-      console.log("[EditTransactionDialog] Immediate update - transaction date:", date);
-      console.log("[EditTransactionDialog] Immediate update - date paid:", datePaid);
+      console.log("[EditTransactionDialog] Immediate update - sending transaction date:", date);
+      console.log("[EditTransactionDialog] Immediate update - sending date paid:", datePaid);
       
       if (selectedClient) {
         onUpdateTransaction({
@@ -155,8 +172,8 @@ export const EditTransactionDialog = ({ transaction, open, onOpenChange, onUpdat
       const selectedClient = clients.find(client => client.id === clientId);
       const selectedClientInfo = clientInfoId && clientInfoId !== "none" ? clientInfos.find(info => info.id === clientInfoId) : null;
       
-      console.log("[EditTransactionDialog] Submit - transaction date:", date);
-      console.log("[EditTransactionDialog] Submit - date paid:", datePaid);
+      console.log("[EditTransactionDialog] Submit - sending transaction date:", date);
+      console.log("[EditTransactionDialog] Submit - sending date paid:", datePaid);
       
       if (selectedClient) {
         onUpdateTransaction({
