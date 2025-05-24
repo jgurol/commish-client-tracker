@@ -98,7 +98,7 @@ export const IndexPageLayout = ({
                 Recent Activity
                 {transactionFilter && (
                   <span className="ml-2 text-sm font-normal text-gray-600">
-                    (Filtered by {transactionFilter === 'unapproved' ? 'Unpaid Commissions' : 
+                    (Filtered by {transactionFilter === 'unapproved' ? 'Unqualified Commissions' : 
                                 transactionFilter === 'qualified' ? 'Qualified Commissions' :
                                 transactionFilter === 'approved' ? 'Approved Commissions' : 
                                 'Paid Commissions'})
