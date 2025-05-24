@@ -1,3 +1,4 @@
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, TrendingUp, DollarSign, Calendar, CheckCircle, Clock, AlertCircle } from "lucide-react";
 import { Client, Transaction } from "@/pages/Index";
@@ -44,84 +45,89 @@ export const StatsCards = ({ clients, transactions }: StatsCardsProps) => {
     : 0;
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-      <Card className="bg-white shadow-lg hover:shadow-xl transition-shadow duration-200 border-0">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium text-gray-600">Total Clients</CardTitle>
-          <Users className="h-4 w-4 text-blue-600" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold text-gray-900">{clients ? clients.length : 0}</div>
-          <p className="text-xs text-gray-500">Active commission clients</p>
-        </CardContent>
-      </Card>
+    <div className="space-y-6 mb-8">
+      {/* Basic Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <Card className="bg-white shadow-lg hover:shadow-xl transition-shadow duration-200 border-0">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-gray-600">Total Clients</CardTitle>
+            <Users className="h-4 w-4 text-blue-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-gray-900">{clients ? clients.length : 0}</div>
+            <p className="text-xs text-gray-500">Active commission clients</p>
+          </CardContent>
+        </Card>
 
-      <Card className="bg-white shadow-lg hover:shadow-xl transition-shadow duration-200 border-0">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium text-gray-600">Total Revenue</CardTitle>
-          <DollarSign className="h-4 w-4 text-green-600" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold text-gray-900">${totalRevenue.toLocaleString()}</div>
-          <p className="text-xs text-gray-500">All-time invoice amounts</p>
-        </CardContent>
-      </Card>
+        <Card className="bg-white shadow-lg hover:shadow-xl transition-shadow duration-200 border-0">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-gray-600">Total Revenue</CardTitle>
+            <DollarSign className="h-4 w-4 text-green-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-gray-900">${totalRevenue.toLocaleString()}</div>
+            <p className="text-xs text-gray-500">All-time invoice amounts</p>
+          </CardContent>
+        </Card>
 
-      <Card className="bg-white shadow-lg hover:shadow-xl transition-shadow duration-200 border-0">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium text-gray-600">Avg Commission Rate</CardTitle>
-          <TrendingUp className="h-4 w-4 text-purple-600" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold text-gray-900">{avgCommissionRate.toFixed(1)}%</div>
-          <p className="text-xs text-gray-500">Average across all clients</p>
-        </CardContent>
-      </Card>
+        <Card className="bg-white shadow-lg hover:shadow-xl transition-shadow duration-200 border-0">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-gray-600">Avg Commission Rate</CardTitle>
+            <TrendingUp className="h-4 w-4 text-purple-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-gray-900">{avgCommissionRate.toFixed(1)}%</div>
+            <p className="text-xs text-gray-500">Average across all clients</p>
+          </CardContent>
+        </Card>
+      </div>
 
-      <Card className="bg-white shadow-lg hover:shadow-xl transition-shadow duration-200 border-0">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium text-gray-600">Qualified Commissions</CardTitle>
-          <Calendar className="h-4 w-4 text-orange-600" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold text-red-600">${qualifiedCommissions.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
-          <p className="text-xs text-gray-500">Paid invoices with unapproved commissions</p>
-        </CardContent>
-      </Card>
+      {/* Commission Flow Cards - Linear Row */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <Card className="bg-white shadow-lg hover:shadow-xl transition-shadow duration-200 border-0">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-gray-600">Unapproved Commissions</CardTitle>
+            <AlertCircle className="h-4 w-4 text-gray-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-gray-500">${unapprovedCommissions.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
+            <p className="text-xs text-gray-500">Pending client payment</p>
+          </CardContent>
+        </Card>
 
-      {/* Commission Cards */}
-      <Card className="bg-white shadow-lg hover:shadow-xl transition-shadow duration-200 border-0">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium text-gray-600">Paid Commissions</CardTitle>
-          <CheckCircle className="h-4 w-4 text-green-600" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold text-green-600">${paidCommissions.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
-          <p className="text-xs text-gray-500">Transactions marked paid</p>
-        </CardContent>
-      </Card>
+        <Card className="bg-white shadow-lg hover:shadow-xl transition-shadow duration-200 border-0">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-gray-600">Qualified Commissions</CardTitle>
+            <Calendar className="h-4 w-4 text-orange-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-red-600">${qualifiedCommissions.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
+            <p className="text-xs text-gray-500">Paid invoices with unapproved commissions</p>
+          </CardContent>
+        </Card>
 
-      <Card className="bg-white shadow-lg hover:shadow-xl transition-shadow duration-200 border-0">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium text-gray-600">Approved Commissions</CardTitle>
-          <Clock className="h-4 w-4 text-amber-600" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold text-amber-600">${approvedUnpaidCommissions.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
-          <p className="text-xs text-gray-500">Approved but unpaid</p>
-        </CardContent>
-      </Card>
+        <Card className="bg-white shadow-lg hover:shadow-xl transition-shadow duration-200 border-0">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-gray-600">Approved Commissions</CardTitle>
+            <Clock className="h-4 w-4 text-amber-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-amber-600">${approvedUnpaidCommissions.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
+            <p className="text-xs text-gray-500">Approved but unpaid</p>
+          </CardContent>
+        </Card>
 
-      <Card className="bg-white shadow-lg hover:shadow-xl transition-shadow duration-200 border-0">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium text-gray-600">Unapproved Commissions</CardTitle>
-          <AlertCircle className="h-4 w-4 text-gray-600" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold text-gray-500">${unapprovedCommissions.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
-          <p className="text-xs text-gray-500">Pending client payment</p>
-        </CardContent>
-      </Card>
+        <Card className="bg-white shadow-lg hover:shadow-xl transition-shadow duration-200 border-0">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-gray-600">Paid Commissions</CardTitle>
+            <CheckCircle className="h-4 w-4 text-green-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-green-600">${paidCommissions.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
+            <p className="text-xs text-gray-500">Transactions marked paid</p>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 };
