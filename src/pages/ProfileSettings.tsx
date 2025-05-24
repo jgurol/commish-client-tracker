@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { Separator } from "@/components/ui/separator";
-import { User, Mail, Shield } from "lucide-react";
+import { User, Mail, Shield, Building } from "lucide-react";
 
 export default function ProfileSettings() {
   const { user, isAdmin, refreshUserProfile } = useAuth();
@@ -19,6 +19,7 @@ export default function ProfileSettings() {
     email: "",
     role: ""
   });
+  const [associatedCompany, setAssociatedCompany] = useState<string>("");
 
   useEffect(() => {
     if (user) {
@@ -32,7 +33,7 @@ export default function ProfileSettings() {
     try {
       const { data, error } = await supabase
         .from('profiles')
-        .select('full_name, email, role')
+        .select('full_name, email, role, associated_agent_id')
         .eq('id', user.id)
         .single();
 
@@ -47,9 +48,37 @@ export default function ProfileSettings() {
           email: data.email || user.email || "",
           role: data.role || ""
         });
+
+        // Fetch associated agent's company name if user has an associated agent
+        if (data.associated_agent_id) {
+          fetchAssociatedCompany(data.associated_agent_id);
+        }
       }
     } catch (error) {
       console.error('Error in profile fetch:', error);
+    }
+  };
+
+  const fetchAssociatedCompany = async (agentId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('agents')
+        .select('company_name, first_name, last_name')
+        .eq('id', agentId)
+        .single();
+
+      if (error) {
+        console.error('Error fetching associated company:', error);
+        return;
+      }
+
+      if (data) {
+        // Use company name if available, otherwise use agent's full name
+        const companyName = data.company_name || `${data.first_name} ${data.last_name}`;
+        setAssociatedCompany(companyName);
+      }
+    } catch (error) {
+      console.error('Error fetching associated company:', error);
     }
   };
 
@@ -183,6 +212,20 @@ export default function ProfileSettings() {
                 {profile.role || 'Loading...'}
               </span>
             </div>
+
+            {associatedCompany && (
+              <>
+                <Separator />
+                
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Building className="h-4 w-4 text-gray-500" />
+                    <span className="text-sm font-medium">Associated Company:</span>
+                  </div>
+                  <span className="text-sm text-gray-600">{associatedCompany}</span>
+                </div>
+              </>
+            )}
           </CardContent>
         </Card>
       </div>
