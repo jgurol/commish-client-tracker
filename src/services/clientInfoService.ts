@@ -29,7 +29,8 @@ export const clientInfoService = {
       id: c.id,
       company_name: c.company_name,
       user_id: c.user_id,
-      agent_id: c.agent_id
+      agent_id: c.agent_id,
+      revio_id: c.revio_id
     })));
     
     return data || [];
@@ -71,6 +72,7 @@ export const clientInfoService = {
         phone: clientInfoToUpdate.phone,
         address: clientInfoToUpdate.address,
         notes: clientInfoToUpdate.notes,
+        revio_id: clientInfoToUpdate.revio_id,
         agent_id: clientInfoToUpdate.agent_id
       })
       .eq('id', clientInfoToUpdate.id)

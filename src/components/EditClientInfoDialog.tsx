@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -32,6 +31,7 @@ export const EditClientInfoDialog = ({
   const [companyName, setCompanyName] = useState(clientInfo.company_name);
   const [address, setAddress] = useState(clientInfo.address || "");
   const [notes, setNotes] = useState(clientInfo.notes || "");
+  const [revioId, setRevioId] = useState(clientInfo.revio_id || "");
   const [agentId, setAgentId] = useState<string | null>(clientInfo.agent_id || null);
   const [agents, setAgents] = useState<Agent[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -49,6 +49,7 @@ export const EditClientInfoDialog = ({
     setCompanyName(clientInfo.company_name);
     setAddress(clientInfo.address || "");
     setNotes(clientInfo.notes || "");
+    setRevioId(clientInfo.revio_id || "");
     setAgentId(clientInfo.agent_id || null);
   }, [clientInfo]);
 
@@ -85,6 +86,7 @@ export const EditClientInfoDialog = ({
           phone: clientInfo.phone,
           address: address || null,
           notes: notes || null,
+          revio_id: revioId || null,
           agent_id: agentId === "none" ? null : agentId
         });
         onOpenChange(false);
@@ -123,6 +125,15 @@ export const EditClientInfoDialog = ({
               value={address}
               onChange={(e) => setAddress(e.target.value)}
               placeholder="Enter address"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="edit-revioId">Revio ID</Label>
+            <Input
+              id="edit-revioId"
+              value={revioId}
+              onChange={(e) => setRevioId(e.target.value)}
+              placeholder="Enter Revio accounting system ID"
             />
           </div>
           <div className="space-y-2">

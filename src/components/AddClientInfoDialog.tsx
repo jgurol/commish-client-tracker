@@ -26,6 +26,7 @@ export const AddClientInfoDialog = ({ open, onOpenChange, onAddClientInfo }: Add
   const [companyName, setCompanyName] = useState("");
   const [address, setAddress] = useState("");
   const [notes, setNotes] = useState("");
+  const [revioId, setRevioId] = useState("");
   const [agentId, setAgentId] = useState<string | null>(null);
   const [agents, setAgents] = useState<Agent[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -70,6 +71,7 @@ export const AddClientInfoDialog = ({ open, onOpenChange, onAddClientInfo }: Add
           phone: null,
           address: address || null,
           notes: notes || null,
+          revio_id: revioId || null,
           agent_id: agentId === "none" ? null : agentId
         });
         resetForm();
@@ -86,6 +88,7 @@ export const AddClientInfoDialog = ({ open, onOpenChange, onAddClientInfo }: Add
     setCompanyName("");
     setAddress("");
     setNotes("");
+    setRevioId("");
     setAgentId(null);
   };
 
@@ -119,6 +122,15 @@ export const AddClientInfoDialog = ({ open, onOpenChange, onAddClientInfo }: Add
               value={address}
               onChange={(e) => setAddress(e.target.value)}
               placeholder="Enter address"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="revioId">Revio ID</Label>
+            <Input
+              id="revioId"
+              value={revioId}
+              onChange={(e) => setRevioId(e.target.value)}
+              placeholder="Enter Revio accounting system ID"
             />
           </div>
           <div className="space-y-2">
