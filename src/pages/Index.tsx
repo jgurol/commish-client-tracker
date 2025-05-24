@@ -1,10 +1,9 @@
 
-import { useState, useEffect } from "react";
-import { Header } from "@/components/Header";
-import { StatsCards } from "@/components/StatsCards";
-import { RecentTransactions } from "@/components/RecentTransactions";
-import { CommissionChart } from "@/components/CommissionChart";
+
+import { IndexPageLayout } from "@/components/IndexPageLayout";
 import { useIndexData } from "@/hooks/useIndexData";
+import { useTransactionActions } from "@/hooks/useTransactionActions";
+import { useClientActions } from "@/hooks/useClientActions";
 
 // Define the Client type (for agents)
 export interface Client {
@@ -60,31 +59,42 @@ export interface ClientInfo {
 
 const Index = () => {
   const {
-    totalClients,
-    totalRevenue,
-    totalCommissions,
-    recentTransactions,
-    commissionData,
+    clients,
+    transactions,
+    clientInfos,
     isLoading,
+    associatedAgentId,
+    fetchClients,
+    fetchTransactions,
+    fetchClientInfos
   } = useIndexData();
 
+  const {
+    addTransaction,
+    updateTransaction,
+    approveCommission,
+    payCommission,
+    deleteTransaction
+  } = useTransactionActions();
+
+  const { addClient } = useClientActions();
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
-      <div className="container mx-auto px-4 py-8 max-w-7xl">
-        <Header />
-        <StatsCards
-          totalClients={totalClients}
-          totalRevenue={totalRevenue}
-          totalCommissions={totalCommissions}
-          isLoading={isLoading}
-        />
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <RecentTransactions transactions={recentTransactions} isLoading={isLoading} />
-          <CommissionChart commissionData={commissionData} isLoading={isLoading} />
-        </div>
-      </div>
-    </div>
+    <IndexPageLayout
+      clients={clients}
+      transactions={transactions}
+      clientInfos={clientInfos}
+      associatedAgentId={associatedAgentId}
+      onAddClient={addClient}
+      onAddTransaction={addTransaction}
+      onUpdateTransaction={updateTransaction}
+      onApproveCommission={approveCommission}
+      onPayCommission={payCommission}
+      onDeleteTransaction={deleteTransaction}
+      onFetchClients={fetchClients}
+    />
   );
 };
 
 export default Index;
+
