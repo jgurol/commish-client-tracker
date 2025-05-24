@@ -1,5 +1,3 @@
-
-
 import { IndexPageLayout } from "@/components/IndexPageLayout";
 import { useIndexData } from "@/hooks/useIndexData";
 import { useTransactionActions } from "@/hooks/useTransactionActions";
@@ -60,8 +58,11 @@ export interface ClientInfo {
 const Index = () => {
   const {
     clients,
+    setClients,
     transactions,
+    setTransactions,
     clientInfos,
+    setClientInfos,
     isLoading,
     associatedAgentId,
     fetchClients,
@@ -77,7 +78,7 @@ const Index = () => {
     deleteTransaction
   } = useTransactionActions();
 
-  const { addClient } = useClientActions();
+  const { addClient } = useClientActions(clients, setClients, fetchClients);
 
   return (
     <IndexPageLayout
@@ -97,4 +98,3 @@ const Index = () => {
 };
 
 export default Index;
-
