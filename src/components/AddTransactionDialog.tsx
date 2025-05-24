@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -88,7 +89,7 @@ export const AddTransactionDialog = ({ open, onOpenChange, onAddTransaction, cli
           amount: parseFloat(amount),
           date,
           description: description || "",
-          datePaid: datePaid || undefined,
+          datePaid: isPaid ? datePaid || undefined : undefined,
           paymentMethod,
           referenceNumber: referenceNumber || undefined,
           invoiceMonth: invoiceMonth || undefined,
