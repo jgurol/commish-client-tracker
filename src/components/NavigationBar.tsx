@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
@@ -23,7 +24,7 @@ export function NavigationBar() {
           <img 
             src="/lovable-uploads/fee4c43f-953a-49cd-8b4e-cf0ef70a70bd.png" 
             alt="California Telecom" 
-            className="h-8 w-auto"
+            className="h-12 w-auto"
           />
         </Link>
 
