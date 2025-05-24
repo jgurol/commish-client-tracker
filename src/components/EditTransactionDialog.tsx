@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -19,15 +18,15 @@ interface EditTransactionDialogProps {
   clientInfos: ClientInfo[];
 }
 
-// Helper function to format date for input field (YYYY-MM-DD)
+// Helper function to format date for input field (YYYY-MM-DD) - handles local timezone
 const formatDateForInput = (dateString: string | undefined): string => {
   if (!dateString) return "";
   
-  // If it's already a date object or ISO string, format it
-  const date = new Date(dateString);
+  // Parse the date string and create a local date
+  const date = new Date(dateString + 'T00:00:00');
   if (isNaN(date.getTime())) return "";
   
-  // Get local date components to avoid timezone issues
+  // Format as YYYY-MM-DD for input field
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, '0');
   const day = String(date.getDate()).padStart(2, '0');
@@ -35,24 +34,19 @@ const formatDateForInput = (dateString: string | undefined): string => {
   return `${year}-${month}-${day}`;
 };
 
-// Helper function to create a local date string from input
+// Helper function to create a local date string from input (keeps it in YYYY-MM-DD format)
 const createLocalDateString = (inputValue: string): string => {
   if (!inputValue) return "";
-  
-  // Input is in YYYY-MM-DD format, create a local date
-  const [year, month, day] = inputValue.split('-').map(Number);
-  const date = new Date(year, month - 1, day); // month is 0-indexed
-  
-  return date.toISOString().split('T')[0]; // Return YYYY-MM-DD format
+  return inputValue; // Keep the YYYY-MM-DD format as is
 };
 
 export const EditTransactionDialog = ({ transaction, open, onOpenChange, onUpdateTransaction, clients, clientInfos }: EditTransactionDialogProps) => {
   const [clientId, setClientId] = useState("");
   const [clientInfoId, setClientInfoId] = useState("");
   const [amount, setAmount] = useState("");
-  const [date, setDate] = useState("");
+  const [date, setDate] = useState(""); // Main transaction date
   const [description, setDescription] = useState("");
-  const [datePaid, setDatePaid] = useState("");
+  const [datePaid, setDatePaid] = useState(""); // Invoice paid date - separate from transaction date
   const [paymentMethod, setPaymentMethod] = useState("check");
   const [referenceNumber, setReferenceNumber] = useState("");
   const [invoiceMonth, setInvoiceMonth] = useState("");
@@ -72,9 +66,9 @@ export const EditTransactionDialog = ({ transaction, open, onOpenChange, onUpdat
       setClientId(transaction.clientId);
       setClientInfoId(transaction.clientInfoId || "none");
       setAmount(transaction.amount.toString());
-      setDate(formatDateForInput(transaction.date));
+      setDate(formatDateForInput(transaction.date)); // Main transaction date
       setDescription(transaction.description);
-      setDatePaid(formatDateForInput(transaction.datePaid));
+      setDatePaid(formatDateForInput(transaction.datePaid)); // Invoice paid date
       setPaymentMethod(transaction.paymentMethod || "unpaid");
       setReferenceNumber(transaction.referenceNumber || "");
       setInvoiceMonth(transaction.invoiceMonth || "");
@@ -119,9 +113,9 @@ export const EditTransactionDialog = ({ transaction, open, onOpenChange, onUpdat
           clientName: selectedClient.name,
           companyName: selectedClient.companyName || selectedClient.name,
           amount: parseFloat(amount),
-          date: createLocalDateString(date),
+          date: createLocalDateString(date), // Main transaction date
           description: description || "",
-          datePaid: isPaid && datePaid ? createLocalDateString(datePaid) : undefined,
+          datePaid: isPaid && datePaid ? createLocalDateString(datePaid) : undefined, // Invoice paid date
           paymentMethod,
           referenceNumber: referenceNumber || undefined,
           invoiceMonth: invoiceMonth || undefined,
@@ -152,9 +146,9 @@ export const EditTransactionDialog = ({ transaction, open, onOpenChange, onUpdat
           clientName: selectedClient.name,
           companyName: selectedClient.companyName || selectedClient.name,
           amount: parseFloat(amount),
-          date: createLocalDateString(date),
+          date: createLocalDateString(date), // Main transaction date
           description: description || "",
-          datePaid: isPaid && datePaid ? createLocalDateString(datePaid) : undefined,
+          datePaid: isPaid && datePaid ? createLocalDateString(datePaid) : undefined, // Invoice paid date
           paymentMethod,
           referenceNumber: referenceNumber || undefined,
           invoiceMonth: invoiceMonth || undefined,
