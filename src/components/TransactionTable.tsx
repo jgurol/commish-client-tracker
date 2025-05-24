@@ -1,5 +1,4 @@
 
-
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CheckCircle, Clock, DollarSign, Pencil, Trash2 } from "lucide-react";
@@ -181,6 +180,13 @@ export const TransactionTable = ({
                       )}
                     </div>
                     
+                    {/* Commission Status Badge */}
+                    {transaction.isApproved && (
+                      <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200 w-fit">
+                        Approved
+                      </Badge>
+                    )}
+                    
                     {/* Payment Method Badge - moved here from Invoice column */}
                     {transaction.paymentMethod && transaction.isPaid && transaction.paymentMethod !== "unpaid" && (
                       <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200 w-fit">
@@ -276,4 +282,3 @@ export const TransactionTable = ({
     </>
   );
 };
-
