@@ -22,7 +22,7 @@ export function NavigationBar() {
       <div className="container mx-auto flex justify-between items-center">
         <Link to="/" className="flex items-center gap-3">
           <img 
-            src="/lovable-uploads/fee4c43f-953a-49cd-8b4e-cf0ef70a70bd.png" 
+            src="/lovable-uploads/7d6b9f8c-8f4e-44f2-9863-627836260cf9.png" 
             alt="California Telecom" 
             className="h-12 w-auto"
           />
