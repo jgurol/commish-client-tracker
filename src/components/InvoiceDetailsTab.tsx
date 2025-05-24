@@ -1,4 +1,3 @@
-
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -112,6 +111,19 @@ export const InvoiceDetailsTab = ({
           Invoice has been paid
         </Label>
       </div>
+
+      {/* Show date paid input only when isPaid is true */}
+      {isPaid && (
+        <div className="space-y-2">
+          <Label htmlFor="datePaid">Date Paid</Label>
+          <Input
+            id="datePaid"
+            type="date"
+            value={datePaid}
+            onChange={(e) => setDatePaid(e.target.value)}
+          />
+        </div>
+      )}
     </div>
   );
 };
