@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
@@ -42,7 +41,7 @@ export function NavigationBar() {
             <NavigationMenuItem>
               <NavigationMenuTrigger>System Settings</NavigationMenuTrigger>
               <NavigationMenuContent>
-                <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2 lg:w-[600px]">
+                <ul className="grid w-[300px] gap-3 p-4">
                   <ListItem href="/settings/profile" title="Profile Settings" Icon={Settings}>
                     Manage your account preferences and personal information
                   </ListItem>
