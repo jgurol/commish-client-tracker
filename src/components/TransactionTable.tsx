@@ -68,8 +68,8 @@ export const TransactionTable = ({
       <Table>
         <TableHeader>
           <TableRow className="bg-gray-50">
-            <TableHead className="font-semibold">Client</TableHead>
-            <TableHead className="font-semibold">Company</TableHead>
+            <TableHead className="font-semibold">Client Company</TableHead>
+            <TableHead className="font-semibold">Agent</TableHead>
             <TableHead className="font-semibold">Amount</TableHead>
             <TableHead className="font-semibold">Date</TableHead>
             <TableHead className="font-semibold">Invoice</TableHead>
@@ -82,21 +82,31 @@ export const TransactionTable = ({
             <TableRow key={transaction.id} className="hover:bg-gray-50">
               <TableCell>
                 <div>
-                  <div className="font-medium text-gray-900">{transaction.clientName}</div>
-                  <div className="text-sm text-gray-500 truncate max-w-[200px]">
-                    {transaction.description}
+                  <div className="font-medium text-gray-900">
+                    {transaction.clientInfoId && transaction.clientInfoId !== "none" 
+                      ? (transaction.clientCompanyName || clientInfos.find(ci => ci.id === transaction.clientInfoId)?.company_name || "N/A")
+                      : "No Client Company"
+                    }
                   </div>
+                  {transaction.clientInfoId && transaction.clientInfoId !== "none" && (
+                    <div className="text-xs text-gray-500">
+                      Contact: {clientInfos.find(ci => ci.id === transaction.clientInfoId)?.contact_name || "N/A"}
+                    </div>
+                  )}
+                  {transaction.description && (
+                    <div className="text-sm text-gray-500 truncate max-w-[200px] mt-1">
+                      {transaction.description}
+                    </div>
+                  )}
                 </div>
               </TableCell>
               
               <TableCell>
                 <div>
                   <div className="font-medium">{transaction.companyName}</div>
-                  {transaction.clientInfoId && transaction.clientInfoId !== "none" && (
-                    <div className="text-xs text-gray-500">
-                      Client: {transaction.clientCompanyName || clientInfos.find(ci => ci.id === transaction.clientInfoId)?.company_name || "N/A"}
-                    </div>
-                  )}
+                  <div className="text-xs text-gray-500">
+                    Agent: {transaction.clientName}
+                  </div>
                 </div>
               </TableCell>
               
