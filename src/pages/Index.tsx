@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Header } from "@/components/Header";
 import { StatsCards } from "@/components/StatsCards";
@@ -5,6 +6,43 @@ import { RecentTransactions } from "@/components/RecentTransactions";
 import { CommissionChart } from "@/components/CommissionChart";
 import { useIndexData } from "@/hooks/useIndexData";
 
+// Define the Client type (for agents)
+export interface Client {
+  id: string;
+  firstName: string;
+  lastName: string;
+  name: string;
+  email: string;
+  companyName: string | null;
+  commissionRate: number;
+  totalEarnings: number;
+  lastPayment: string;
+}
+
+// Define the Transaction type (transformed from database)
+export interface Transaction {
+  id: string;
+  clientId: string;
+  clientName: string;
+  companyName: string;
+  amount: number;
+  date: string;
+  description: string;
+  datePaid?: string;
+  paymentMethod?: string;
+  referenceNumber?: string;
+  invoiceMonth?: string;
+  invoiceYear?: string;
+  invoiceNumber?: string;
+  isPaid?: boolean;
+  commission?: number;
+  isApproved?: boolean;
+  clientInfoId?: string;
+  clientCompanyName?: string;
+  commissionPaidDate?: string;
+}
+
+// Define the ClientInfo type
 export interface ClientInfo {
   id: string;
   user_id: string;
@@ -16,25 +54,6 @@ export interface ClientInfo {
   notes: string | null;
   revio_id: string | null;
   agent_id: string | null;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface Transaction {
-  id: string;
-  date: string;
-  description: string;
-  amount: number;
-  commission: number | null;
-  is_paid: boolean | null;
-  date_paid: string | null;
-  payment_method: string | null;
-  reference_number: string | null;
-  invoice_number: string | null;
-  invoice_month: string | null;
-  invoice_year: string | null;
-  client_id: string;
-  user_id: string;
   created_at: string;
   updated_at: string;
 }
