@@ -102,6 +102,9 @@ export const InvoiceDetailsTab = ({
             setIsPaid(checked === true);
             if (checked === true && !datePaid) {
               setDatePaid(new Date().toISOString().split('T')[0]);
+            } else if (checked === false) {
+              // Clear the paid date when unchecking
+              setDatePaid("");
             }
           }}
         />
