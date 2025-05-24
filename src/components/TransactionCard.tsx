@@ -183,10 +183,10 @@ export const TransactionCard = ({
                 <Button 
                   size="sm" 
                   variant="outline" 
-                  className="text-xs h-7 border-red-200 text-red-700 hover:bg-red-50"
+                  className="text-xs h-7 text-red-600 border-red-200 hover:bg-red-50"
                   onClick={handleDeleteTransaction}
                 >
-                  <Trash2 className="w-3 h-3 mr-1" /> Delete
+                  <Trash2 className="w-3 h-3 mr-1 text-red-600" /> Delete
                 </Button>
               )}
             </div>

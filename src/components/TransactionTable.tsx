@@ -227,7 +227,7 @@ export const TransactionTable = ({
                       <Button 
                         variant="ghost" 
                         size="sm" 
-                        className="text-gray-500 hover:text-red-600 h-8 w-8 p-0"
+                        className="text-red-600 hover:text-red-700 hover:bg-red-50 h-8 w-8 p-0"
                         onClick={() => handleDeleteTransaction(transaction.id)}
                       >
                         <Trash2 className="w-4 h-4" />
