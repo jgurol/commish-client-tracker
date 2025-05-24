@@ -5,11 +5,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Transaction, Client, ClientInfo } from "@/pages/Index";
+import { BasicInfoTab } from "./BasicInfoTab";
+import { InvoiceDetailsTab } from "./InvoiceDetailsTab";
+import { PaymentTab } from "./PaymentTab";
 
 interface AddTransactionDialogProps {
   open: boolean;
@@ -34,29 +34,14 @@ export const AddTransactionDialog = ({ open, onOpenChange, onAddTransaction, cli
   const [isPaid, setIsPaid] = useState(false);
   const [commissionPaidDate, setCommissionPaidDate] = useState("");
   const [commissionOverride, setCommissionOverride] = useState("");
+  const [isApproved, setIsApproved] = useState(false);
   
   // Debug logging
   console.log("[AddTransactionDialog] Available agents:", clients);
   console.log("[AddTransactionDialog] Available clients:", clientInfos);
   
-  // Array for month names - needed for display
-  const months = [
-    { value: "1", label: "January" },
-    { value: "2", label: "February" },
-    { value: "3", label: "March" },
-    { value: "4", label: "April" },
-    { value: "5", label: "May" },
-    { value: "6", label: "June" },
-    { value: "7", label: "July" },
-    { value: "8", label: "August" },
-    { value: "9", label: "September" },
-    { value: "10", label: "October" },
-    { value: "11", label: "November" },
-    { value: "12", label: "December" },
-  ];
-  
-  const currentYear = new Date().getFullYear();
-  const years = Array.from({ length: 5 }, (_, i) => currentYear - 2 + i);
+  // Filter client infos based on selected agent
+  const [filteredClientInfos, setFilteredClientInfos] = useState<ClientInfo[]>(clientInfos);
 
   // Handle client selection - auto-select agent based on client's agent_id
   useEffect(() => {
@@ -76,6 +61,15 @@ export const AddTransactionDialog = ({ open, onOpenChange, onAddTransaction, cli
       setClientId("");
     }
   }, [clientInfoId, clientInfos]);
+
+  // Update filtered client infos when agent changes
+  useEffect(() => {
+    if (clientId) {
+      setFilteredClientInfos(clientInfos.filter(info => !info.agent_id || info.agent_id === clientId));
+    } else {
+      setFilteredClientInfos(clientInfos);
+    }
+  }, [clientId, clientInfos]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -105,7 +99,8 @@ export const AddTransactionDialog = ({ open, onOpenChange, onAddTransaction, cli
           clientInfoId: clientInfoId !== "none" ? clientInfoId : undefined,
           clientCompanyName: selectedClientInfo?.company_name,
           commissionPaidDate: commissionPaidDate || undefined,
-          commissionOverride: commissionOverride ? parseFloat(commissionOverride) : undefined
+          commissionOverride: commissionOverride ? parseFloat(commissionOverride) : undefined,
+          isApproved
         });
         
         // Reset form
@@ -123,6 +118,7 @@ export const AddTransactionDialog = ({ open, onOpenChange, onAddTransaction, cli
         setIsPaid(false);
         setCommissionPaidDate("");
         setCommissionOverride("");
+        setIsApproved(false);
         onOpenChange(false);
       }
     }
@@ -158,246 +154,156 @@ export const AddTransactionDialog = ({ open, onOpenChange, onAddTransaction, cli
               <TabsTrigger value="payment">Payment</TabsTrigger>
             </TabsList>
             
-            <TabsContent value="basic" className="space-y-4">
-              {/* Client Selection - Primary selection */}
-              <div className="space-y-2">
-                <Label htmlFor="clientInfo">Client Company (Required)</Label>
-                <Select value={clientInfoId} onValueChange={setClientInfoId} required>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a client company" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {clientInfos.length === 0 ? (
-                      <SelectItem value="no-clients" disabled>
-                        No clients available - Add clients first
-                      </SelectItem>
-                    ) : (
-                      clientInfos.map((clientInfo) => (
-                        <SelectItem key={clientInfo.id} value={clientInfo.id}>
-                          {clientInfo.company_name}
-                          {clientInfo.commission_override && (
-                            <span className="text-xs text-blue-600 ml-2">
-                              ({clientInfo.commission_override}% override)
-                            </span>
-                          )}
-                        </SelectItem>
-                      ))
-                    )}
-                  </SelectContent>
-                </Select>
-                {clientInfoId && clientInfoId !== "none" && (
-                  <div className="text-xs text-gray-500">
-                    Contact: {clientInfos.find(ci => ci.id === clientInfoId)?.contact_name || "N/A"}
-                  </div>
-                )}
-              </div>
-
-              {/* Agent Display - Shows auto-selected agent */}
-              {selectedAgent && (
+            <TabsContent value="basic">
+              <div className="space-y-4">
+                {/* Client Selection - Primary selection */}
                 <div className="space-y-2">
-                  <Label>Associated Agent</Label>
-                  <div className="border rounded-md px-3 py-2 bg-muted text-muted-foreground">
-                    {selectedAgent.name} {selectedAgent.companyName && `(${selectedAgent.companyName})`}
-                    <div className="text-xs text-blue-600">
-                      Agent Rate: {selectedAgent.commissionRate}%
-                    </div>
-                  </div>
-                  <div className="text-xs text-green-600">
-                    ✓ Agent automatically selected based on client
-                  </div>
-                </div>
-              )}
-
-              {/* Commission Override */}
-              <div className="space-y-2">
-                <Label htmlFor="commissionOverride">Transaction Commission Override (%)</Label>
-                <Input
-                  id="commissionOverride"
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  max="100"
-                  value={commissionOverride}
-                  onChange={(e) => setCommissionOverride(e.target.value)}
-                  placeholder="Enter commission rate override (optional)"
-                />
-                <div className="text-xs text-gray-500">
-                  Optional. This will override both client and agent commission rates for this transaction.
-                  {effectiveRate && (
-                    <div className="mt-1 font-medium text-blue-600">
-                      Effective rate: {effectiveRate}%
+                  <Label htmlFor="clientInfo">Client Company (Required)</Label>
+                  <Select value={clientInfoId} onValueChange={setClientInfoId} required>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a client company" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {clientInfos.length === 0 ? (
+                        <SelectItem value="no-clients" disabled>
+                          No clients available - Add clients first
+                        </SelectItem>
+                      ) : (
+                        clientInfos.map((clientInfo) => (
+                          <SelectItem key={clientInfo.id} value={clientInfo.id}>
+                            {clientInfo.company_name}
+                            {clientInfo.commission_override && (
+                              <span className="text-xs text-blue-600 ml-2">
+                                ({clientInfo.commission_override}% override)
+                              </span>
+                            )}
+                          </SelectItem>
+                        ))
+                      )}
+                    </SelectContent>
+                  </Select>
+                  {clientInfoId && clientInfoId !== "none" && (
+                    <div className="text-xs text-gray-500">
+                      Contact: {clientInfos.find(ci => ci.id === clientInfoId)?.contact_name || "N/A"}
                     </div>
                   )}
                 </div>
-              </div>
 
-              {/* Warning if no agent is associated */}
-              {clientInfoId && clientInfoId !== "none" && !selectedAgent && (
-                <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-md">
-                  <div className="text-sm text-yellow-800">
-                    ⚠️ This client is not associated with any agent. Please associate this client with an agent first.
+                {/* Agent Display - Shows auto-selected agent */}
+                {selectedAgent && (
+                  <div className="space-y-2">
+                    <Label>Associated Agent</Label>
+                    <div className="border rounded-md px-3 py-2 bg-muted text-muted-foreground">
+                      {selectedAgent.name} {selectedAgent.companyName && `(${selectedAgent.companyName})`}
+                      <div className="text-xs text-blue-600">
+                        Agent Rate: {selectedAgent.commissionRate}%
+                      </div>
+                    </div>
+                    <div className="text-xs text-green-600">
+                      ✓ Agent automatically selected based on client
+                    </div>
+                  </div>
+                )}
+
+                {/* Commission Override */}
+                <div className="space-y-2">
+                  <Label htmlFor="commissionOverride">Transaction Commission Override (%)</Label>
+                  <Input
+                    id="commissionOverride"
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    max="100"
+                    value={commissionOverride}
+                    onChange={(e) => setCommissionOverride(e.target.value)}
+                    placeholder="Enter commission rate override (optional)"
+                  />
+                  <div className="text-xs text-gray-500">
+                    Optional. This will override both client and agent commission rates for this transaction.
+                    {effectiveRate && (
+                      <div className="mt-1 font-medium text-blue-600">
+                        Effective rate: {effectiveRate}%
+                      </div>
+                    )}
                   </div>
                 </div>
-              )}
 
-              <div className="space-y-2">
-                <Label htmlFor="amount">Amount ($)</Label>
-                <Input
-                  id="amount"
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  value={amount}
-                  onChange={(e) => setAmount(e.target.value)}
-                  placeholder="Enter amount"
-                  required
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="date">Transaction Date</Label>
-                <Input
-                  id="date"
-                  type="date"
-                  value={date}
-                  onChange={(e) => setDate(e.target.value)}
-                  required
-                />
-              </div>
+                {/* Warning if no agent is associated */}
+                {clientInfoId && clientInfoId !== "none" && !selectedAgent && (
+                  <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-md">
+                    <div className="text-sm text-yellow-800">
+                      ⚠️ This client is not associated with any agent. Please associate this client with an agent first.
+                    </div>
+                  </div>
+                )}
 
-              <div className="space-y-2">
-                <Label htmlFor="description">Description</Label>
-                <Textarea
-                  id="description"
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Enter transaction description"
-                  required
-                />
-              </div>
-            </TabsContent>
-            
-            <TabsContent value="invoice" className="space-y-4">
-              <div className="space-y-2">
-                <Label>Invoice Period</Label>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Select value={invoiceMonth} onValueChange={setInvoiceMonth}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Month" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {months.map((month) => (
-                          <SelectItem key={month.value} value={month.value}>
-                            {month.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Select value={invoiceYear} onValueChange={setInvoiceYear}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Year" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {years.map((year) => (
-                          <SelectItem key={year} value={year.toString()}>
-                            {year}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
+                <div className="space-y-2">
+                  <Label htmlFor="amount">Amount ($)</Label>
+                  <Input
+                    id="amount"
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={amount}
+                    onChange={(e) => setAmount(e.target.value)}
+                    placeholder="Enter amount"
+                    required
+                  />
                 </div>
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="invoiceNumber">Invoice Number</Label>
-                <Input
-                  id="invoiceNumber"
-                  value={invoiceNumber}
-                  onChange={(e) => setInvoiceNumber(e.target.value)}
-                  placeholder="Enter invoice number"
-                />
-              </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="date">Transaction Date</Label>
+                  <Input
+                    id="date"
+                    type="date"
+                    value={date}
+                    onChange={(e) => setDate(e.target.value)}
+                    required
+                  />
+                </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="commissionPaidDate">Commission Paid Date</Label>
-                <Input
-                  id="commissionPaidDate"
-                  type="date"
-                  value={commissionPaidDate}
-                  onChange={(e) => setCommissionPaidDate(e.target.value)}
-                  placeholder="Leave blank if not yet paid"
-                />
-                <div className="text-xs text-gray-500">
-                  Leave blank if the commission has not been paid yet
+                <div className="space-y-2">
+                  <Label htmlFor="description">Description</Label>
+                  <Input
+                    id="description"
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    placeholder="Enter transaction description"
+                    required
+                  />
                 </div>
               </div>
             </TabsContent>
             
-            <TabsContent value="payment" className="space-y-4">
-              <div className="flex items-center space-x-2 pt-2">
-                <Checkbox 
-                  id="isPaid" 
-                  checked={isPaid} 
-                  onCheckedChange={(checked) => {
-                    setIsPaid(checked === true);
-                    if (checked === true && !datePaid) {
-                      setDatePaid(new Date().toISOString().split('T')[0]);
-                    }
-                  }}
-                />
-                <Label htmlFor="isPaid" className="font-medium text-sm">
-                  Invoice has been paid
-                </Label>
-              </div>
-              
-              {isPaid && (
-                <>
-                  <div className="space-y-2">
-                    <Label htmlFor="datePaid">Date Paid</Label>
-                    <Input
-                      id="datePaid"
-                      type="date"
-                      value={datePaid}
-                      onChange={(e) => setDatePaid(e.target.value)}
-                      required={isPaid}
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label>Payment Method</Label>
-                    <RadioGroup 
-                      value={paymentMethod} 
-                      onValueChange={setPaymentMethod}
-                      className="flex gap-6"
-                    >
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="check" id="check" />
-                        <Label htmlFor="check">Check</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="zelle" id="zelle" />
-                        <Label htmlFor="zelle">Zelle</Label>
-                      </div>
-                    </RadioGroup>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="referenceNumber">
-                      {paymentMethod === "check" ? "Check Number" : "Zelle Reference"}
-                    </Label>
-                    <Input
-                      id="referenceNumber"
-                      value={referenceNumber}
-                      onChange={(e) => setReferenceNumber(e.target.value)}
-                      placeholder={paymentMethod === "check" ? "Enter check number" : "Enter Zelle reference"}
-                    />
-                  </div>
-                </>
-              )}
+            <TabsContent value="invoice">
+              <InvoiceDetailsTab
+                invoiceMonth={invoiceMonth}
+                setInvoiceMonth={setInvoiceMonth}
+                invoiceYear={invoiceYear}
+                setInvoiceYear={setInvoiceYear}
+                invoiceNumber={invoiceNumber}
+                setInvoiceNumber={setInvoiceNumber}
+                isPaid={isPaid}
+                setIsPaid={setIsPaid}
+                datePaid={datePaid}
+                setDatePaid={setDatePaid}
+              />
+            </TabsContent>
+            
+            <TabsContent value="payment">
+              <PaymentTab
+                isPaid={isPaid}
+                datePaid={datePaid}
+                setDatePaid={setDatePaid}
+                paymentMethod={paymentMethod}
+                setPaymentMethod={setPaymentMethod}
+                referenceNumber={referenceNumber}
+                setReferenceNumber={setReferenceNumber}
+                commissionPaidDate={commissionPaidDate}
+                setCommissionPaidDate={setCommissionPaidDate}
+                isApproved={isApproved}
+                setIsApproved={setIsApproved}
+              />
             </TabsContent>
           </Tabs>
           
