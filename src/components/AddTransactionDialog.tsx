@@ -73,7 +73,7 @@ export const AddTransactionDialog = ({ open, onOpenChange, onAddTransaction, cli
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (clientId && amount && date && description) {
+    if (clientId && amount && date) {
       const selectedClient = clients.find(client => client.id === clientId);
       const selectedClientInfo = clientInfoId && clientInfoId !== "none" ? clientInfos.find(info => info.id === clientInfoId) : null;
       
@@ -88,7 +88,7 @@ export const AddTransactionDialog = ({ open, onOpenChange, onAddTransaction, cli
           companyName: selectedClient.companyName || selectedClient.name,
           amount: parseFloat(amount),
           date,
-          description,
+          description: description || "",
           datePaid: datePaid || undefined,
           paymentMethod,
           referenceNumber: referenceNumber || undefined,
@@ -263,13 +263,12 @@ export const AddTransactionDialog = ({ open, onOpenChange, onAddTransaction, cli
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="description">Description</Label>
+                  <Label htmlFor="description">Description (Optional)</Label>
                   <Input
                     id="description"
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                     placeholder="Enter transaction description"
-                    required
                   />
                 </div>
               </div>

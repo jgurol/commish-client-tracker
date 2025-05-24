@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -81,7 +80,7 @@ export const EditTransactionDialog = ({ transaction, open, onOpenChange, onUpdat
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (transaction && clientId && amount && date && description) {
+    if (transaction && clientId && amount && date) {
       const selectedClient = clients.find(client => client.id === clientId);
       const selectedClientInfo = clientInfoId && clientInfoId !== "none" ? clientInfos.find(info => info.id === clientInfoId) : null;
       
@@ -93,7 +92,7 @@ export const EditTransactionDialog = ({ transaction, open, onOpenChange, onUpdat
           companyName: selectedClient.companyName || selectedClient.name,
           amount: parseFloat(amount),
           date,
-          description,
+          description: description || "",
           datePaid: datePaid || undefined,
           paymentMethod,
           referenceNumber: referenceNumber || undefined,

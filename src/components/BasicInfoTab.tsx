@@ -1,7 +1,6 @@
 
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Client, ClientInfo } from "@/pages/Index";
@@ -124,13 +123,12 @@ export const BasicInfoTab = ({
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="description">Description</Label>
-        <Textarea
+        <Label htmlFor="description">Description (Optional)</Label>
+        <Input
           id="description"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           placeholder="Enter transaction description"
-          required
         />
       </div>
     </div>
