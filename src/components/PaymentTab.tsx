@@ -38,21 +38,17 @@ export const PaymentTab = ({
     setReferenceNumber("");
   };
 
+  const handlePaymentMethodChange = (value: string) => {
+    setPaymentMethod(value);
+    if (value === "unpaid") {
+      setDatePaid("");
+    }
+  };
+
   return (
     <div className="space-y-4">
       {isPaid && (
         <>
-          <div className="space-y-2">
-            <Label htmlFor="datePaid">Date Paid</Label>
-            <Input
-              id="datePaid"
-              type="date"
-              value={datePaid}
-              onChange={(e) => setDatePaid(e.target.value)}
-              required={isPaid}
-            />
-          </div>
-
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <Label>Payment Method</Label>
@@ -72,9 +68,13 @@ export const PaymentTab = ({
             </div>
             <RadioGroup 
               value={paymentMethod} 
-              onValueChange={setPaymentMethod}
+              onValueChange={handlePaymentMethodChange}
               className="flex gap-6"
             >
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="unpaid" id="edit-unpaid" />
+                <Label htmlFor="edit-unpaid">Unpaid</Label>
+              </div>
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="check" id="edit-check" />
                 <Label htmlFor="edit-check">Check</Label>
@@ -85,8 +85,20 @@ export const PaymentTab = ({
               </div>
             </RadioGroup>
           </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="datePaid">Date Paid</Label>
+            <Input
+              id="datePaid"
+              type="date"
+              value={datePaid}
+              onChange={(e) => setDatePaid(e.target.value)}
+              required={isPaid}
+              disabled={paymentMethod === "unpaid"}
+            />
+          </div>
           
-          {paymentMethod && (
+          {paymentMethod && paymentMethod !== "unpaid" && (
             <div className="space-y-2">
               <Label htmlFor="referenceNumber">
                 {paymentMethod === "check" ? "Check Number" : "Zelle Reference"}
