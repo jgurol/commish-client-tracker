@@ -33,6 +33,11 @@ export const PaymentTab = ({
   isApproved,
   setIsApproved
 }: PaymentTabProps) => {
+  const handleClearPaymentMethod = () => {
+    setPaymentMethod("");
+    setReferenceNumber("");
+  };
+
   return (
     <div className="space-y-4">
       {isPaid && (
@@ -49,7 +54,22 @@ export const PaymentTab = ({
           </div>
 
           <div className="space-y-2">
-            <Label>Payment Method</Label>
+            <div className="flex items-center justify-between">
+              <Label>Payment Method</Label>
+              {paymentMethod && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={handleClearPaymentMethod}
+                  className="h-6 px-2 text-xs"
+                  title="Clear payment method"
+                >
+                  <X className="h-3 w-3 mr-1" />
+                  Clear
+                </Button>
+              )}
+            </div>
             <RadioGroup 
               value={paymentMethod} 
               onValueChange={setPaymentMethod}
@@ -66,17 +86,19 @@ export const PaymentTab = ({
             </RadioGroup>
           </div>
           
-          <div className="space-y-2">
-            <Label htmlFor="referenceNumber">
-              {paymentMethod === "check" ? "Check Number" : "Zelle Reference"}
-            </Label>
-            <Input
-              id="referenceNumber"
-              value={referenceNumber}
-              onChange={(e) => setReferenceNumber(e.target.value)}
-              placeholder={paymentMethod === "check" ? "Enter check number" : "Enter Zelle reference"}
-            />
-          </div>
+          {paymentMethod && (
+            <div className="space-y-2">
+              <Label htmlFor="referenceNumber">
+                {paymentMethod === "check" ? "Check Number" : "Zelle Reference"}
+              </Label>
+              <Input
+                id="referenceNumber"
+                value={referenceNumber}
+                onChange={(e) => setReferenceNumber(e.target.value)}
+                placeholder={paymentMethod === "check" ? "Enter check number" : "Enter Zelle reference"}
+              />
+            </div>
+          )}
         </>
       )}
 
