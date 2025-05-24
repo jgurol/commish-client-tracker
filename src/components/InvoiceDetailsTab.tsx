@@ -1,3 +1,4 @@
+
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -31,6 +32,15 @@ const months = [
   { value: "11", label: "November" },
   { value: "12", label: "December" },
 ];
+
+// Helper function to get today's date in local timezone as YYYY-MM-DD
+const getTodayLocalDate = (): string => {
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, '0');
+  const day = String(today.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
 
 export const InvoiceDetailsTab = ({
   invoiceMonth,
@@ -100,7 +110,7 @@ export const InvoiceDetailsTab = ({
           onCheckedChange={(checked) => {
             setIsPaid(checked === true);
             if (checked === true && !datePaid) {
-              setDatePaid(new Date().toISOString().split('T')[0]);
+              setDatePaid(getTodayLocalDate());
             } else if (checked === false) {
               // Clear the paid date when unchecking
               setDatePaid("");

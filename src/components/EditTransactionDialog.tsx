@@ -19,6 +19,33 @@ interface EditTransactionDialogProps {
   clientInfos: ClientInfo[];
 }
 
+// Helper function to format date for input field (YYYY-MM-DD)
+const formatDateForInput = (dateString: string | undefined): string => {
+  if (!dateString) return "";
+  
+  // If it's already a date object or ISO string, format it
+  const date = new Date(dateString);
+  if (isNaN(date.getTime())) return "";
+  
+  // Get local date components to avoid timezone issues
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  
+  return `${year}-${month}-${day}`;
+};
+
+// Helper function to create a local date string from input
+const createLocalDateString = (inputValue: string): string => {
+  if (!inputValue) return "";
+  
+  // Input is in YYYY-MM-DD format, create a local date
+  const [year, month, day] = inputValue.split('-').map(Number);
+  const date = new Date(year, month - 1, day); // month is 0-indexed
+  
+  return date.toISOString().split('T')[0]; // Return YYYY-MM-DD format
+};
+
 export const EditTransactionDialog = ({ transaction, open, onOpenChange, onUpdateTransaction, clients, clientInfos }: EditTransactionDialogProps) => {
   const [clientId, setClientId] = useState("");
   const [clientInfoId, setClientInfoId] = useState("");
@@ -45,16 +72,16 @@ export const EditTransactionDialog = ({ transaction, open, onOpenChange, onUpdat
       setClientId(transaction.clientId);
       setClientInfoId(transaction.clientInfoId || "none");
       setAmount(transaction.amount.toString());
-      setDate(transaction.date);
+      setDate(formatDateForInput(transaction.date));
       setDescription(transaction.description);
-      setDatePaid(transaction.datePaid || "");
+      setDatePaid(formatDateForInput(transaction.datePaid));
       setPaymentMethod(transaction.paymentMethod || "unpaid");
       setReferenceNumber(transaction.referenceNumber || "");
       setInvoiceMonth(transaction.invoiceMonth || "");
       setInvoiceYear(transaction.invoiceYear || "");
       setInvoiceNumber(transaction.invoiceNumber || "");
       setIsPaid(transaction.isPaid || false);
-      setCommissionPaidDate(transaction.commissionPaidDate || "");
+      setCommissionPaidDate(formatDateForInput(transaction.commissionPaidDate));
       setIsApproved(transaction.isApproved || false);
       setCommissionOverride(transaction.commissionOverride?.toString() || "");
     }
@@ -92,9 +119,9 @@ export const EditTransactionDialog = ({ transaction, open, onOpenChange, onUpdat
           clientName: selectedClient.name,
           companyName: selectedClient.companyName || selectedClient.name,
           amount: parseFloat(amount),
-          date,
+          date: createLocalDateString(date),
           description: description || "",
-          datePaid: isPaid ? datePaid || undefined : undefined,
+          datePaid: isPaid && datePaid ? createLocalDateString(datePaid) : undefined,
           paymentMethod,
           referenceNumber: referenceNumber || undefined,
           invoiceMonth: invoiceMonth || undefined,
@@ -105,7 +132,7 @@ export const EditTransactionDialog = ({ transaction, open, onOpenChange, onUpdat
           clientCompanyName: selectedClientInfo?.company_name,
           commission: transaction.commission,
           isApproved,
-          commissionPaidDate: commissionPaidDate || undefined,
+          commissionPaidDate: commissionPaidDate ? createLocalDateString(commissionPaidDate) : undefined,
           commissionOverride: commissionOverride ? parseFloat(commissionOverride) : undefined
         });
       }
@@ -125,9 +152,9 @@ export const EditTransactionDialog = ({ transaction, open, onOpenChange, onUpdat
           clientName: selectedClient.name,
           companyName: selectedClient.companyName || selectedClient.name,
           amount: parseFloat(amount),
-          date,
+          date: createLocalDateString(date),
           description: description || "",
-          datePaid: isPaid ? datePaid || undefined : undefined,
+          datePaid: isPaid && datePaid ? createLocalDateString(datePaid) : undefined,
           paymentMethod,
           referenceNumber: referenceNumber || undefined,
           invoiceMonth: invoiceMonth || undefined,
@@ -138,7 +165,7 @@ export const EditTransactionDialog = ({ transaction, open, onOpenChange, onUpdat
           clientCompanyName: selectedClientInfo?.company_name,
           commission: transaction.commission,
           isApproved,
-          commissionPaidDate: commissionPaidDate || undefined,
+          commissionPaidDate: commissionPaidDate ? createLocalDateString(commissionPaidDate) : undefined,
           commissionOverride: commissionOverride ? parseFloat(commissionOverride) : undefined
         });
         onOpenChange(false);
