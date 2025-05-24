@@ -13,20 +13,20 @@ interface AgentSummaryProps {
 }
 
 export function AgentSummary({ clients, transactions, isAdmin }: AgentSummaryProps) {
-  // Calculate commission due for each agent (approved but unpaid commissions)
-  const getCommissionDue = (agentId: string) => {
+  // Calculate total approved commissions for each agent (all approved commissions regardless of payment status)
+  const getTotalApprovedCommissions = (agentId: string) => {
     return transactions
-      .filter(t => t.clientId === agentId && t.isApproved && !t.commissionPaidDate)
+      .filter(t => t.clientId === agentId && t.isApproved)
       .reduce((sum, t) => sum + (t.commission || 0), 0);
   };
 
-  // Get top 3 agents by commission due
+  // Get top 3 agents by total approved commissions
   const topAgents = [...clients]
     .map(agent => ({
       ...agent,
-      commissionDue: getCommissionDue(agent.id)
+      totalApprovedCommissions: getTotalApprovedCommissions(agent.id)
     }))
-    .sort((a, b) => b.commissionDue - a.commissionDue)
+    .sort((a, b) => b.totalApprovedCommissions - a.totalApprovedCommissions)
     .slice(0, 3);
 
   return (
@@ -35,7 +35,7 @@ export function AgentSummary({ clients, transactions, isAdmin }: AgentSummaryPro
         <div className="flex justify-between items-center">
           <div>
             <CardTitle className="text-lg font-medium text-gray-900">Agent Summary</CardTitle>
-            <CardDescription>Top agents by commission due</CardDescription>
+            <CardDescription>Top agents by approved commissions</CardDescription>
           </div>
           <Link to="/agent-management">
             <Button variant="ghost" size="sm" className="text-blue-600 hover:text-blue-800 hover:bg-blue-50">
@@ -60,8 +60,8 @@ export function AgentSummary({ clients, transactions, isAdmin }: AgentSummaryPro
                   <p className="text-sm text-gray-500">{agent.companyName || 'Independent'}</p>
                 </div>
                 <div className="text-right">
-                  <span className="bg-amber-100 text-amber-800 text-xs font-medium px-2 py-1 rounded">
-                    ${agent.commissionDue.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} due
+                  <span className="bg-green-100 text-green-800 text-xs font-medium px-2 py-1 rounded">
+                    ${agent.totalApprovedCommissions.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} approved
                   </span>
                 </div>
               </div>
