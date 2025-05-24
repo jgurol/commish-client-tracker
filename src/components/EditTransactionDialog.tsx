@@ -18,26 +18,32 @@ interface EditTransactionDialogProps {
   clientInfos: ClientInfo[];
 }
 
-// Helper function to format date for input field (YYYY-MM-DD) - handles local timezone
+// Helper function to format date for input field (YYYY-MM-DD) - pure string handling
 const formatDateForInput = (dateString: string | undefined): string => {
   if (!dateString) return "";
   
-  // Parse the date string and create a local date
-  const date = new Date(dateString + 'T00:00:00');
+  // If it's already in YYYY-MM-DD format, return as is
+  if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
+    return dateString;
+  }
+  
+  // Handle other date formats by parsing without timezone conversion
+  const date = new Date(dateString);
   if (isNaN(date.getTime())) return "";
   
-  // Format as YYYY-MM-DD for input field
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
+  // Get UTC components to avoid any timezone shifts
+  const year = date.getUTCFullYear();
+  const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+  const day = String(date.getUTCDate()).padStart(2, '0');
   
   return `${year}-${month}-${day}`;
 };
 
-// Helper function to create a local date string from input (keeps it in YYYY-MM-DD format)
-const createLocalDateString = (inputValue: string): string => {
+// Helper function to create a date string from input (keeps it in YYYY-MM-DD format)
+const createDateString = (inputValue: string): string => {
   if (!inputValue) return "";
-  return inputValue; // Keep the YYYY-MM-DD format as is
+  // Ensure it's in YYYY-MM-DD format and return as-is
+  return inputValue;
 };
 
 export const EditTransactionDialog = ({ transaction, open, onOpenChange, onUpdateTransaction, clients, clientInfos }: EditTransactionDialogProps) => {
@@ -63,6 +69,10 @@ export const EditTransactionDialog = ({ transaction, open, onOpenChange, onUpdat
   // Update form values when transaction changes
   useEffect(() => {
     if (transaction) {
+      console.log("[EditTransactionDialog] Loading transaction:", transaction);
+      console.log("[EditTransactionDialog] Original transaction date:", transaction.date);
+      console.log("[EditTransactionDialog] Original date paid:", transaction.datePaid);
+      
       setClientId(transaction.clientId);
       setClientInfoId(transaction.clientInfoId || "none");
       setAmount(transaction.amount.toString());
@@ -78,6 +88,9 @@ export const EditTransactionDialog = ({ transaction, open, onOpenChange, onUpdat
       setCommissionPaidDate(formatDateForInput(transaction.commissionPaidDate));
       setIsApproved(transaction.isApproved || false);
       setCommissionOverride(transaction.commissionOverride?.toString() || "");
+      
+      console.log("[EditTransactionDialog] Formatted transaction date:", formatDateForInput(transaction.date));
+      console.log("[EditTransactionDialog] Formatted date paid:", formatDateForInput(transaction.datePaid));
     }
   }, [transaction]);
 
@@ -106,6 +119,9 @@ export const EditTransactionDialog = ({ transaction, open, onOpenChange, onUpdat
       const selectedClient = clients.find(client => client.id === clientId);
       const selectedClientInfo = clientInfoId && clientInfoId !== "none" ? clientInfos.find(info => info.id === clientInfoId) : null;
       
+      console.log("[EditTransactionDialog] Immediate update - transaction date:", date);
+      console.log("[EditTransactionDialog] Immediate update - date paid:", datePaid);
+      
       if (selectedClient) {
         onUpdateTransaction({
           id: transaction.id,
@@ -113,9 +129,9 @@ export const EditTransactionDialog = ({ transaction, open, onOpenChange, onUpdat
           clientName: selectedClient.name,
           companyName: selectedClient.companyName || selectedClient.name,
           amount: parseFloat(amount),
-          date: createLocalDateString(date), // Main transaction date
+          date: createDateString(date), // Main transaction date
           description: description || "",
-          datePaid: isPaid && datePaid ? createLocalDateString(datePaid) : undefined, // Invoice paid date
+          datePaid: isPaid && datePaid ? createDateString(datePaid) : undefined, // Invoice paid date
           paymentMethod,
           referenceNumber: referenceNumber || undefined,
           invoiceMonth: invoiceMonth || undefined,
@@ -126,7 +142,7 @@ export const EditTransactionDialog = ({ transaction, open, onOpenChange, onUpdat
           clientCompanyName: selectedClientInfo?.company_name,
           commission: transaction.commission,
           isApproved,
-          commissionPaidDate: commissionPaidDate ? createLocalDateString(commissionPaidDate) : undefined,
+          commissionPaidDate: commissionPaidDate ? createDateString(commissionPaidDate) : undefined,
           commissionOverride: commissionOverride ? parseFloat(commissionOverride) : undefined
         });
       }
@@ -139,6 +155,9 @@ export const EditTransactionDialog = ({ transaction, open, onOpenChange, onUpdat
       const selectedClient = clients.find(client => client.id === clientId);
       const selectedClientInfo = clientInfoId && clientInfoId !== "none" ? clientInfos.find(info => info.id === clientInfoId) : null;
       
+      console.log("[EditTransactionDialog] Submit - transaction date:", date);
+      console.log("[EditTransactionDialog] Submit - date paid:", datePaid);
+      
       if (selectedClient) {
         onUpdateTransaction({
           id: transaction.id,
@@ -146,9 +165,9 @@ export const EditTransactionDialog = ({ transaction, open, onOpenChange, onUpdat
           clientName: selectedClient.name,
           companyName: selectedClient.companyName || selectedClient.name,
           amount: parseFloat(amount),
-          date: createLocalDateString(date), // Main transaction date
+          date: createDateString(date), // Main transaction date
           description: description || "",
-          datePaid: isPaid && datePaid ? createLocalDateString(datePaid) : undefined, // Invoice paid date
+          datePaid: isPaid && datePaid ? createDateString(datePaid) : undefined, // Invoice paid date
           paymentMethod,
           referenceNumber: referenceNumber || undefined,
           invoiceMonth: invoiceMonth || undefined,
@@ -159,7 +178,7 @@ export const EditTransactionDialog = ({ transaction, open, onOpenChange, onUpdat
           clientCompanyName: selectedClientInfo?.company_name,
           commission: transaction.commission,
           isApproved,
-          commissionPaidDate: commissionPaidDate ? createLocalDateString(commissionPaidDate) : undefined,
+          commissionPaidDate: commissionPaidDate ? createDateString(commissionPaidDate) : undefined,
           commissionOverride: commissionOverride ? parseFloat(commissionOverride) : undefined
         });
         onOpenChange(false);
