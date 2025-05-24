@@ -20,7 +20,11 @@ interface TransactionTableProps {
   clientInfos: ClientInfo[];
   onEditClick?: (transaction: Transaction) => void;
   onApproveCommission: (transactionId: string) => void;
-  onPayCommission?: (transactionId: string, paidDate: string) => void;
+  onPayCommission?: (transactionId: string, paymentData: {
+    paidDate: string;
+    paymentMethod: string;
+    referenceNumber: string;
+  }) => void;
   onDeleteTransaction?: (transactionId: string) => void;
   isCurrentMonth: (dateStr: string) => boolean;
 }
@@ -59,9 +63,13 @@ export const TransactionTable = ({
     setPayDialogOpen(true);
   };
 
-  const handleConfirmPayment = (paidDate: string) => {
+  const handleConfirmPayment = (paymentData: {
+    paidDate: string;
+    paymentMethod: string;
+    referenceNumber: string;
+  }) => {
     if (onPayCommission && selectedTransactionId) {
-      onPayCommission(selectedTransactionId, paidDate);
+      onPayCommission(selectedTransactionId, paymentData);
     }
   };
 

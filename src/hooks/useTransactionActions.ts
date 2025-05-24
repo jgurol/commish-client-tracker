@@ -239,7 +239,11 @@ export const useTransactionActions = (
   };
 
   // Function to mark a commission as paid
-  const payCommission = async (transactionId: string, paidDate: string) => {
+  const payCommission = async (transactionId: string, paymentData: {
+    paidDate: string;
+    paymentMethod: string;
+    referenceNumber: string;
+  }) => {
     if (!user) return;
     
     try {
@@ -272,7 +276,9 @@ export const useTransactionActions = (
       const { data, error } = await supabase
         .from('transactions')
         .update({
-          commission_paid_date: paidDate
+          commission_paid_date: paymentData.paidDate,
+          payment_method: paymentData.paymentMethod,
+          reference_number: paymentData.referenceNumber
         })
         .eq('id', transactionId)
         .select('*')
@@ -290,7 +296,7 @@ export const useTransactionActions = (
         fetchTransactions();
         toast({
           title: "Commission marked as paid",
-          description: `The commission has been marked as paid on ${new Date(paidDate).toLocaleDateString()}.`,
+          description: `The commission has been marked as paid on ${new Date(paymentData.paidDate).toLocaleDateString()}.`,
         });
       }
     } catch (err) {

@@ -17,7 +17,11 @@ interface RecentTransactionsProps {
   onAddTransaction: (transaction: Omit<Transaction, "id">) => void;
   onUpdateTransaction: (transaction: Transaction) => void;
   onApproveCommission: (transactionId: string) => void;
-  onPayCommission?: (transactionId: string, paidDate: string) => void;
+  onPayCommission?: (transactionId: string, paymentData: {
+    paidDate: string;
+    paymentMethod: string;
+    referenceNumber: string;
+  }) => void;
   onDeleteTransaction?: (transactionId: string) => void;
   associatedAgentId?: string | null;
 }
@@ -84,14 +88,16 @@ export const RecentTransactions = ({
   };
 
   // Function to handle commission payment
-  const handlePayCommission = (transactionId: string) => {
+  const handlePayCommission = (transactionId: string, paymentData: {
+    paidDate: string;
+    paymentMethod: string;
+    referenceNumber: string;
+  }) => {
     const transaction = transactions.find(t => t.id === transactionId);
     
     // Only allow payment if the invoice has been paid
     if (transaction && transaction.isPaid && onPayCommission) {
-      // Use today's date as default payment date
-      const today = new Date().toISOString().split('T')[0];
-      onPayCommission(transactionId, today);
+      onPayCommission(transactionId, paymentData);
     }
   };
 

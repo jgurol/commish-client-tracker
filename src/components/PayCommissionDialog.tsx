@@ -9,7 +9,11 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 interface PayCommissionDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onPayCommission: (paidDate: string) => void;
+  onPayCommission: (paymentData: {
+    paidDate: string;
+    paymentMethod: string;
+    referenceNumber: string;
+  }) => void;
   transactionId: string;
 }
 
@@ -26,7 +30,11 @@ export const PayCommissionDialog = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (paidDate) {
-      onPayCommission(paidDate);
+      onPayCommission({
+        paidDate,
+        paymentMethod,
+        referenceNumber
+      });
       onOpenChange(false);
       // Reset form
       setPaidDate(new Date().toISOString().split('T')[0]);
