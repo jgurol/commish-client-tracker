@@ -14,7 +14,6 @@ export interface AddClientInfoData {
   contact_name: string | null;
   email: string | null;
   phone: string | null;
-  address: string | null;
   notes: string | null;
   revio_id: string | null;
   agent_id: string | null;

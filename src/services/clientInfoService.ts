@@ -70,10 +70,10 @@ export const clientInfoService = {
         contact_name: clientInfoToUpdate.contact_name,
         email: clientInfoToUpdate.email,
         phone: clientInfoToUpdate.phone,
-        address: clientInfoToUpdate.address,
         notes: clientInfoToUpdate.notes,
         revio_id: clientInfoToUpdate.revio_id,
-        agent_id: clientInfoToUpdate.agent_id
+        agent_id: clientInfoToUpdate.agent_id,
+        commission_override: clientInfoToUpdate.commission_override
       })
       .eq('id', clientInfoToUpdate.id)
       .select('*')
