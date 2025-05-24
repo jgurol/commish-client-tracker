@@ -1,24 +1,15 @@
 
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
-import { TransactionFilters } from "@/components/TransactionFilters";
 import { useAuth } from "@/context/AuthContext";
 
 interface TransactionHeaderProps {
   transactionCount: number;
-  showOnlyPaidInvoices: boolean;
-  setShowOnlyPaidInvoices: (checked: boolean) => void;
-  includePaidCommissions: boolean;
-  setIncludePaidCommissions: (checked: boolean) => void;
   onAddTransaction: () => void;
 }
 
 export const TransactionHeader = ({
   transactionCount,
-  showOnlyPaidInvoices,
-  setShowOnlyPaidInvoices,
-  includePaidCommissions,
-  setIncludePaidCommissions,
   onAddTransaction
 }: TransactionHeaderProps) => {
   const { isAdmin } = useAuth();
@@ -32,12 +23,6 @@ export const TransactionHeader = ({
         </p>
       </div>
       <div className="flex items-center gap-4">
-        <TransactionFilters
-          showOnlyPaidInvoices={showOnlyPaidInvoices}
-          setShowOnlyPaidInvoices={setShowOnlyPaidInvoices}
-          includePaidCommissions={includePaidCommissions}
-          setIncludePaidCommissions={setIncludePaidCommissions}
-        />
         {isAdmin && (
           <Button 
             size="sm"

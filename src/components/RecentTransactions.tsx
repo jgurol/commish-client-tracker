@@ -43,10 +43,6 @@ export const RecentTransactions = ({
   const [approvalWarningOpen, setApprovalWarningOpen] = useState(false);
   const [pendingApprovalId, setPendingApprovalId] = useState<string | null>(null);
   const { isAdmin } = useAuth();
-  
-  // Filter state
-  const [includePaidCommissions, setIncludePaidCommissions] = useState(false);
-  const [showOnlyPaidInvoices, setShowOnlyPaidInvoices] = useState(false);
 
   // Function to determine if a transaction is from the current month
   const isCurrentMonth = (dateStr: string): boolean => {
@@ -54,21 +50,6 @@ export const RecentTransactions = ({
     const now = new Date();
     return date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear();
   };
-
-  // Apply filtering logic to transactions
-  const filteredTransactions = transactions.filter(transaction => {
-    // If "show only paid invoices" is checked, only show paid invoices
-    if (showOnlyPaidInvoices && !transaction.isPaid) {
-      return false;
-    }
-
-    // If "include paid commissions" is unchecked, exclude transactions with paid commissions
-    if (!includePaidCommissions && transaction.commissionPaidDate) {
-      return false;
-    }
-
-    return true;
-  });
 
   // Function to handle editing a transaction - only for admins
   const handleEditClick = (transaction: Transaction) => {
@@ -106,28 +87,18 @@ export const RecentTransactions = ({
       <Card className="bg-white shadow-lg border-0">
         <CardHeader>
           <TransactionHeader
-            transactionCount={filteredTransactions.length}
-            showOnlyPaidInvoices={showOnlyPaidInvoices}
-            setShowOnlyPaidInvoices={setShowOnlyPaidInvoices}
-            includePaidCommissions={includePaidCommissions}
-            setIncludePaidCommissions={setIncludePaidCommissions}
+            transactionCount={transactions.length}
             onAddTransaction={() => setIsAddTransactionOpen(true)}
           />
         </CardHeader>
         <CardContent className="p-0">
-          {filteredTransactions.length === 0 ? (
+          {transactions.length === 0 ? (
             <div className="p-6">
-              {transactions.length === 0 ? (
-                <TransactionEmptyState associatedAgentId={associatedAgentId} />
-              ) : (
-                <div className="text-center py-8 text-gray-500">
-                  <p>No transactions match the current filters.</p>
-                </div>
-              )}
+              <TransactionEmptyState associatedAgentId={associatedAgentId} />
             </div>
           ) : (
             <TransactionTable
-              transactions={filteredTransactions}
+              transactions={transactions}
               clientInfos={clientInfos}
               onEditClick={isAdmin ? handleEditClick : undefined}
               onApproveCommission={handleApproveCommission}
