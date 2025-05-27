@@ -1,3 +1,4 @@
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, TrendingUp, DollarSign, Calendar, CheckCircle, Clock, AlertCircle, ArrowRight, Building } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -97,28 +98,28 @@ export const StatsCards = ({
             </Link>
 
             <Link to="/client-management" className="block">
-              <Card className="bg-white shadow-lg hover:shadow-xl transition-shadow duration-200 border-0 hover:scale-105 transform cursor-pointer">
+              <Card className="bg-gradient-to-br from-blue-50 to-blue-100 shadow-lg hover:shadow-xl transition-shadow duration-200 border-0 hover:scale-105 transform cursor-pointer">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium text-gray-600">Total Clients</CardTitle>
-                  <Building className="h-4 w-4 text-purple-600" />
+                  <CardTitle className="text-sm font-medium text-blue-700">Total Clients</CardTitle>
+                  <Building className="h-4 w-4 text-blue-600" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold text-gray-900">{getClientInfoCount()}</div>
-                  <p className="text-xs text-gray-500">Client companies</p>
+                  <div className="text-2xl font-bold text-blue-900">{getClientInfoCount()}</div>
+                  <p className="text-xs text-blue-600">Client companies</p>
                 </CardContent>
               </Card>
             </Link>
           </>
         ) : (
           <Link to="/client-management" className="block">
-            <Card className="bg-white shadow-lg hover:shadow-xl transition-shadow duration-200 border-0 hover:scale-105 transform cursor-pointer">
+            <Card className="bg-gradient-to-br from-blue-50 to-blue-100 shadow-lg hover:shadow-xl transition-shadow duration-200 border-0 hover:scale-105 transform cursor-pointer">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-gray-600">Total Clients</CardTitle>
-                <Building className="h-4 w-4 text-purple-600" />
+                <CardTitle className="text-sm font-medium text-blue-700">Total Clients</CardTitle>
+                <Building className="h-4 w-4 text-blue-600" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-gray-900">{getClientInfoCount()}</div>
-                <p className="text-xs text-gray-500">Associated client companies</p>
+                <div className="text-2xl font-bold text-blue-900">{getClientInfoCount()}</div>
+                <p className="text-xs text-blue-600">Associated client companies</p>
               </CardContent>
             </Card>
           </Link>
