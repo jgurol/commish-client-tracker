@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import {
@@ -25,16 +24,61 @@ const Auth = () => {
   const [showUpdatePasswordForm, setShowUpdatePasswordForm] = useState(false);
   const [tokenError, setTokenError] = useState<string | null>(null);
   const [isCheckingSession, setIsCheckingSession] = useState(true);
+  const [isConfirmingEmail, setIsConfirmingEmail] = useState(false);
   const { user, signIn, signUp } = useAuth();
   const { toast } = useToast();
   
-  // Check if we have a password reset token in the URL
+  // Check for email confirmation or password reset tokens
   useEffect(() => {
-    const checkForPasswordReset = async () => {
-      // When a user clicks the reset password link in their email,
-      // they will be redirected to this page with a special hash parameter
+    const checkForTokens = async () => {
+      const searchParams = new URLSearchParams(location.search);
       const hash = window.location.hash;
       
+      // Check for email confirmation code
+      const confirmationCode = searchParams.get('code');
+      if (confirmationCode) {
+        setIsConfirmingEmail(true);
+        try {
+          console.log('Processing email confirmation...');
+          
+          const { data, error } = await supabase.auth.verifyOtp({
+            token_hash: confirmationCode,
+            type: 'email'
+          });
+          
+          if (error) {
+            console.error('Email confirmation error:', error);
+            toast({
+              title: "Email Confirmation Failed", 
+              description: error.message || "Failed to confirm email address",
+              variant: "destructive"
+            });
+          } else if (data.user) {
+            console.log('Email confirmed successfully for user:', data.user.id);
+            toast({
+              title: "Email Confirmed!",
+              description: "Your email has been confirmed successfully. You can now log in.",
+            });
+            
+            // Clear the confirmation code from URL
+            window.history.replaceState(null, '', window.location.pathname);
+            setActiveTab("login");
+          }
+        } catch (err) {
+          console.error('Unexpected error during email confirmation:', err);
+          toast({
+            title: "Confirmation Error",
+            description: "An unexpected error occurred during email confirmation",
+            variant: "destructive"
+          });
+        } finally {
+          setIsConfirmingEmail(false);
+          setIsCheckingSession(false);
+        }
+        return;
+      }
+      
+      // Check for password reset token
       if (hash && hash.includes('type=recovery')) {
         setShowUpdatePasswordForm(true);
         setActiveTab("none"); // Ensure tabs don't show
@@ -83,9 +127,9 @@ const Auth = () => {
       }
     };
     
-    // Run the password reset check
-    checkForPasswordReset();
-  }, [toast]);
+    // Run the token check
+    checkForTokens();
+  }, [location.search, toast]);
 
   const handleLoginSubmit = async (email: string, password: string) => {
     try {
@@ -204,6 +248,29 @@ const Auth = () => {
 
   if (user) {
     return <Navigate to="/" />;
+  }
+
+  // Show loading state during email confirmation
+  if (isConfirmingEmail) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-blue-50 p-4">
+        <div className="w-full max-w-md">
+          <Card className="border-0 shadow-xl">
+            <CardHeader className="text-center">
+              <div className="flex justify-center mb-4">
+                <img 
+                  src="/lovable-uploads/e5be9154-ed00-490e-b242-16319351487f.png" 
+                  alt="California Telecom" 
+                  className="h-16 w-auto"
+                />
+              </div>
+              <CardTitle className="text-2xl font-bold">Confirming Email...</CardTitle>
+              <CardDescription>Please wait while we confirm your email address</CardDescription>
+            </CardHeader>
+          </Card>
+        </div>
+      </div>
+    );
   }
 
   // Render the password update form
