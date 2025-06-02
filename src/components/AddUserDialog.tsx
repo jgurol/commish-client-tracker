@@ -72,24 +72,24 @@ export const AddUserDialog = ({
   const onSubmit = async (data: FormValues) => {
     setIsSubmitting(true);
     try {
-      console.log('Creating user with role:', data.role);
+      console.log('Starting user creation process with data:', data);
       
       // Generate a random password
       const generatedPassword = generateRandomPassword(12);
+      console.log('Generated password for new user');
 
-      // Create the user account
-      const { data: authData, error: authError } = await supabase.auth.signUp({
+      // Create the user account using the admin API
+      const { data: authData, error: authError } = await supabase.auth.admin.createUser({
         email: data.email,
         password: generatedPassword,
-        options: {
-          data: {
-            full_name: data.full_name,
-          }
-        }
+        user_metadata: {
+          full_name: data.full_name,
+        },
+        email_confirm: true // Auto-confirm the email
       });
 
       if (authError) {
-        console.error('Auth error:', authError);
+        console.error('Auth user creation error:', authError);
         toast({
           title: "User creation failed",
           description: authError.message,
@@ -99,6 +99,7 @@ export const AddUserDialog = ({
       }
 
       if (!authData.user) {
+        console.error('No user data returned from auth creation');
         toast({
           title: "User creation failed",
           description: "No user data returned",
@@ -107,55 +108,69 @@ export const AddUserDialog = ({
         return;
       }
 
-      console.log('User created in auth, ID:', authData.user.id);
+      console.log('Auth user created successfully, ID:', authData.user.id);
 
-      // Wait a moment for the auth.users record and trigger to complete
-      await new Promise(resolve => setTimeout(resolve, 2000));
-
-      // Update the user profile with the correct role and association
-      const profileUpdates = {
+      // Create the profile record with the correct role and association
+      const profileData = {
+        id: authData.user.id,
+        email: data.email,
         full_name: data.full_name,
         role: data.role,
         associated_agent_id: data.associated_agent_id === "none" ? null : data.associated_agent_id,
         is_associated: data.role === "admin" ? true : (data.associated_agent_id && data.associated_agent_id !== "none" ? true : false)
       };
 
-      console.log('Updating profile with:', profileUpdates);
+      console.log('Creating profile with data:', profileData);
 
       const { error: profileError } = await supabase
         .from('profiles')
-        .update(profileUpdates)
-        .eq('id', authData.user.id);
+        .insert(profileData);
 
       if (profileError) {
-        console.error('Profile update error:', profileError);
+        console.error('Profile creation error:', profileError);
+        
+        // Clean up the auth user if profile creation fails
+        try {
+          await supabase.auth.admin.deleteUser(authData.user.id);
+          console.log('Cleaned up auth user after profile creation failure');
+        } catch (cleanupError) {
+          console.error('Failed to cleanup auth user:', cleanupError);
+        }
+        
         toast({
-          title: "Profile update failed",
+          title: "Profile creation failed",
           description: profileError.message,
           variant: "destructive",
         });
         return;
       }
 
-      console.log('Profile updated successfully');
+      console.log('Profile created successfully');
 
-      // Send welcome email directly with credentials
-      const { error: emailError } = await supabase.functions.invoke('send-welcome-email', {
-        body: {
-          email: data.email,
-          fullName: data.full_name,
-          password: generatedPassword,
-          role: data.role,
-        },
-      });
-
-      if (emailError) {
-        console.error('Welcome email error:', emailError);
-        toast({
-          title: "User created but email failed",
-          description: "User was created successfully, but we couldn't send the welcome email. Please provide credentials manually.",
-          variant: "destructive",
+      // Send welcome email with credentials
+      try {
+        const { error: emailError } = await supabase.functions.invoke('send-welcome-email', {
+          body: {
+            email: data.email,
+            fullName: data.full_name,
+            password: generatedPassword,
+            role: data.role,
+          },
         });
+
+        if (emailError) {
+          console.error('Welcome email error:', emailError);
+          // Don't fail the whole process for email errors
+          toast({
+            title: "User created successfully",
+            description: "User was created but welcome email failed to send. Please provide credentials manually.",
+            variant: "destructive",
+          });
+        } else {
+          console.log('Welcome email sent successfully');
+        }
+      } catch (emailError) {
+        console.error('Email function invocation error:', emailError);
       }
 
       // Find the associated agent name if an agent is selected
@@ -169,9 +184,9 @@ export const AddUserDialog = ({
         email: data.email,
         full_name: data.full_name,
         role: data.role,
-        is_associated: data.role === "admin" ? true : (data.associated_agent_id ? true : false),
+        is_associated: profileData.is_associated,
         created_at: new Date().toISOString(),
-        associated_agent_id: data.associated_agent_id === "none" ? null : data.associated_agent_id,
+        associated_agent_id: profileData.associated_agent_id,
         associated_agent_name: associatedAgentName,
       };
 
@@ -184,7 +199,7 @@ export const AddUserDialog = ({
       onOpenChange(false);
       form.reset();
     } catch (error: any) {
-      console.error('Creation error:', error);
+      console.error('Unexpected error during user creation:', error);
       toast({
         title: "Creation error",
         description: error.message || "An unexpected error occurred",
