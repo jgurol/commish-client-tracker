@@ -45,19 +45,15 @@ export const DeleteUserDialog = ({
 
     setIsDeleting(true);
     try {
-      // Delete the user's profile which will effectively disable the account
-      // Note: We can't delete from auth.users with the anon key, but deleting the profile
-      // will prevent the user from accessing the application
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .delete()
-        .eq('id', user.id);
+      // Use the secure deletion function that includes audit logging
+      const { error } = await supabase.rpc('secure_delete_user_profile', {
+        target_user_id: user.id
+      });
 
-      if (profileError) {
-        console.error("Error deleting user profile:", profileError);
+      if (error) {
         toast({
           title: "Delete failed",
-          description: "Failed to delete user profile: " + profileError.message,
+          description: "Failed to remove user: " + error.message,
           variant: "destructive",
         });
         return;
@@ -71,7 +67,6 @@ export const DeleteUserDialog = ({
       onDeleteUser(user.id);
       onOpenChange(false);
     } catch (error: any) {
-      console.error("Exception deleting user:", error);
       toast({
         title: "Delete error",
         description: error.message || "An unexpected error occurred",

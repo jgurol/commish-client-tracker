@@ -9,6 +9,36 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      admin_audit_log: {
+        Row: {
+          action_type: string
+          admin_user_id: string
+          created_at: string
+          details: Json | null
+          id: string
+          record_id: string | null
+          table_name: string
+        }
+        Insert: {
+          action_type: string
+          admin_user_id: string
+          created_at?: string
+          details?: Json | null
+          id?: string
+          record_id?: string | null
+          table_name: string
+        }
+        Update: {
+          action_type?: string
+          admin_user_id?: string
+          created_at?: string
+          details?: Json | null
+          id?: string
+          record_id?: string | null
+          table_name?: string
+        }
+        Relationships: []
+      }
       agents: {
         Row: {
           commission_rate: number
@@ -260,6 +290,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: string
       }
+      get_user_associated_agent_id: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
       get_user_profile: {
         Args: { user_id: string }
         Returns: {
@@ -271,12 +305,25 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: boolean
       }
+      log_admin_action: {
+        Args: {
+          action_type: string
+          table_name: string
+          record_id: string
+          details?: Json
+        }
+        Returns: undefined
+      }
       make_user_admin: {
         Args: { user_id: string }
         Returns: undefined
       }
       make_user_associated: {
         Args: { user_id: string }
+        Returns: undefined
+      }
+      secure_delete_user_profile: {
+        Args: { target_user_id: string }
         Returns: undefined
       }
       update_user_profile: {

@@ -1,3 +1,4 @@
+
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -47,7 +48,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, currentSession) => {
-        console.log("Auth state change event:", event);
         setSession(currentSession);
         setUser(currentSession?.user ?? null);
         
@@ -65,7 +65,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     // THEN check for existing session
     supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
-      console.log("Initial session check:", currentSession ? "Session exists" : "No session");
       setSession(currentSession);
       setUser(currentSession?.user ?? null);
       
@@ -81,19 +80,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const fetchUserProfile = async (userId: string) => {
     try {
-      console.log("Fetching user profile for ID:", userId);
-      
       // Use the security definer RPC function we just created
       const { data, error } = await supabase.rpc('get_user_profile', {
         user_id: userId
       });
 
       if (error) {
-        console.error('Error fetching user profile:', error);
-        
         // If we still get an error with the RPC call, fall back to direct check using email
         if (user?.email === 'jim@californiatelecom.com') {
-          console.log("Detected the admin user by email, granting admin access");
           setIsAdmin(true);
           setIsAssociated(true);
           return;
@@ -108,19 +102,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       if (data && data.length > 0) {
-        console.log("Profile data retrieved:", data);
         const profileData = data[0];
         const isUserAdmin = profileData.role === 'admin';
         setIsAdmin(isUserAdmin);
         setIsAssociated(profileData.is_associated || false);
       } else {
-        console.log("No profile data found for user", userId);
         // No profile data found, set safe defaults
         setIsAdmin(false);
         setIsAssociated(false);
       }
     } catch (error) {
-      console.error('Error in profile fetch:', error);
       // Set defaults for failed profile fetch
       setIsAdmin(false);
       setIsAssociated(false);
@@ -144,7 +135,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         await supabase.auth.signOut({ scope: 'global' });
       } catch (signOutError) {
         // Continue even if this fails
-        console.log('Sign out before login failed, continuing anyway');
       }
 
       const { error } = await supabase.auth.signInWithPassword({ email, password });
@@ -166,7 +156,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Force page reload to ensure clean state
       window.location.href = '/';
     } catch (error: any) {
-      console.error('Error signing in:', error.message);
       throw error;
     }
   };
@@ -200,7 +189,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         description: "Your account has been created! However, you cannot log in until your account is associated with an agent by a system administrator.",
       });
     } catch (error: any) {
-      console.error('Error signing up:', error.message);
       throw error;
     }
   };
@@ -229,7 +217,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Force page reload to ensure clean state
       window.location.href = '/auth';
     } catch (error: any) {
-      console.error('Error signing out:', error.message);
       throw error;
     }
   };

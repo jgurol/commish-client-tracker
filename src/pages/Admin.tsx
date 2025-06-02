@@ -60,6 +60,19 @@ export default function Admin() {
     fetchAgents();
   }, []);
 
+  const logAdminAction = async (action: string, details: object) => {
+    try {
+      await supabase.rpc('log_admin_action', {
+        action_type: action,
+        table_name: 'profiles',
+        record_id: null,
+        details: details
+      });
+    } catch (error) {
+      // Silent fail for audit logging to not disrupt user experience
+    }
+  };
+
   const fetchUsers = async () => {
     setLoading(true);
     try {
@@ -88,7 +101,6 @@ export default function Admin() {
 
       setUsers(usersWithAgentInfo);
     } catch (error: any) {
-      console.error('Error fetching users:', error);
       toast({
         title: "Error",
         description: `Failed to fetch users: ${error.message}`,
@@ -107,10 +119,8 @@ export default function Admin() {
 
       if (error) throw error;
 
-      console.log("Fetched agents from agents table:", data);
       setAgents(data || []);
     } catch (error: any) {
-      console.error('Error fetching agents:', error);
       toast({
         title: "Error",
         description: `Failed to fetch agents: ${error.message}`,
@@ -133,6 +143,13 @@ export default function Admin() {
 
       if (error) throw error;
 
+      // Log the admin action
+      await logAdminAction('UPDATE_USER_ASSOCIATION', {
+        user_id: userId,
+        associated: associate,
+        admin_user_id: user?.id
+      });
+
       // Update local state
       setUsers(users.map(u => 
         u.id === userId 
@@ -145,7 +162,6 @@ export default function Admin() {
         description: `User ${associate ? 'associated' : 'disassociated'} successfully`,
       });
     } catch (error: any) {
-      console.error('Error updating user:', error);
       toast({
         title: "Error",
         description: `Failed to update user: ${error.message}`,
