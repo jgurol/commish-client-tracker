@@ -60,13 +60,13 @@ export default function Admin() {
     fetchAgents();
   }, []);
 
-  const logAdminAction = async (action: string, details: object) => {
+  const logAdminAction = async (action: string, details: Record<string, any>) => {
     try {
       await supabase.rpc('log_admin_action', {
         action_type: action,
         table_name: 'profiles',
         record_id: null,
-        details: details
+        details: details as any
       });
     } catch (error) {
       // Silent fail for audit logging to not disrupt user experience
