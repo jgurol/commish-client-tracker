@@ -1,4 +1,3 @@
-
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -158,13 +157,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Clean up existing auth state before signing up
       cleanupAuthState();
       
+      // Use the correct redirect URL pointing to the auth page
+      const redirectUrl = `${window.location.origin}/auth`;
+      
       const { error } = await supabase.auth.signUp({ 
         email, 
         password,
         options: {
           data: {
             full_name: fullName,
-          }
+          },
+          emailRedirectTo: redirectUrl
         }
       });
       

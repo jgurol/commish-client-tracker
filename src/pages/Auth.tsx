@@ -225,7 +225,7 @@ const Auth = () => {
     try {
       setIsSubmitting(true);
       
-      // Get the fully qualified URL with deployment domain
+      // Use the correct redirect URL pointing to the auth page
       const currentUrl = window.location.origin;
       const redirectUrl = `${currentUrl}/auth`;
       
