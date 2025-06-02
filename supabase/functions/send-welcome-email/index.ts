@@ -29,12 +29,12 @@ const handler = async (req: Request): Promise<Response> => {
     console.log("Sending welcome email to:", email);
 
     const emailResponse = await resend.emails.send({
-      from: "Admin <onboarding@resend.dev>",
+      from: "California Telecom <noreply@californiatelecom.com>",
       to: [email],
       subject: "Welcome! Your account has been created",
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-          <h1 style="color: #333; margin-bottom: 20px;">Welcome to our platform!</h1>
+          <h1 style="color: #333; margin-bottom: 20px;">Welcome to California Telecom!</h1>
           
           <p style="color: #666; font-size: 16px; line-height: 1.5;">
             Hello ${fullName},
@@ -63,7 +63,7 @@ const handler = async (req: Request): Promise<Response> => {
           
           <p style="color: #666; font-size: 16px; line-height: 1.5; margin-top: 30px;">
             Best regards,<br>
-            The Admin Team
+            The California Telecom Team
           </p>
         </div>
       `,
