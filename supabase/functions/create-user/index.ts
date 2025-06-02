@@ -41,6 +41,20 @@ serve(async (req) => {
 
     if (authError) {
       console.error('Auth user creation error:', authError)
+      
+      // Handle the specific case where email exists but user was recently deleted
+      if (authError.message.includes('A user with this email address has already been registered')) {
+        return new Response(
+          JSON.stringify({ 
+            error: 'A user with this email was recently deleted. Please wait a few minutes before recreating the user, or try with a different email address.' 
+          }),
+          { 
+            status: 422, 
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+          }
+        )
+      }
+      
       return new Response(
         JSON.stringify({ error: authError.message }),
         { 
