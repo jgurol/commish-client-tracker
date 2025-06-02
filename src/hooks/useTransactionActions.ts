@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/context/AuthContext";
@@ -10,6 +9,9 @@ export const useTransactionActions = (
 ) => {
   const { user, isAdmin } = useAuth();
   const { toast } = useToast();
+
+  // Check if user is owner (for commission approval)
+  const isOwner = user?.user_metadata?.role === 'owner';
 
   // Helper function to calculate commission using override hierarchy
   const calculateCommission = async (
@@ -176,6 +178,16 @@ export const useTransactionActions = (
   // Function to approve a commission
   const approveCommission = async (transactionId: string) => {
     if (!user) return;
+    
+    // Only owners can approve commissions
+    if (!isOwner) {
+      toast({
+        title: "Access denied",
+        description: "Only owners can approve commissions",
+        variant: "destructive"
+      });
+      return;
+    }
     
     try {
       // First, check if the transaction's invoice has been paid

@@ -47,8 +47,11 @@ export const TransactionCard = ({
   onDeleteTransaction,
   isCurrentMonth
 }: TransactionCardProps) => {
-  const { isAdmin } = useAuth();
+  const { isAdmin, user } = useAuth();
   const [payDialogOpen, setPayDialogOpen] = useState(false);
+
+  // Check if user is owner (for commission approval)
+  const isOwner = user?.user_metadata?.role === 'owner';
 
   const handlePayCommission = () => {
     setPayDialogOpen(true);
@@ -154,12 +157,23 @@ export const TransactionCard = ({
             </div>
             {isAdmin && (
               <div className="flex gap-2">
-                {!transaction.isApproved && transaction.isPaid && (
+                {!transaction.isApproved && transaction.isPaid && isOwner && (
                   <Button 
                     size="sm" 
                     variant="outline" 
                     className="text-xs h-7 border-green-200 text-green-700 hover:bg-green-50"
                     onClick={() => onApproveCommission(transaction.id)}
+                  >
+                    <CheckCircle className="w-3 h-3 mr-1" /> Approve
+                  </Button>
+                )}
+                {!transaction.isApproved && transaction.isPaid && !isOwner && (
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    className="text-xs h-7 border-gray-200 text-gray-400 cursor-not-allowed"
+                    disabled
+                    title="Only owners can approve commissions"
                   >
                     <CheckCircle className="w-3 h-3 mr-1" /> Approve
                   </Button>
