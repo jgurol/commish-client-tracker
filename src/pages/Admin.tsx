@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { Header } from '@/components/Header';
@@ -13,10 +12,11 @@ import {
   TableCell 
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { Shield, UserCheck, UserX, PencilIcon } from 'lucide-react';
+import { Shield, UserCheck, UserX, PencilIcon, UserPlus } from 'lucide-react';
 import { Navigate } from 'react-router-dom';
 import { EditUserDialog } from '@/components/EditUserDialog';
 import { AssociateUserDialog } from '@/components/AssociateUserDialog';
+import { AddUserDialog } from '@/components/AddUserDialog';
 
 interface UserProfile {
   id: string;
@@ -44,6 +44,7 @@ export default function Admin() {
   const [loading, setLoading] = useState(true);
   const [editingUser, setEditingUser] = useState<UserProfile | null>(null);
   const [associatingUser, setAssociatingUser] = useState<UserProfile | null>(null);
+  const [isAddUserOpen, setIsAddUserOpen] = useState(false);
   const [agents, setAgents] = useState<Agent[]>([]);
 
   // Redirect non-admin users
@@ -158,6 +159,10 @@ export default function Admin() {
     setAssociatingUser(user);
   };
 
+  const handleAddUser = (newUser: UserProfile) => {
+    setUsers([...users, newUser]);
+  };
+
   const handleUpdateUser = (updatedUser: UserProfile) => {
     // Update local state
     setUsers(users.map(u => 
@@ -175,9 +180,18 @@ export default function Admin() {
       
       <div className="mb-6 flex justify-between items-center">
         <h1 className="text-2xl font-bold text-gray-900">User Management</h1>
-        <Button onClick={() => { fetchUsers(); fetchAgents(); }} disabled={loading}>
-          {loading ? 'Loading...' : 'Refresh'}
-        </Button>
+        <div className="flex gap-2">
+          <Button 
+            onClick={() => setIsAddUserOpen(true)}
+            className="bg-blue-600 hover:bg-blue-700 text-white"
+          >
+            <UserPlus className="w-4 h-4 mr-2" />
+            Add User
+          </Button>
+          <Button onClick={() => { fetchUsers(); fetchAgents(); }} disabled={loading}>
+            {loading ? 'Loading...' : 'Refresh'}
+          </Button>
+        </div>
       </div>
 
       <div className="bg-white rounded-lg shadow overflow-hidden">
@@ -309,6 +323,15 @@ export default function Admin() {
             if (!open) setAssociatingUser(null);
           }}
           onUpdateUser={handleUpdateUser}
+        />
+      )}
+
+      {isAddUserOpen && (
+        <AddUserDialog
+          agents={agents}
+          open={isAddUserOpen}
+          onOpenChange={setIsAddUserOpen}
+          onAddUser={handleAddUser}
         />
       )}
     </div>
