@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { Header } from '@/components/Header';
@@ -12,11 +13,12 @@ import {
   TableCell 
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { Shield, UserCheck, UserX, PencilIcon, UserPlus } from 'lucide-react';
+import { Shield, UserCheck, UserX, PencilIcon, UserPlus, Trash2 } from 'lucide-react';
 import { Navigate } from 'react-router-dom';
 import { EditUserDialog } from '@/components/EditUserDialog';
 import { AssociateUserDialog } from '@/components/AssociateUserDialog';
 import { AddUserDialog } from '@/components/AddUserDialog';
+import { DeleteUserDialog } from '@/components/DeleteUserDialog';
 
 interface UserProfile {
   id: string;
@@ -44,6 +46,7 @@ export default function Admin() {
   const [loading, setLoading] = useState(true);
   const [editingUser, setEditingUser] = useState<UserProfile | null>(null);
   const [associatingUser, setAssociatingUser] = useState<UserProfile | null>(null);
+  const [deletingUser, setDeletingUser] = useState<UserProfile | null>(null);
   const [isAddUserOpen, setIsAddUserOpen] = useState(false);
   const [agents, setAgents] = useState<Agent[]>([]);
 
@@ -159,6 +162,10 @@ export default function Admin() {
     setAssociatingUser(user);
   };
 
+  const handleDeleteUser = (user: UserProfile) => {
+    setDeletingUser(user);
+  };
+
   const handleAddUser = (newUser: UserProfile) => {
     setUsers([...users, newUser]);
   };
@@ -172,6 +179,12 @@ export default function Admin() {
     // Close the dialogs
     setEditingUser(null);
     setAssociatingUser(null);
+  };
+
+  const handleUserDeleted = (userId: string) => {
+    // Remove user from local state
+    setUsers(users.filter(u => u.id !== userId));
+    setDeletingUser(null);
   };
 
   return (
@@ -292,6 +305,18 @@ export default function Admin() {
                             )}
                           </>
                         )}
+
+                        {userProfile.id !== user?.id && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDeleteUser(userProfile)}
+                            className="text-red-600 hover:bg-red-50"
+                          >
+                            <Trash2 className="w-4 h-4 mr-1" />
+                            Delete
+                          </Button>
+                        )}
                       </div>
                     </TableCell>
                   </TableRow>
@@ -332,6 +357,17 @@ export default function Admin() {
           open={isAddUserOpen}
           onOpenChange={setIsAddUserOpen}
           onAddUser={handleAddUser}
+        />
+      )}
+
+      {deletingUser && (
+        <DeleteUserDialog
+          user={deletingUser}
+          open={!!deletingUser}
+          onOpenChange={(open) => {
+            if (!open) setDeletingUser(null);
+          }}
+          onDeleteUser={handleUserDeleted}
         />
       )}
     </div>
