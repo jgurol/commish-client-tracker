@@ -10,6 +10,7 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { generateRandomPassword } from "@/utils/passwordUtils";
 
@@ -57,7 +58,11 @@ export const AddUserDialog = ({
   onAddUser 
 }: AddUserDialogProps) => {
   const { toast } = useToast();
+  const { user } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // Check if user is owner (for role assignment restrictions)
+  const isOwner = user?.user_metadata?.role === 'owner';
   
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -191,10 +196,12 @@ export const AddUserDialog = ({
                         <RadioGroupItem value="agent" id="agent" />
                         <FormLabel htmlFor="agent" className="cursor-pointer">Agent</FormLabel>
                       </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="owner" id="owner" />
-                        <FormLabel htmlFor="owner" className="cursor-pointer">Owner</FormLabel>
-                      </div>
+                      {isOwner && (
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="owner" id="owner" />
+                          <FormLabel htmlFor="owner" className="cursor-pointer">Owner</FormLabel>
+                        </div>
+                      )}
                     </RadioGroup>
                   </FormControl>
                   <FormMessage />

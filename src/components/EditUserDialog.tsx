@@ -9,6 +9,7 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
@@ -59,6 +60,10 @@ export const EditUserDialog = ({
   onUpdateUser 
 }: EditUserDialogProps) => {
   const { toast } = useToast();
+  const { user: currentUser } = useAuth();
+  
+  // Check if current user is owner (for role assignment restrictions)
+  const isOwner = currentUser?.user_metadata?.role === 'owner';
   
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -210,10 +215,12 @@ export const EditUserDialog = ({
                         <RadioGroupItem value="agent" id="agent" />
                         <FormLabel htmlFor="agent" className="cursor-pointer">Agent</FormLabel>
                       </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="owner" id="owner" />
-                        <FormLabel htmlFor="owner" className="cursor-pointer">Owner</FormLabel>
-                      </div>
+                      {isOwner && (
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="owner" id="owner" />
+                          <FormLabel htmlFor="owner" className="cursor-pointer">Owner</FormLabel>
+                        </div>
+                      )}
                     </RadioGroup>
                   </FormControl>
                 </FormItem>
