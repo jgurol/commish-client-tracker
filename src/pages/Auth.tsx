@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Navigate } from "react-router-dom";
 import {
@@ -16,6 +15,7 @@ import { LoginForm } from "@/components/auth/LoginForm";
 import { RegisterForm } from "@/components/auth/RegisterForm";
 import { ResetPasswordForm } from "@/components/auth/ResetPasswordForm";
 import { UpdatePasswordForm } from "@/components/auth/UpdatePasswordForm";
+import { generateRandomPassword } from "@/utils/passwordUtils";
 
 const Auth = () => {
   const [activeTab, setActiveTab] = useState<string>("login");
@@ -54,25 +54,67 @@ const Auth = () => {
     try {
       setIsSubmitting(true);
       
-      const currentUrl = window.location.origin;
-      const redirectUrl = `${currentUrl}/auth`;
+      // Generate a temporary password
+      const tempPassword = generateRandomPassword(12);
       
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: redirectUrl,
-      });
+      // Update the user's password in Supabase Auth (requires admin privileges)
+      const { data: { users }, error: getUserError } = await supabase.auth.admin.listUsers();
       
-      if (error) {
+      if (getUserError) {
         toast({
-          title: "Password reset failed",
-          description: error.message,
+          title: "Error",
+          description: "Unable to process password reset request",
           variant: "destructive"
         });
-        throw error;
+        throw getUserError;
+      }
+      
+      const user = users.find(u => u.email === email);
+      
+      if (!user) {
+        toast({
+          title: "User not found",
+          description: "No account found with that email address",
+          variant: "destructive"
+        });
+        throw new Error("User not found");
+      }
+      
+      // Update the user's password
+      const { error: updateError } = await supabase.auth.admin.updateUserById(user.id, {
+        password: tempPassword
+      });
+      
+      if (updateError) {
+        toast({
+          title: "Password reset failed",
+          description: updateError.message,
+          variant: "destructive"
+        });
+        throw updateError;
+      }
+      
+      // Send temporary password email via edge function
+      const { error: emailError } = await supabase.functions.invoke('send-temp-password', {
+        body: {
+          email: email,
+          tempPassword: tempPassword,
+          fullName: user.user_metadata?.full_name || 'User'
+        }
+      });
+      
+      if (emailError) {
+        toast({
+          title: "Email sending failed",
+          description: "Password was reset but email could not be sent",
+          variant: "destructive"
+        });
+        throw emailError;
       }
       
       toast({
-        title: "Password Reset Email Sent",
-        description: "Check your email for a password reset link",
+        title: "Temporary Password Sent",
+        description: "Check your email for your temporary password. Please change it after logging in.",
       });
       setShowResetForm(false);
       setActiveTab("login");
@@ -188,7 +230,7 @@ const Auth = () => {
                 />
               </div>
               <CardTitle className="text-2xl font-bold">Reset Password</CardTitle>
-              <CardDescription>Enter your email to receive a password reset link</CardDescription>
+              <CardDescription>Enter your email to receive a temporary password</CardDescription>
             </CardHeader>
             <CardContent>
               <ResetPasswordForm 

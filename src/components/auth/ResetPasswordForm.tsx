@@ -49,8 +49,8 @@ export const ResetPasswordForm: React.FC<ResetPasswordFormProps> = ({
         <div className="flex items-start gap-2">
           <InfoIcon className="h-5 w-5 text-blue-500 mt-0.5" />
           <p className="text-sm text-blue-700">
-            Enter your email address below and we'll send you a password reset link.
-            Make sure to check your spam folder if you don't see the email.
+            Enter your email address below and we'll send you a temporary password.
+            Please change your password after logging in for security.
           </p>
         </div>
       </div>
@@ -90,7 +90,7 @@ export const ResetPasswordForm: React.FC<ResetPasswordFormProps> = ({
               className="flex-1 bg-blue-600 hover:bg-blue-700"
               disabled={isSubmitting}
             >
-              {isSubmitting ? "Sending..." : "Send Reset Link"}
+              {isSubmitting ? "Sending..." : "Send Temp Password"}
             </Button>
           </div>
         </form>
