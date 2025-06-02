@@ -11,6 +11,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { generateRandomPassword } from "@/utils/passwordUtils";
 
 interface UserProfile {
   id: string;
@@ -41,7 +42,6 @@ interface AddUserDialogProps {
 const formSchema = z.object({
   full_name: z.string().min(1, "Name is required"),
   email: z.string().email("Invalid email address"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
   role: z.enum(["admin", "agent"], {
     required_error: "Please select a role",
   }),
@@ -64,19 +64,47 @@ export const AddUserDialog = ({
     defaultValues: {
       full_name: "",
       email: "",
-      password: "",
       role: "agent",
       associated_agent_id: null,
     },
   });
 
+  const sendWelcomeEmail = async (email: string, fullName: string, password: string, role: string) => {
+    try {
+      console.log("Sending welcome email to:", email);
+      const { data, error } = await supabase.functions.invoke('send-welcome-email', {
+        body: {
+          email,
+          fullName,
+          password,
+          role,
+        },
+      });
+
+      if (error) {
+        console.error("Error sending welcome email:", error);
+        throw error;
+      }
+
+      console.log("Welcome email sent successfully:", data);
+      return data;
+    } catch (error: any) {
+      console.error("Failed to send welcome email:", error);
+      throw new Error(`Failed to send welcome email: ${error.message}`);
+    }
+  };
+
   const onSubmit = async (data: FormValues) => {
     setIsSubmitting(true);
     try {
+      // Generate a random password
+      const generatedPassword = generateRandomPassword(12);
+      console.log("Generated password for new user");
+
       // Create the user account
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: data.email,
-        password: data.password,
+        password: generatedPassword,
         options: {
           data: {
             full_name: data.full_name,
@@ -124,6 +152,19 @@ export const AddUserDialog = ({
         return;
       }
 
+      // Send welcome email with the generated password
+      try {
+        await sendWelcomeEmail(data.email, data.full_name, generatedPassword, data.role);
+        console.log("Welcome email sent successfully");
+      } catch (emailError: any) {
+        console.error("Warning: Failed to send welcome email:", emailError);
+        toast({
+          title: "User created but email failed",
+          description: "User was created successfully, but the welcome email could not be sent. Please provide the password manually.",
+          variant: "destructive",
+        });
+      }
+
       // Find the associated agent name if an agent is selected
       const associatedAgent = agents.find(agent => agent.id === data.associated_agent_id);
       const associatedAgentName = associatedAgent ? 
@@ -142,8 +183,8 @@ export const AddUserDialog = ({
       };
 
       toast({
-        title: "User created",
-        description: "User has been created successfully",
+        title: "User created successfully",
+        description: "User has been created and a welcome email with login credentials has been sent.",
       });
 
       onAddUser(newUser);
@@ -167,7 +208,7 @@ export const AddUserDialog = ({
         <DialogHeader>
           <DialogTitle>Add New User</DialogTitle>
           <DialogDescription>
-            Create a new user account with role and association settings.
+            Create a new user account. A random password will be generated and sent via email.
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
@@ -194,20 +235,6 @@ export const AddUserDialog = ({
                   <FormLabel>Email</FormLabel>
                   <FormControl>
                     <Input type="email" placeholder="Email address" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="password"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Password</FormLabel>
-                  <FormControl>
-                    <Input type="password" placeholder="Password" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
