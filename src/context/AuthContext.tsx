@@ -1,49 +1,43 @@
+
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-
-interface AuthContextType {
-  session: Session | null;
-  user: User | null;
-  loading: boolean;
-  signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string, fullName: string) => Promise<void>;
-  signOut: () => Promise<void>;
-  isAdmin: boolean;
-  isOwner: boolean;
-  isAssociated: boolean;
-  refreshUserProfile: () => Promise<void>;
-}
+import { AuthContextType } from '@/types/auth';
+import { cleanupAuthState } from '@/utils/authUtils';
+import { useAuthState } from '@/hooks/useAuthState';
+import { useAuthActions } from '@/hooks/useAuthActions';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Helper function to clean up auth state
-const cleanupAuthState = () => {
-  // Remove standard auth tokens
-  localStorage.removeItem('supabase.auth.token');
-  // Remove all Supabase auth keys from localStorage
-  Object.keys(localStorage).forEach((key) => {
-    if (key.startsWith('supabase.auth.') || key.includes('sb-')) {
-      localStorage.removeItem(key);
-    }
-  });
-  // Remove from sessionStorage if in use
-  Object.keys(sessionStorage || {}).forEach((key) => {
-    if (key.startsWith('supabase.auth.') || key.includes('sb-')) {
-      sessionStorage.removeItem(key);
-    }
-  });
-};
-
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [session, setSession] = useState<Session | null>(null);
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [isOwner, setIsOwner] = useState(false);
-  const [isAssociated, setIsAssociated] = useState(false);
   const { toast } = useToast();
+  const {
+    session,
+    user,
+    loading,
+    isAdmin,
+    isOwner,
+    isAssociated,
+    setSession,
+    setUser,
+    setLoading,
+    setIsAdmin,
+    setIsOwner,
+    setIsAssociated,
+    fetchUserProfile,
+    refreshUserProfile
+  } = useAuthState();
+
+  const { signIn, signUp, signOut } = useAuthActions({
+    toast,
+    cleanupAuthState,
+    setSession,
+    setUser,
+    setIsAdmin,
+    setIsOwner,
+    setIsAssociated
+  });
 
   useEffect(() => {
     // Set up auth state listener FIRST
@@ -79,160 +73,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     return () => subscription.unsubscribe();
   }, []);
-
-  const fetchUserProfile = async (userId: string) => {
-    try {
-      // Use the security definer RPC function
-      const { data, error } = await supabase.rpc('get_user_profile', {
-        user_id: userId
-      });
-
-      if (error) {
-        console.error('Error fetching user profile:', error);
-        // If profile doesn't exist, set safe defaults and show a helpful message
-        setIsAdmin(false);
-        setIsOwner(false);
-        setIsAssociated(false);
-        toast({
-          title: "Profile not found",
-          description: "Your user profile needs to be created. Please refresh the page or contact support if this persists.",
-          variant: "destructive"
-        });
-        return;
-      }
-
-      if (data && data.length > 0) {
-        const profileData = data[0];
-        // Check if user is admin (but not owner)
-        const isUserAdmin = profileData.role === 'admin';
-        // Check if user is owner (owners have all admin privileges plus owner-specific ones)
-        const isUserOwner = profileData.role === 'owner';
-        
-        setIsAdmin(isUserAdmin || isUserOwner); // Owners also have admin privileges
-        setIsOwner(isUserOwner);
-        setIsAssociated(profileData.is_associated || false);
-      } else {
-        // No profile data found, set safe defaults
-        setIsAdmin(false);
-        setIsOwner(false);
-        setIsAssociated(false);
-        toast({
-          title: "Profile missing", 
-          description: "Your user profile is missing from the database. Please contact an administrator.",
-          variant: "destructive"
-        });
-      }
-    } catch (error) {
-      console.error('Exception fetching user profile:', error);
-      // Set defaults for failed profile fetch
-      setIsAdmin(false);
-      setIsOwner(false);
-      setIsAssociated(false);
-    }
-  };
-
-  // Function to refresh user profile data
-  const refreshUserProfile = async () => {
-    if (user?.id) {
-      return await fetchUserProfile(user.id);
-    }
-  };
-
-  const signIn = async (email: string, password: string) => {
-    try {
-      // Clean up existing auth state before signing in
-      cleanupAuthState();
-      
-      // Attempt global sign out first
-      try {
-        await supabase.auth.signOut({ scope: 'global' });
-      } catch (signOutError) {
-        // Continue even if this fails
-      }
-
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
-      
-      if (error) {
-        toast({
-          title: "Login failed",
-          description: error.message,
-          variant: "destructive"
-        });
-        throw error;
-      }
-      
-      toast({
-        title: "Login successful",
-        description: "Welcome back!",
-      });
-      
-      // Force page reload to ensure clean state
-      window.location.href = '/';
-    } catch (error: any) {
-      throw error;
-    }
-  };
-
-  const signUp = async (email: string, password: string, fullName: string) => {
-    try {
-      // Clean up existing auth state before signing up
-      cleanupAuthState();
-      
-      const { error } = await supabase.auth.signUp({ 
-        email, 
-        password,
-        options: {
-          data: {
-            full_name: fullName,
-          }
-        }
-      });
-      
-      if (error) {
-        toast({
-          title: "Registration failed",
-          description: error.message,
-          variant: "destructive"
-        });
-        throw error;
-      }
-      
-      toast({
-        title: "Registration successful",
-        description: "Your account has been created successfully! You can now log in.",
-      });
-    } catch (error: any) {
-      throw error;
-    }
-  };
-
-  const signOut = async () => {
-    try {
-      // Clean up auth state first
-      cleanupAuthState();
-      
-      // Attempt global sign out
-      const { error } = await supabase.auth.signOut({ scope: 'global' });
-      if (error) {
-        toast({
-          title: "Sign out failed",
-          description: error.message,
-          variant: "destructive"
-        });
-        throw error;
-      }
-      
-      toast({
-        title: "Signed out",
-        description: "You have been successfully signed out.",
-      });
-      
-      // Force page reload to ensure clean state
-      window.location.href = '/auth';
-    } catch (error: any) {
-      throw error;
-    }
-  };
 
   const value = {
     session,
