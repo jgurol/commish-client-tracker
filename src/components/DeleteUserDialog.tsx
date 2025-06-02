@@ -45,7 +45,9 @@ export const DeleteUserDialog = ({
 
     setIsDeleting(true);
     try {
-      // Delete the user's profile first
+      // Delete the user's profile which will effectively disable the account
+      // Note: We can't delete from auth.users with the anon key, but deleting the profile
+      // will prevent the user from accessing the application
       const { error: profileError } = await supabase
         .from('profiles')
         .delete()
@@ -61,22 +63,9 @@ export const DeleteUserDialog = ({
         return;
       }
 
-      // Delete the user from auth (this requires admin privileges)
-      const { error: authError } = await supabase.auth.admin.deleteUser(user.id);
-
-      if (authError) {
-        console.error("Error deleting user from auth:", authError);
-        toast({
-          title: "Delete failed",
-          description: "Failed to delete user account: " + authError.message,
-          variant: "destructive",
-        });
-        return;
-      }
-
       toast({
-        title: "User deleted",
-        description: `${user.full_name || user.email} has been successfully deleted.`,
+        title: "User removed",
+        description: `${user.full_name || user.email} has been successfully removed from the system.`,
       });
 
       onDeleteUser(user.id);
@@ -99,10 +88,11 @@ export const DeleteUserDialog = ({
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Delete User</AlertDialogTitle>
+          <AlertDialogTitle>Remove User</AlertDialogTitle>
           <AlertDialogDescription>
-            Are you sure you want to delete <strong>{user.full_name || user.email}</strong>? 
-            This action cannot be undone. The user will be permanently removed from the system.
+            Are you sure you want to remove <strong>{user.full_name || user.email}</strong>? 
+            This will remove their profile and prevent them from accessing the system. 
+            This action cannot be undone.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
@@ -112,7 +102,7 @@ export const DeleteUserDialog = ({
             disabled={isDeleting}
             className="bg-red-600 hover:bg-red-700 text-white"
           >
-            {isDeleting ? "Deleting..." : "Delete User"}
+            {isDeleting ? "Removing..." : "Remove User"}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
