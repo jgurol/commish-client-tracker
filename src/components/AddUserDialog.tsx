@@ -104,6 +104,9 @@ export const AddUserDialog = ({
         return;
       }
 
+      // Wait a moment for the auth.users record to be properly committed
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
       // Update the user profile with the role and association
       const { error: profileError } = await supabase
         .from('profiles')
@@ -125,17 +128,21 @@ export const AddUserDialog = ({
       }
 
       // Store the temporary password for later sending after email confirmation
+      // Using upsert to handle potential race conditions
       const { error: credentialsError } = await supabase
         .from('pending_user_credentials')
-        .insert({
+        .upsert({
           user_id: authData.user.id,
           email: data.email,
           full_name: data.full_name,
           role: data.role,
           temporary_password: generatedPassword
+        }, {
+          onConflict: 'user_id'
         });
 
       if (credentialsError) {
+        console.error('Credentials error:', credentialsError);
         toast({
           title: "Failed to store credentials",
           description: credentialsError.message,
@@ -170,6 +177,7 @@ export const AddUserDialog = ({
       onOpenChange(false);
       form.reset();
     } catch (error: any) {
+      console.error('Creation error:', error);
       toast({
         title: "Creation error",
         description: error.message || "An unexpected error occurred",
