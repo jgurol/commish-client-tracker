@@ -34,17 +34,23 @@ const Auth = () => {
       const searchParams = new URLSearchParams(location.search);
       const hash = window.location.hash;
       
+      console.log('Current URL search params:', location.search);
+      console.log('Current URL hash:', hash);
+      
       // Check for email confirmation code
       const confirmationCode = searchParams.get('code');
       if (confirmationCode) {
+        console.log('Found confirmation code:', confirmationCode);
         setIsConfirmingEmail(true);
         try {
-          console.log('Processing email confirmation...');
+          console.log('Starting email confirmation process...');
           
           const { data, error } = await supabase.auth.verifyOtp({
             token_hash: confirmationCode,
             type: 'email'
           });
+          
+          console.log('Verification response:', { data, error });
           
           if (error) {
             console.error('Email confirmation error:', error);
@@ -53,16 +59,21 @@ const Auth = () => {
               description: error.message || "Failed to confirm email address",
               variant: "destructive"
             });
-          } else if (data.user) {
-            console.log('Email confirmed successfully for user:', data.user.id);
+          } else {
+            console.log('Email confirmation successful!');
+            console.log('User data:', data.user);
+            
+            // Show success message
             toast({
               title: "Email Confirmed!",
               description: "Your email has been confirmed successfully. You can now log in.",
             });
             
-            // Clear the confirmation code from URL
-            window.history.replaceState(null, '', window.location.pathname);
-            setActiveTab("login");
+            // Clear the confirmation code from URL after a short delay to ensure toast is shown
+            setTimeout(() => {
+              window.history.replaceState(null, '', window.location.pathname);
+              setActiveTab("login");
+            }, 100);
           }
         } catch (err) {
           console.error('Unexpected error during email confirmation:', err);
