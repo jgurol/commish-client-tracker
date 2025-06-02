@@ -10,7 +10,7 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
+import { createClient } from '@supabase/supabase-js';
 import { generateRandomPassword } from "@/utils/passwordUtils";
 
 interface UserProfile {
@@ -78,8 +78,20 @@ export const AddUserDialog = ({
       const generatedPassword = generateRandomPassword(12);
       console.log('Generated password for new user');
 
+      // Create admin client with service role key
+      const supabaseAdmin = createClient(
+        "https://wblwtdiywvzsbirkanal.supabase.co",
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndibHd0ZGl5d3Z6c2JpcmthbmFsIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0Nzk2NjEwNiwiZXhwIjoyMDYzNTQyMTA2fQ.s79ufIHf9Xa8YLW6KmCFzOEGH_qRuKWPT6tMdPIZQ44",
+        {
+          auth: {
+            autoRefreshToken: false,
+            persistSession: false
+          }
+        }
+      );
+
       // Create the user account using the admin API
-      const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+      const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
         email: data.email,
         password: generatedPassword,
         user_metadata: {
@@ -122,7 +134,7 @@ export const AddUserDialog = ({
 
       console.log('Creating profile with data:', profileData);
 
-      const { error: profileError } = await supabase
+      const { error: profileError } = await supabaseAdmin
         .from('profiles')
         .insert(profileData);
 
@@ -131,7 +143,7 @@ export const AddUserDialog = ({
         
         // Clean up the auth user if profile creation fails
         try {
-          await supabase.auth.admin.deleteUser(authData.user.id);
+          await supabaseAdmin.auth.admin.deleteUser(authData.user.id);
           console.log('Cleaned up auth user after profile creation failure');
         } catch (cleanupError) {
           console.error('Failed to cleanup auth user:', cleanupError);
@@ -149,7 +161,7 @@ export const AddUserDialog = ({
 
       // Send welcome email with credentials
       try {
-        const { error: emailError } = await supabase.functions.invoke('send-welcome-email', {
+        const { error: emailError } = await supabaseAdmin.functions.invoke('send-welcome-email', {
           body: {
             email: data.email,
             fullName: data.full_name,
