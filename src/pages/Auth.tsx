@@ -37,10 +37,66 @@ const Auth = () => {
       console.log('Current URL search params:', location.search);
       console.log('Current URL hash:', hash);
       
-      // Check for email confirmation code
+      // Check for email confirmation using the hash parameters (which is how Supabase sends them)
+      if (hash && hash.includes('type=signup')) {
+        console.log('Found signup confirmation in hash');
+        setIsConfirmingEmail(true);
+        
+        try {
+          // Supabase automatically handles the confirmation when the page loads with the hash
+          // We just need to check the session after a brief moment
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          
+          const { data: { session }, error } = await supabase.auth.getSession();
+          
+          console.log('Session after hash processing:', { session, error });
+          
+          if (error) {
+            console.error('Session error after confirmation:', error);
+            toast({
+              title: "Email Confirmation Failed",
+              description: error.message || "Failed to confirm email address",
+              variant: "destructive"
+            });
+          } else if (session?.user) {
+            console.log('Email confirmation successful! User:', session.user.id);
+            
+            toast({
+              title: "Email Confirmed!",
+              description: "Your email has been confirmed successfully. You are now logged in.",
+            });
+            
+            // Clear the hash from URL and redirect to main page
+            window.history.replaceState(null, '', window.location.pathname);
+            // The user will be automatically redirected by the Navigate component below
+          } else {
+            // Session might still be processing, show success message anyway
+            toast({
+              title: "Email Confirmed!",
+              description: "Your email has been confirmed successfully. You can now log in.",
+            });
+            
+            window.history.replaceState(null, '', window.location.pathname);
+            setActiveTab("login");
+          }
+        } catch (err) {
+          console.error('Unexpected error during email confirmation:', err);
+          toast({
+            title: "Confirmation Error",
+            description: "An unexpected error occurred during email confirmation",
+            variant: "destructive"
+          });
+        } finally {
+          setIsConfirmingEmail(false);
+          setIsCheckingSession(false);
+        }
+        return;
+      }
+      
+      // Check for legacy code parameter (fallback)
       const confirmationCode = searchParams.get('code');
       if (confirmationCode) {
-        console.log('Found confirmation code:', confirmationCode);
+        console.log('Found legacy confirmation code:', confirmationCode);
         setIsConfirmingEmail(true);
         try {
           console.log('Starting email confirmation process...');
