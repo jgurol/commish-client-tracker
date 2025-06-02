@@ -137,6 +137,39 @@ export type Database = {
           },
         ]
       }
+      pending_user_credentials: {
+        Row: {
+          created_at: string
+          email: string
+          full_name: string
+          id: string
+          role: string
+          sent_at: string | null
+          temporary_password: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          full_name: string
+          id?: string
+          role: string
+          sent_at?: string | null
+          temporary_password: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          full_name?: string
+          id?: string
+          role?: string
+          sent_at?: string | null
+          temporary_password?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           associated_agent_id: string | null

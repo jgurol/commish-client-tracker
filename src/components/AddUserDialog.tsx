@@ -69,27 +69,6 @@ export const AddUserDialog = ({
     },
   });
 
-  const sendWelcomeEmail = async (email: string, fullName: string, password: string, role: string) => {
-    try {
-      const { data, error } = await supabase.functions.invoke('send-welcome-email', {
-        body: {
-          email,
-          fullName,
-          password,
-          role,
-        },
-      });
-
-      if (error) {
-        throw error;
-      }
-
-      return data;
-    } catch (error: any) {
-      throw new Error(`Failed to send welcome email: ${error.message}`);
-    }
-  };
-
   const onSubmit = async (data: FormValues) => {
     setIsSubmitting(true);
     try {
@@ -145,15 +124,24 @@ export const AddUserDialog = ({
         return;
       }
 
-      // Send welcome email with the generated password
-      try {
-        await sendWelcomeEmail(data.email, data.full_name, generatedPassword, data.role);
-      } catch (emailError: any) {
+      // Store the temporary password for later sending after email confirmation
+      const { error: credentialsError } = await supabase
+        .from('pending_user_credentials')
+        .insert({
+          user_id: authData.user.id,
+          email: data.email,
+          full_name: data.full_name,
+          role: data.role,
+          temporary_password: generatedPassword
+        });
+
+      if (credentialsError) {
         toast({
-          title: "User created but email failed",
-          description: "User was created successfully, but the welcome email could not be sent. Please provide the password manually.",
+          title: "Failed to store credentials",
+          description: credentialsError.message,
           variant: "destructive",
         });
+        return;
       }
 
       // Find the associated agent name if an agent is selected
@@ -175,7 +163,7 @@ export const AddUserDialog = ({
 
       toast({
         title: "User created successfully",
-        description: "User has been created and a welcome email with login credentials has been sent.",
+        description: "User has been created. They will receive their login credentials via email after confirming their email address.",
       });
 
       onAddUser(newUser);
@@ -198,7 +186,7 @@ export const AddUserDialog = ({
         <DialogHeader>
           <DialogTitle>Add New User</DialogTitle>
           <DialogDescription>
-            Create a new user account. A random password will be generated and sent via email.
+            Create a new user account. They will receive a confirmation email first, then their login credentials after confirmation.
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
