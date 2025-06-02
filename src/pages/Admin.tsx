@@ -12,7 +12,7 @@ import {
   TableCell 
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { Shield, UserCheck, UserX, PencilIcon, UserPlus, Trash2 } from 'lucide-react';
+import { Shield, UserCheck, UserX, PencilIcon, UserPlus, Trash2, Crown } from 'lucide-react';
 import { Navigate } from 'react-router-dom';
 import { EditUserDialog } from '@/components/EditUserDialog';
 import { AssociateUserDialog } from '@/components/AssociateUserDialog';
@@ -202,6 +202,54 @@ export default function Admin() {
     setDeletingUser(null);
   };
 
+  const getRoleIcon = (role: string) => {
+    switch (role) {
+      case 'admin':
+        return <Shield className="w-3 h-3" />;
+      case 'owner':
+        return <Crown className="w-3 h-3" />;
+      default:
+        return null;
+    }
+  };
+
+  const getRoleBadge = (role: string) => {
+    switch (role) {
+      case 'admin':
+        return (
+          <span className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs">
+            <Shield className="w-3 h-3" />
+            Admin
+          </span>
+        );
+      case 'owner':
+        return (
+          <span className="inline-flex items-center gap-1 px-2 py-1 bg-purple-100 text-purple-800 rounded text-xs">
+            <Crown className="w-3 h-3" />
+            Owner
+          </span>
+        );
+      default:
+        return (
+          <span className="px-2 py-1 bg-green-100 text-green-800 rounded text-xs">
+            Agent
+          </span>
+        );
+    }
+  };
+
+  const canDeleteUser = (userProfile: UserProfile) => {
+    // Owners cannot be deleted
+    if (userProfile.role === 'owner') {
+      return false;
+    }
+    // Users cannot delete themselves
+    if (userProfile.id === user?.id) {
+      return false;
+    }
+    return true;
+  };
+
   return (
     <div className="container mx-auto p-4 min-h-screen">
       <Header />
@@ -250,16 +298,7 @@ export default function Admin() {
                     <TableCell>{userProfile.full_name || 'No name'}</TableCell>
                     <TableCell>{userProfile.email}</TableCell>
                     <TableCell>
-                      {userProfile.role === 'admin' ? (
-                        <span className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs">
-                          <Shield className="w-3 h-3" />
-                          Admin
-                        </span>
-                      ) : (
-                        <span className="px-2 py-1 bg-green-100 text-green-800 rounded text-xs">
-                          Agent
-                        </span>
-                      )}
+                      {getRoleBadge(userProfile.role)}
                     </TableCell>
                     <TableCell>
                       {userProfile.is_associated ? (
@@ -321,7 +360,7 @@ export default function Admin() {
                           </>
                         )}
 
-                        {userProfile.id !== user?.id && (
+                        {canDeleteUser(userProfile) && (
                           <Button
                             variant="ghost"
                             size="sm"

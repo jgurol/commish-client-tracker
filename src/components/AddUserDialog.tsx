@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -41,7 +42,7 @@ interface AddUserDialogProps {
 const formSchema = z.object({
   full_name: z.string().min(1, "Name is required"),
   email: z.string().email("Invalid email address"),
-  role: z.enum(["admin", "agent"], {
+  role: z.enum(["admin", "agent", "owner"], {
     required_error: "Please select a role",
   }),
   associated_agent_id: z.string().nullable().optional(),
@@ -113,7 +114,7 @@ export const AddUserDialog = ({
 
       toast({
         title: "User created successfully",
-        description: `${data.role === "admin" ? "Admin" : "Agent"} user has been created and their login credentials have been sent via email.`,
+        description: `${data.role === "admin" ? "Admin" : data.role === "owner" ? "Owner" : "Agent"} user has been created and their login credentials have been sent via email.`,
       });
 
       onAddUser(newUser);
@@ -189,6 +190,10 @@ export const AddUserDialog = ({
                       <div className="flex items-center space-x-2">
                         <RadioGroupItem value="agent" id="agent" />
                         <FormLabel htmlFor="agent" className="cursor-pointer">Agent</FormLabel>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="owner" id="owner" />
+                        <FormLabel htmlFor="owner" className="cursor-pointer">Owner</FormLabel>
                       </div>
                     </RadioGroup>
                   </FormControl>

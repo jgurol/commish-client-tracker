@@ -43,7 +43,7 @@ interface EditUserDialogProps {
 const formSchema = z.object({
   full_name: z.string().min(1, "Name is required"),
   email: z.string().email("Invalid email address"),
-  role: z.enum(["admin", "agent"], {
+  role: z.enum(["admin", "agent", "owner"], {
     required_error: "Please select a role",
   }),
   associated_agent_id: z.string().nullable().optional(),
@@ -65,7 +65,7 @@ export const EditUserDialog = ({
     defaultValues: {
       full_name: user.full_name || "",
       email: user.email,
-      role: user.role as "admin" | "agent",
+      role: user.role as "admin" | "agent" | "owner",
       associated_agent_id: user.associated_agent_id || null,
     },
   });
@@ -75,7 +75,7 @@ export const EditUserDialog = ({
     form.reset({
       full_name: user.full_name || "",
       email: user.email,
-      role: user.role as "admin" | "agent",
+      role: user.role as "admin" | "agent" | "owner",
       associated_agent_id: user.associated_agent_id || null,
     });
   }, [user, form]);
@@ -209,6 +209,10 @@ export const EditUserDialog = ({
                       <div className="flex items-center space-x-2">
                         <RadioGroupItem value="agent" id="agent" />
                         <FormLabel htmlFor="agent" className="cursor-pointer">Agent</FormLabel>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="owner" id="owner" />
+                        <FormLabel htmlFor="owner" className="cursor-pointer">Owner</FormLabel>
                       </div>
                     </RadioGroup>
                   </FormControl>

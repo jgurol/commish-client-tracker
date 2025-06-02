@@ -29,7 +29,37 @@ serve(async (req) => {
 
     console.log('Attempting to delete user:', targetUserId)
 
-    // First, delete the user profile
+    // First, check if the target user is an owner
+    const { data: userProfile, error: profileCheckError } = await supabaseAdmin
+      .from('profiles')
+      .select('role')
+      .eq('id', targetUserId)
+      .single()
+
+    if (profileCheckError) {
+      console.error('Error checking user profile:', profileCheckError)
+      return new Response(
+        JSON.stringify({ error: 'Failed to verify user profile: ' + profileCheckError.message }),
+        { 
+          status: 400, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      )
+    }
+
+    // Prevent deletion of owner accounts
+    if (userProfile.role === 'owner') {
+      console.log('Attempted to delete owner account - blocked')
+      return new Response(
+        JSON.stringify({ error: 'Owner accounts cannot be deleted' }),
+        { 
+          status: 403, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      )
+    }
+
+    // Delete the user profile
     const { error: profileError } = await supabaseAdmin
       .from('profiles')
       .delete()
