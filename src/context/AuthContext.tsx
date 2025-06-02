@@ -85,9 +85,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       });
 
       if (error) {
+        console.error('Error fetching user profile:', error);
+        // If profile doesn't exist, set safe defaults and show a helpful message
+        setIsAdmin(false);
+        setIsAssociated(false);
         toast({
-          title: "Profile retrieval issue",
-          description: "There was an issue loading your profile details. Some functionality may be limited.",
+          title: "Profile not found",
+          description: "Your user profile needs to be created. Please refresh the page or contact support if this persists.",
           variant: "destructive"
         });
         return;
@@ -102,8 +106,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         // No profile data found, set safe defaults
         setIsAdmin(false);
         setIsAssociated(false);
+        toast({
+          title: "Profile missing", 
+          description: "Your user profile is missing from the database. Please contact an administrator.",
+          variant: "destructive"
+        });
       }
     } catch (error) {
+      console.error('Exception fetching user profile:', error);
       // Set defaults for failed profile fetch
       setIsAdmin(false);
       setIsAssociated(false);

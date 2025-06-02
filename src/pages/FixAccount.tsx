@@ -1,146 +1,121 @@
 
-import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/context/AuthContext";
-import { Button } from "@/components/ui/button";
-import { useToast } from "@/hooks/use-toast";
-import { Navigate, useNavigate } from "react-router-dom";
-import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
-import { AlertTriangle } from "lucide-react";
+import React, { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { useAuth } from '@/context/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
+import { Navigate } from 'react-router-dom';
 
 export default function FixAccount() {
-  const { user, signOut, loading } = useAuth();
+  const { user, refreshUserProfile } = useAuth();
   const { toast } = useToast();
-  const [updating, setUpdating] = useState(false);
-  const [userEmail, setUserEmail] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const navigate = useNavigate();
-  
-  useEffect(() => {
-    if (user?.email) {
-      setUserEmail(user.email);
-    }
-  }, [user]);
-
-  const makeAdmin = async () => {
-    if (!user?.id) return;
-    
-    try {
-      setUpdating(true);
-      setError(null);
-      
-      // Use RPC call to bypass RLS policies
-      const { error } = await supabase.rpc('make_user_admin', {
-        user_id: user.id
-      });
-        
-      if (error) throw error;
-      
-      toast({
-        title: "Success",
-        description: "Your account has been updated to admin. Please sign out and back in.",
-      });
-      
-      // Sign out and redirect to auth page after successful update
-      await signOut();
-    } catch (error: any) {
-      console.error("Error updating user:", error);
-      setError(`Failed to update account: ${error.message}`);
-      toast({
-        title: "Error",
-        description: `Failed to update account: ${error.message}`,
-        variant: "destructive"
-      });
-    } finally {
-      setUpdating(false);
-    }
-  };
-
-  const makeAssociated = async () => {
-    if (!user?.id) return;
-    
-    try {
-      setUpdating(true);
-      setError(null);
-      
-      // Use RPC call to bypass RLS policies
-      const { error } = await supabase.rpc('make_user_associated', {
-        user_id: user.id
-      });
-        
-      if (error) throw error;
-      
-      toast({
-        title: "Success",
-        description: "Your account has been associated. Please sign out and back in.",
-      });
-      
-      // Sign out and redirect to auth page after successful update
-      await signOut();
-    } catch (error: any) {
-      console.error("Error updating user:", error);
-      setError(`Failed to update account: ${error.message}`);
-      toast({
-        title: "Error",
-        description: `Failed to update account: ${error.message}`,
-        variant: "destructive"
-      });
-    } finally {
-      setUpdating(false);
-    }
-  };
-
-  if (loading) {
-    return <div className="h-screen flex items-center justify-center">Loading...</div>;
-  }
+  const [isFixing, setIsFixing] = useState(false);
 
   if (!user) {
     return <Navigate to="/auth" />;
   }
 
+  const fixAccount = async () => {
+    setIsFixing(true);
+    try {
+      // Check if profile exists
+      const { data: existingProfile, error: checkError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .maybeSingle();
+
+      if (checkError) {
+        throw checkError;
+      }
+
+      if (existingProfile) {
+        // Profile exists, update it to admin
+        const { error: updateError } = await supabase
+          .from('profiles')
+          .update({
+            role: 'admin',
+            is_associated: true,
+            full_name: user.user_metadata?.full_name || user.email?.split('@')[0] || '',
+            email: user.email || ''
+          })
+          .eq('id', user.id);
+
+        if (updateError) throw updateError;
+
+        toast({
+          title: "Account updated",
+          description: "Your account has been updated to admin status.",
+        });
+      } else {
+        // Profile doesn't exist, create it
+        const { error: insertError } = await supabase
+          .from('profiles')
+          .insert({
+            id: user.id,
+            email: user.email || '',
+            full_name: user.user_metadata?.full_name || user.email?.split('@')[0] || '',
+            role: 'admin',
+            is_associated: true
+          });
+
+        if (insertError) throw insertError;
+
+        toast({
+          title: "Account created",
+          description: "Your admin account has been created successfully.",
+        });
+      }
+
+      // Refresh user profile to update the UI
+      await refreshUserProfile();
+      
+      // Redirect to dashboard
+      setTimeout(() => {
+        window.location.href = '/';
+      }, 1000);
+
+    } catch (error: any) {
+      console.error('Error fixing account:', error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to fix account",
+        variant: "destructive"
+      });
+    } finally {
+      setIsFixing(false);
+    }
+  };
+
   return (
-    <div className="h-screen flex flex-col items-center justify-center p-4 text-center">
-      <h1 className="text-2xl font-bold mb-2">Account Setup</h1>
-      
-      <div className="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
-        <p className="mb-2 font-medium">Current user: {userEmail}</p>
-        <p className="text-sm text-gray-600">Your account needs to be set up to continue using the system.</p>
-      </div>
-      
-      {error && (
-        <Alert variant="destructive" className="mb-4">
-          <AlertTriangle className="h-4 w-4" />
-          <AlertTitle>Error</AlertTitle>
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-      )}
-      
-      <div className="flex flex-col gap-4 w-full max-w-md">
-        <Button
-          onClick={makeAdmin}
-          disabled={updating}
-          className="bg-blue-600 hover:bg-blue-700"
-        >
-          Make Me Admin
-        </Button>
-        
-        <Button
-          onClick={makeAssociated}
-          disabled={updating}
-          variant="outline"
-          className="border-green-500 text-green-600 hover:bg-green-50"
-        >
-          Make Me Associated Agent
-        </Button>
-        
-        <Button
-          onClick={async () => await signOut()}
-          variant="outline"
-          className="mt-4 border-gray-300"
-        >
-          Sign Out
-        </Button>
-      </div>
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+      <Card className="w-full max-w-md">
+        <CardHeader>
+          <CardTitle>Fix Account</CardTitle>
+          <CardDescription>
+            Your account needs to be set up properly in the system.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="text-sm text-gray-600">
+            <p><strong>Email:</strong> {user.email}</p>
+            <p><strong>User ID:</strong> {user.id}</p>
+          </div>
+          
+          <Button 
+            onClick={fixAccount}
+            disabled={isFixing}
+            className="w-full"
+          >
+            {isFixing ? 'Fixing Account...' : 'Fix My Account'}
+          </Button>
+          
+          <p className="text-xs text-gray-500 text-center">
+            This will create or update your profile with admin privileges.
+          </p>
+        </CardContent>
+      </Card>
     </div>
   );
 }
