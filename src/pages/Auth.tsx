@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import {
@@ -26,17 +27,6 @@ const Auth = () => {
   const [isCheckingSession, setIsCheckingSession] = useState(true);
   const { user, signIn, signUp } = useAuth();
   const { toast } = useToast();
-
-  // Debug the current URL and hash
-  useEffect(() => {
-    console.log('Current URL:', window.location.href);
-    console.log('Current URL hash:', window.location.hash);
-    
-    // Log session information
-    supabase.auth.getSession().then(({ data }) => {
-      console.log('Initial session check:', data.session);
-    });
-  }, []);
   
   // Check if we have a password reset token in the URL
   useEffect(() => {
@@ -44,10 +34,8 @@ const Auth = () => {
       // When a user clicks the reset password link in their email,
       // they will be redirected to this page with a special hash parameter
       const hash = window.location.hash;
-      console.log('Checking for password reset. Hash:', hash);
       
       if (hash && hash.includes('type=recovery')) {
-        console.log('Password reset flow detected');
         setShowUpdatePasswordForm(true);
         setActiveTab("none"); // Ensure tabs don't show
         setIsCheckingSession(true);
@@ -60,11 +48,7 @@ const Auth = () => {
           const accessToken = new URLSearchParams(hash.substring(1)).get('access_token');
           const refreshToken = new URLSearchParams(hash.substring(1)).get('refresh_token');
           
-          console.log('Access token found:', accessToken ? 'yes' : 'no');
-          console.log('Refresh token found:', refreshToken ? 'yes' : 'no');
-          
           if (!accessToken) {
-            console.error('No access token found in URL');
             setTokenError("Missing access token in recovery link. Please request a new one.");
             setIsCheckingSession(false);
             return;
@@ -77,7 +61,6 @@ const Auth = () => {
           });
           
           if (error) {
-            console.error('Error setting session:', error);
             setTokenError(error.message || "Invalid or expired password reset link");
             toast({
               title: "Reset Link Error",
@@ -85,14 +68,12 @@ const Auth = () => {
               variant: "destructive"
             });
           } else {
-            console.log('Successfully set session for password reset:', data);
             toast({
               title: "Reset Link Valid",
               description: "Please enter your new password",
             });
           }
         } catch (err) {
-          console.error('Error during recovery flow:', err);
           setTokenError("An unexpected error occurred");
         } finally {
           setIsCheckingSession(false);
@@ -111,7 +92,7 @@ const Auth = () => {
       setIsSubmitting(true);
       await signIn(email, password);
     } catch (error) {
-      console.error("Error during login:", error);
+      // Error is already handled in the signIn function
     } finally {
       setIsSubmitting(false);
     }
@@ -123,7 +104,7 @@ const Auth = () => {
       await signUp(email, password, fullName);
       setActiveTab("login");
     } catch (error) {
-      console.error("Error during registration:", error);
+      // Error is already handled in the signUp function
     } finally {
       setIsSubmitting(false);
     }
@@ -136,9 +117,6 @@ const Auth = () => {
       // Get the fully qualified URL with deployment domain
       const currentUrl = window.location.origin;
       const redirectUrl = `${currentUrl}/auth`;
-      
-      console.log('Current origin URL:', currentUrl);
-      console.log('Full redirect URL:', redirectUrl);
       
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: redirectUrl,
@@ -160,7 +138,7 @@ const Auth = () => {
       setShowResetForm(false);
       setActiveTab("login");
     } catch (error) {
-      console.error("Error during password reset:", error);
+      // Error is already handled above
     } finally {
       setIsSubmitting(false);
     }
@@ -168,12 +146,10 @@ const Auth = () => {
   
   const handleUpdatePasswordSubmit = async (password: string) => {
     try {
-      console.log("Update password flow started");
       setIsSubmitting(true);
       
       // Get the current session to verify we have the right context
       const { data: sessionData } = await supabase.auth.getSession();
-      console.log("Current session before password update:", sessionData.session);
       
       if (!sessionData.session) {
         toast({
@@ -189,7 +165,6 @@ const Auth = () => {
       });
       
       if (error) {
-        console.error("Password update error:", error);
         toast({
           title: "Failed to update password",
           description: error.message,
@@ -198,7 +173,6 @@ const Auth = () => {
         throw error;
       }
       
-      console.log("Password updated successfully");
       toast({
         title: "Password Updated",
         description: "Your password has been successfully updated. You can now log in with your new password.",
@@ -213,7 +187,7 @@ const Auth = () => {
       setShowUpdatePasswordForm(false);
       setActiveTab("login");
     } catch (error) {
-      console.error("Error updating password:", error);
+      // Error is already handled above
     } finally {
       setIsSubmitting(false);
     }

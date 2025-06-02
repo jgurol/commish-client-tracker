@@ -80,19 +80,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const fetchUserProfile = async (userId: string) => {
     try {
-      // Use the security definer RPC function we just created
+      // Use the security definer RPC function
       const { data, error } = await supabase.rpc('get_user_profile', {
         user_id: userId
       });
 
       if (error) {
-        // If we still get an error with the RPC call, fall back to direct check using email
-        if (user?.email === 'jim@californiatelecom.com') {
-          setIsAdmin(true);
-          setIsAssociated(true);
-          return;
-        }
-        
         toast({
           title: "Profile retrieval issue",
           description: "There was an issue loading your profile details. Some functionality may be limited.",

@@ -91,7 +91,6 @@ export const EditUserDialog = ({
       });
 
       if (error) {
-        console.error("Error updating user profile:", error);
         toast({
           title: "Update failed",
           description: error.message,
@@ -114,7 +113,6 @@ export const EditUserDialog = ({
           .eq('id', user.id);
 
         if (agentError) {
-          console.error("Error updating user association:", agentError);
           toast({
             title: "Association update failed",
             description: agentError.message,
@@ -147,7 +145,6 @@ export const EditUserDialog = ({
       onUpdateUser(updatedUser);
       onOpenChange(false);
     } catch (error: any) {
-      console.error("Exception updating user:", error);
       toast({
         title: "Update error",
         description: error.message || "An unexpected error occurred",

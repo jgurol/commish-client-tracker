@@ -71,7 +71,6 @@ export const AddUserDialog = ({
 
   const sendWelcomeEmail = async (email: string, fullName: string, password: string, role: string) => {
     try {
-      console.log("Sending welcome email to:", email);
       const { data, error } = await supabase.functions.invoke('send-welcome-email', {
         body: {
           email,
@@ -82,14 +81,11 @@ export const AddUserDialog = ({
       });
 
       if (error) {
-        console.error("Error sending welcome email:", error);
         throw error;
       }
 
-      console.log("Welcome email sent successfully:", data);
       return data;
     } catch (error: any) {
-      console.error("Failed to send welcome email:", error);
       throw new Error(`Failed to send welcome email: ${error.message}`);
     }
   };
@@ -99,7 +95,6 @@ export const AddUserDialog = ({
     try {
       // Generate a random password
       const generatedPassword = generateRandomPassword(12);
-      console.log("Generated password for new user");
 
       // Create the user account
       const { data: authData, error: authError } = await supabase.auth.signUp({
@@ -113,7 +108,6 @@ export const AddUserDialog = ({
       });
 
       if (authError) {
-        console.error("Error creating user:", authError);
         toast({
           title: "User creation failed",
           description: authError.message,
@@ -143,7 +137,6 @@ export const AddUserDialog = ({
         .eq('id', authData.user.id);
 
       if (profileError) {
-        console.error("Error updating profile:", profileError);
         toast({
           title: "Profile update failed",
           description: profileError.message,
@@ -155,9 +148,7 @@ export const AddUserDialog = ({
       // Send welcome email with the generated password
       try {
         await sendWelcomeEmail(data.email, data.full_name, generatedPassword, data.role);
-        console.log("Welcome email sent successfully");
       } catch (emailError: any) {
-        console.error("Warning: Failed to send welcome email:", emailError);
         toast({
           title: "User created but email failed",
           description: "User was created successfully, but the welcome email could not be sent. Please provide the password manually.",
@@ -191,7 +182,6 @@ export const AddUserDialog = ({
       onOpenChange(false);
       form.reset();
     } catch (error: any) {
-      console.error("Exception creating user:", error);
       toast({
         title: "Creation error",
         description: error.message || "An unexpected error occurred",
