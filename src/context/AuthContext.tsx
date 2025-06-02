@@ -1,3 +1,4 @@
+
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -99,7 +100,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       if (data && data.length > 0) {
         const profileData = data[0];
-        const isUserAdmin = profileData.role === 'admin';
+        // Check if user is admin OR owner - both should have admin privileges
+        const isUserAdmin = profileData.role === 'admin' || profileData.role === 'owner';
         setIsAdmin(isUserAdmin);
         setIsAssociated(profileData.is_associated || false);
       } else {
