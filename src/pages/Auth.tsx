@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Navigate } from "react-router-dom";
 import {
@@ -16,6 +17,7 @@ import { RegisterForm } from "@/components/auth/RegisterForm";
 import { ResetPasswordForm } from "@/components/auth/ResetPasswordForm";
 import { UpdatePasswordForm } from "@/components/auth/UpdatePasswordForm";
 import { generateRandomPassword } from "@/utils/passwordUtils";
+import type { User } from "@supabase/supabase-js";
 
 const Auth = () => {
   const [activeTab, setActiveTab] = useState<string>("login");
@@ -69,9 +71,9 @@ const Auth = () => {
         throw getUserError;
       }
       
-      const user = users.find(u => u.email === email);
+      const foundUser: User | undefined = users.find((u: User) => u.email === email);
       
-      if (!user) {
+      if (!foundUser) {
         toast({
           title: "User not found",
           description: "No account found with that email address",
@@ -81,7 +83,7 @@ const Auth = () => {
       }
       
       // Update the user's password
-      const { error: updateError } = await supabase.auth.admin.updateUserById(user.id, {
+      const { error: updateError } = await supabase.auth.admin.updateUserById(foundUser.id, {
         password: tempPassword
       });
       
@@ -99,7 +101,7 @@ const Auth = () => {
         body: {
           email: email,
           tempPassword: tempPassword,
-          fullName: user.user_metadata?.full_name || 'User'
+          fullName: foundUser.user_metadata?.full_name || 'User'
         }
       });
       
