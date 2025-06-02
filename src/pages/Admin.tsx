@@ -57,6 +57,8 @@ export default function Admin() {
   useEffect(() => {
     fetchUsers();
     fetchAgents();
+    // Auto-update jim@californiatelecom.com to owner role
+    updateUserToOwner();
   }, []);
 
   const logAdminAction = async (action: string, details: Record<string, any>) => {
@@ -248,6 +250,43 @@ export default function Admin() {
       return false;
     }
     return true;
+  };
+
+  const updateUserToOwner = async () => {
+    try {
+      // Find jim@californiatelecom.com and update to owner
+      const { data: jimUser, error: findError } = await supabase
+        .from('profiles')
+        .select('id, role')
+        .eq('email', 'jim@californiatelecom.com')
+        .single();
+
+      if (findError) {
+        console.log('User jim@californiatelecom.com not found or error:', findError);
+        return;
+      }
+
+      if (jimUser && jimUser.role !== 'owner') {
+        const { error: updateError } = await supabase
+          .from('profiles')
+          .update({ role: 'owner' })
+          .eq('id', jimUser.id);
+
+        if (updateError) {
+          console.error('Failed to update user to owner:', updateError);
+        } else {
+          console.log('Successfully updated jim@californiatelecom.com to owner role');
+          // Refresh the users list to show the change
+          fetchUsers();
+          toast({
+            title: "User Updated",
+            description: "jim@californiatelecom.com has been made an owner",
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Error updating user to owner:', error);
+    }
   };
 
   return (
