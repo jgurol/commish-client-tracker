@@ -1,4 +1,3 @@
-
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -12,6 +11,7 @@ interface AuthContextType {
   signUp: (email: string, password: string, fullName: string) => Promise<void>;
   signOut: () => Promise<void>;
   isAdmin: boolean;
+  isOwner: boolean;
   isAssociated: boolean;
   refreshUserProfile: () => Promise<void>;
 }
@@ -41,6 +41,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isOwner, setIsOwner] = useState(false);
   const [isAssociated, setIsAssociated] = useState(false);
   const { toast } = useToast();
 
@@ -58,6 +59,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           }, 0);
         } else {
           setIsAdmin(false);
+          setIsOwner(false);
           setIsAssociated(false);
         }
       }
@@ -89,6 +91,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         console.error('Error fetching user profile:', error);
         // If profile doesn't exist, set safe defaults and show a helpful message
         setIsAdmin(false);
+        setIsOwner(false);
         setIsAssociated(false);
         toast({
           title: "Profile not found",
@@ -100,13 +103,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       if (data && data.length > 0) {
         const profileData = data[0];
-        // Check if user is admin OR owner - both should have admin privileges
-        const isUserAdmin = profileData.role === 'admin' || profileData.role === 'owner';
-        setIsAdmin(isUserAdmin);
+        // Check if user is admin (but not owner)
+        const isUserAdmin = profileData.role === 'admin';
+        // Check if user is owner (owners have all admin privileges plus owner-specific ones)
+        const isUserOwner = profileData.role === 'owner';
+        
+        setIsAdmin(isUserAdmin || isUserOwner); // Owners also have admin privileges
+        setIsOwner(isUserOwner);
         setIsAssociated(profileData.is_associated || false);
       } else {
         // No profile data found, set safe defaults
         setIsAdmin(false);
+        setIsOwner(false);
         setIsAssociated(false);
         toast({
           title: "Profile missing", 
@@ -118,6 +126,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.error('Exception fetching user profile:', error);
       // Set defaults for failed profile fetch
       setIsAdmin(false);
+      setIsOwner(false);
       setIsAssociated(false);
     }
   };
@@ -233,6 +242,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     signUp,
     signOut,
     isAdmin,
+    isOwner,
     isAssociated,
     refreshUserProfile,
   };
