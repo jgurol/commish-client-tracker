@@ -157,17 +157,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Clean up existing auth state before signing up
       cleanupAuthState();
       
-      // Use the correct redirect URL pointing to the auth page
-      const redirectUrl = `${window.location.origin}/auth`;
-      
       const { error } = await supabase.auth.signUp({ 
         email, 
         password,
         options: {
           data: {
             full_name: fullName,
-          },
-          emailRedirectTo: redirectUrl
+          }
         }
       });
       
@@ -182,7 +178,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       toast({
         title: "Registration successful",
-        description: "Your account has been created! However, you cannot log in until your account is associated with an agent by a system administrator.",
+        description: "Your account has been created successfully! You can now log in.",
       });
     } catch (error: any) {
       throw error;

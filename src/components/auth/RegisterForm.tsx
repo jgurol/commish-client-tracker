@@ -14,7 +14,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertTriangle, Mail } from "lucide-react";
+import { AlertTriangle } from "lucide-react";
 
 const registerSchema = z.object({
   fullName: z.string().min(2, { message: "Name is required" }),
@@ -50,19 +50,11 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onRegister, isSubmit
 
   return (
     <>
-      <Alert className="mb-4 bg-blue-50 text-blue-800 border-blue-200">
-        <Mail className="h-4 w-4" />
-        <AlertTitle>Email Confirmation Required</AlertTitle>
-        <AlertDescription>
-          After registering, you'll receive a confirmation email. Please check your email and click the confirmation link to activate your account.
-        </AlertDescription>
-      </Alert>
-
       <Alert className="mb-4 bg-amber-50 text-amber-800 border-amber-200">
         <AlertTriangle className="h-4 w-4" />
         <AlertTitle>Account Activation</AlertTitle>
         <AlertDescription>
-          After email confirmation, your account will need to be associated with an agent by a system administrator before you can access the full application.
+          After registration, your account will need to be associated with an agent by a system administrator before you can access the full application.
         </AlertDescription>
       </Alert>
       
