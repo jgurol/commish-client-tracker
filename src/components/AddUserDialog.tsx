@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -58,11 +57,8 @@ export const AddUserDialog = ({
   onAddUser 
 }: AddUserDialogProps) => {
   const { toast } = useToast();
-  const { user } = useAuth();
+  const { isOwner } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
-  // Check if user is owner (for role assignment restrictions)
-  const isOwner = user?.user_metadata?.role === 'owner';
   
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
