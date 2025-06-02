@@ -111,7 +111,12 @@ export default function Admin() {
         setUsers(usersWithAgentInfo);
       } else {
         console.log('Successfully fetched users:', usersData?.length || 0);
-        setUsers(usersData || []);
+        // Ensure the data includes associated_agent_id for TypeScript compatibility
+        const formattedUsers = usersData?.map(user => ({
+          ...user,
+          associated_agent_id: null // RPC function doesn't return this, so set to null
+        })) || [];
+        setUsers(formattedUsers);
       }
     } catch (error: any) {
       console.error('Error in fetchUsers:', error);
