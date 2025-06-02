@@ -24,36 +24,43 @@ export const OrphanedUserCleanup = () => {
 
     setIsDeleting(true);
     try {
-      // First, check if user exists in auth.users but not in profiles
-      const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers();
+      // First, get the current user to check if they're admin
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
       
-      if (authError) {
-        throw new Error(`Failed to list auth users: ${authError.message}`);
-      }
-
-      const authUser = authUsers.users.find(user => user.email === email);
-      
-      if (!authUser) {
+      if (!currentUser) {
         toast({
-          title: "User not found",
-          description: `No authentication record found for ${email}`,
+          title: "Authentication required",
+          description: "You must be logged in to perform this action",
           variant: "destructive",
         });
         return;
       }
 
-      // Check if user has a profile
+      // Check if current user is admin
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
-        .select('id')
-        .eq('id', authUser.id)
+        .select('role')
+        .eq('id', currentUser.id)
         .single();
 
-      if (profileError && profileError.code !== 'PGRST116') {
-        throw new Error(`Failed to check profile: ${profileError.message}`);
+      if (profileError || profile?.role !== 'admin') {
+        toast({
+          title: "Access denied",
+          description: "Only administrators can delete orphaned users",
+          variant: "destructive",
+        });
+        return;
       }
 
-      if (profile) {
+      // Now check for the target user in auth.users using RPC or direct query
+      // Since we can't directly query auth.users, we'll check profiles first
+      const { data: existingProfile, error: checkError } = await supabase
+        .from('profiles')
+        .select('id, email')
+        .eq('email', email)
+        .single();
+
+      if (!checkError && existingProfile) {
         toast({
           title: "User not orphaned",
           description: `${email} has a profile record and is not orphaned`,
@@ -62,30 +69,14 @@ export const OrphanedUserCleanup = () => {
         return;
       }
 
-      // Delete the orphaned auth user
-      const { error: deleteError } = await supabase.auth.admin.deleteUser(authUser.id);
-
-      if (deleteError) {
-        throw new Error(`Failed to delete user: ${deleteError.message}`);
-      }
-
-      // Log the action
-      await supabase.rpc('log_admin_action', {
-        action_type: 'DELETE_ORPHANED_AUTH_USER',
-        table_name: 'auth.users',
-        record_id: authUser.id,
-        details: {
-          email: email,
-          user_id: authUser.id
-        }
-      });
-
+      // If we get here, either the user doesn't exist in profiles or there was an error
+      // This indicates the user might be orphaned in auth.users
       toast({
-        title: "Orphaned user deleted",
-        description: `Successfully deleted orphaned auth user: ${email}`,
+        title: "Manual cleanup required",
+        description: `Cannot automatically delete ${email}. Please use Supabase dashboard to manage auth users directly.`,
+        variant: "destructive",
       });
 
-      setEmail("");
     } catch (error: any) {
       toast({
         title: "Delete failed",
@@ -105,7 +96,7 @@ export const OrphanedUserCleanup = () => {
           Clean Up Orphaned Users
         </CardTitle>
         <CardDescription>
-          Delete authentication records that don't have corresponding profile records
+          Check for authentication records that don't have corresponding profile records
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -118,7 +109,7 @@ export const OrphanedUserCleanup = () => {
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            placeholder="Enter email to delete"
+            placeholder="Enter email to check"
             disabled={isDeleting}
           />
         </div>
@@ -129,11 +120,11 @@ export const OrphanedUserCleanup = () => {
           variant="destructive"
           className="w-full"
         >
-          {isDeleting ? "Deleting..." : "Delete Orphaned User"}
+          {isDeleting ? "Checking..." : "Check for Orphaned User"}
         </Button>
         
         <p className="text-xs text-muted-foreground">
-          This will only delete users that exist in auth.users but don't have a profile record.
+          This will check if the user exists in profiles. For actual deletion of auth records, use the Supabase dashboard.
         </p>
       </CardContent>
     </Card>
