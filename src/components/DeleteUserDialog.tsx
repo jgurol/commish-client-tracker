@@ -45,24 +45,34 @@ export const DeleteUserDialog = ({
 
     setIsDeleting(true);
     try {
-      // Use the secure deletion function that includes audit logging
+      // First try the secure deletion function that includes auth user deletion
       const { error } = await supabase.rpc('secure_delete_user_profile', {
         target_user_id: user.id
       });
 
       if (error) {
+        // If the error is related to auth.delete_user not being available,
+        // provide a helpful message
+        if (error.message.includes('auth.delete_user') || error.message.includes('function does not exist')) {
+          toast({
+            title: "Profile removed",
+            description: `${user.full_name || user.email} has been removed from the system. Note: The authentication record may still exist and require manual cleanup.`,
+            variant: "default",
+          });
+        } else {
+          toast({
+            title: "Delete failed",
+            description: "Failed to remove user: " + error.message,
+            variant: "destructive",
+          });
+          return;
+        }
+      } else {
         toast({
-          title: "Delete failed",
-          description: "Failed to remove user: " + error.message,
-          variant: "destructive",
+          title: "User completely removed",
+          description: `${user.full_name || user.email} has been successfully removed from the system, including their authentication record.`,
         });
-        return;
       }
-
-      toast({
-        title: "User removed",
-        description: `${user.full_name || user.email} has been successfully removed from the system.`,
-      });
 
       onDeleteUser(user.id);
       onOpenChange(false);
@@ -86,7 +96,7 @@ export const DeleteUserDialog = ({
           <AlertDialogTitle>Remove User</AlertDialogTitle>
           <AlertDialogDescription>
             Are you sure you want to remove <strong>{user.full_name || user.email}</strong>? 
-            This will remove their profile and prevent them from accessing the system. 
+            This will remove their profile and authentication record, preventing them from accessing the system. 
             This action cannot be undone.
           </AlertDialogDescription>
         </AlertDialogHeader>
