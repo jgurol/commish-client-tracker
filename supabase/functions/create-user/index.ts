@@ -62,14 +62,14 @@ serve(async (req) => {
 
     console.log('Auth user created successfully, ID:', authData.user.id)
 
-    // Create the profile record
+    // Create the profile record with corrected is_associated logic
     const profileData = {
       id: authData.user.id,
       email: email,
       full_name: fullName,
       role: role,
       associated_agent_id: associatedAgentId === "none" ? null : associatedAgentId,
-      is_associated: role === "admin" ? true : (associatedAgentId && associatedAgentId !== "none" ? true : false)
+      is_associated: associatedAgentId && associatedAgentId !== "none" ? true : false
     }
 
     console.log('Creating profile with data:', profileData)
