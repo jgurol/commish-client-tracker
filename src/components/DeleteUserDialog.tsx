@@ -45,38 +45,32 @@ export const DeleteUserDialog = ({
 
     setIsDeleting(true);
     try {
-      // First try the secure deletion function that includes auth user deletion
-      const { error } = await supabase.rpc('secure_delete_user_profile', {
-        target_user_id: user.id
+      // Use the new delete-user edge function
+      const { data, error } = await supabase.functions.invoke('delete-user', {
+        body: {
+          targetUserId: user.id
+        },
       });
 
       if (error) {
-        // If the error is related to auth.delete_user not being available,
-        // provide a helpful message
-        if (error.message.includes('auth.delete_user') || error.message.includes('function does not exist')) {
-          toast({
-            title: "Profile removed",
-            description: `${user.full_name || user.email} has been removed from the system. Note: The authentication record may still exist and require manual cleanup.`,
-            variant: "default",
-          });
-        } else {
-          toast({
-            title: "Delete failed",
-            description: "Failed to remove user: " + error.message,
-            variant: "destructive",
-          });
-          return;
-        }
-      } else {
+        console.error('Delete user error:', error);
         toast({
-          title: "User completely removed",
-          description: `${user.full_name || user.email} has been successfully removed from the system, including their authentication record.`,
+          title: "Delete failed",
+          description: "Failed to remove user: " + error.message,
+          variant: "destructive",
         });
+        return;
       }
+
+      toast({
+        title: "User completely removed",
+        description: `${user.full_name || user.email} has been successfully removed from the system, including their authentication record.`,
+      });
 
       onDeleteUser(user.id);
       onOpenChange(false);
     } catch (error: any) {
+      console.error('Unexpected delete error:', error);
       toast({
         title: "Delete error",
         description: error.message || "An unexpected error occurred",
