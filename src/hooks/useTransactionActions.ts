@@ -8,7 +8,7 @@ export const useTransactionActions = (
   clients: Client[],
   fetchTransactions: () => void
 ) => {
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   const { toast } = useToast();
 
   // Helper function to calculate commission using override hierarchy
@@ -311,7 +311,14 @@ export const useTransactionActions = (
 
   // Function to delete a transaction
   const deleteTransaction = async (transactionId: string) => {
-    if (!user) return;
+    if (!user || !isAdmin) {
+      toast({
+        title: "Access denied",
+        description: "Only administrators can delete transactions",
+        variant: "destructive"
+      });
+      return;
+    }
     
     try {
       const { error } = await supabase.rpc('delete_transaction', {
