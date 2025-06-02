@@ -18,7 +18,6 @@ import { EditUserDialog } from '@/components/EditUserDialog';
 import { AssociateUserDialog } from '@/components/AssociateUserDialog';
 import { AddUserDialog } from '@/components/AddUserDialog';
 import { DeleteUserDialog } from '@/components/DeleteUserDialog';
-import { OrphanedUserCleanup } from '@/components/OrphanedUserCleanup';
 
 interface UserProfile {
   id: string;
@@ -221,11 +220,6 @@ export default function Admin() {
             {loading ? 'Loading...' : 'Refresh'}
           </Button>
         </div>
-      </div>
-
-      {/* Add the orphaned user cleanup component */}
-      <div className="mb-6">
-        <OrphanedUserCleanup />
       </div>
 
       <div className="bg-white rounded-lg shadow overflow-hidden">
