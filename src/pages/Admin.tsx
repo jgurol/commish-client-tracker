@@ -77,31 +77,44 @@ export default function Admin() {
   const fetchUsers = async () => {
     setLoading(true);
     try {
-      // Fetch users with associated agent information
-      const { data: usersData, error: usersError } = await supabase
-        .from('profiles')
-        .select('id, email, full_name, role, is_associated, created_at, associated_agent_id');
+      console.log('Fetching users as admin/owner...');
+      
+      // Use the get_admin_users RPC function instead of direct table query
+      const { data: usersData, error: usersError } = await supabase.rpc('get_admin_users');
 
-      if (usersError) throw usersError;
+      if (usersError) {
+        console.error('Error fetching users:', usersError);
+        // Fallback to direct query if RPC fails
+        const { data: fallbackData, error: fallbackError } = await supabase
+          .from('profiles')
+          .select('id, email, full_name, role, is_associated, created_at, associated_agent_id');
 
-      // Fetch agents data to get company names
-      const { data: agentsData, error: agentsError } = await supabase
-        .from('agents')
-        .select('id, company_name');
+        if (fallbackError) {
+          throw fallbackError;
+        }
+        
+        // Process fallback data similarly
+        const { data: agentsData, error: agentsError } = await supabase
+          .from('agents')
+          .select('id, company_name');
 
-      if (agentsError) throw agentsError;
+        if (agentsError) throw agentsError;
 
-      // Merge the data to include company names as associated_agent_name
-      const usersWithAgentInfo = usersData?.map(user => {
-        const agent = agentsData?.find(a => a.id === user.associated_agent_id);
-        return {
-          ...user,
-          associated_agent_name: agent?.company_name || null
-        };
-      }) || [];
+        const usersWithAgentInfo = fallbackData?.map(user => {
+          const agent = agentsData?.find(a => a.id === user.associated_agent_id);
+          return {
+            ...user,
+            associated_agent_name: agent?.company_name || null
+          };
+        }) || [];
 
-      setUsers(usersWithAgentInfo);
+        setUsers(usersWithAgentInfo);
+      } else {
+        console.log('Successfully fetched users:', usersData?.length || 0);
+        setUsers(usersData || []);
+      }
     } catch (error: any) {
+      console.error('Error in fetchUsers:', error);
       toast({
         title: "Error",
         description: `Failed to fetch users: ${error.message}`,
