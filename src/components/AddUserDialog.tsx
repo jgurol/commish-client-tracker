@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -71,10 +72,12 @@ export const AddUserDialog = ({
   const onSubmit = async (data: FormValues) => {
     setIsSubmitting(true);
     try {
+      console.log('Creating user with role:', data.role);
+      
       // Generate a random password
       const generatedPassword = generateRandomPassword(12);
 
-      // Create the user account without email confirmation
+      // Create the user account
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: data.email,
         password: generatedPassword,
@@ -86,6 +89,7 @@ export const AddUserDialog = ({
       });
 
       if (authError) {
+        console.error('Auth error:', authError);
         toast({
           title: "User creation failed",
           description: authError.message,
@@ -103,21 +107,28 @@ export const AddUserDialog = ({
         return;
       }
 
-      // Wait a moment for the auth.users record to be properly committed
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      console.log('User created in auth, ID:', authData.user.id);
 
-      // Update the user profile with the role and association
+      // Wait a moment for the auth.users record and trigger to complete
+      await new Promise(resolve => setTimeout(resolve, 2000));
+
+      // Update the user profile with the correct role and association
+      const profileUpdates = {
+        full_name: data.full_name,
+        role: data.role,
+        associated_agent_id: data.associated_agent_id === "none" ? null : data.associated_agent_id,
+        is_associated: data.role === "admin" ? true : (data.associated_agent_id && data.associated_agent_id !== "none" ? true : false)
+      };
+
+      console.log('Updating profile with:', profileUpdates);
+
       const { error: profileError } = await supabase
         .from('profiles')
-        .update({
-          full_name: data.full_name,
-          role: data.role,
-          associated_agent_id: data.associated_agent_id === "none" ? null : data.associated_agent_id,
-          is_associated: data.associated_agent_id && data.associated_agent_id !== "none" ? true : false
-        })
+        .update(profileUpdates)
         .eq('id', authData.user.id);
 
       if (profileError) {
+        console.error('Profile update error:', profileError);
         toast({
           title: "Profile update failed",
           description: profileError.message,
@@ -125,6 +136,8 @@ export const AddUserDialog = ({
         });
         return;
       }
+
+      console.log('Profile updated successfully');
 
       // Send welcome email directly with credentials
       const { error: emailError } = await supabase.functions.invoke('send-welcome-email', {
@@ -156,7 +169,7 @@ export const AddUserDialog = ({
         email: data.email,
         full_name: data.full_name,
         role: data.role,
-        is_associated: data.associated_agent_id ? true : false,
+        is_associated: data.role === "admin" ? true : (data.associated_agent_id ? true : false),
         created_at: new Date().toISOString(),
         associated_agent_id: data.associated_agent_id === "none" ? null : data.associated_agent_id,
         associated_agent_name: associatedAgentName,
@@ -164,7 +177,7 @@ export const AddUserDialog = ({
 
       toast({
         title: "User created successfully",
-        description: "User has been created and their login credentials have been sent via email.",
+        description: `${data.role === "admin" ? "Admin" : "Agent"} user has been created and their login credentials have been sent via email.`,
       });
 
       onAddUser(newUser);
