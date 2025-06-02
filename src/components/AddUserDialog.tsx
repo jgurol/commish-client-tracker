@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -10,7 +9,7 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { useToast } from "@/hooks/use-toast";
-import { createClient } from '@supabase/supabase-js';
+import { supabase } from "@/integrations/supabase/client";
 import { generateRandomPassword } from "@/utils/passwordUtils";
 
 interface UserProfile {
@@ -78,112 +77,28 @@ export const AddUserDialog = ({
       const generatedPassword = generateRandomPassword(12);
       console.log('Generated password for new user');
 
-      // Create admin client with service role key
-      const supabaseAdmin = createClient(
-        "https://wblwtdiywvzsbirkanal.supabase.co",
-        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndibHd0ZGl5d3Z6c2JpcmthbmFsIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0Nzk2NjEwNiwiZXhwIjoyMDYzNTQyMTA2fQ.s79ufIHf9Xa8YLW6KmCFzOEGH_qRuKWPT6tMdPIZQ44",
-        {
-          auth: {
-            autoRefreshToken: false,
-            persistSession: false
-          }
-        }
-      );
-
-      // Create the user account using the admin API
-      const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
-        email: data.email,
-        password: generatedPassword,
-        user_metadata: {
-          full_name: data.full_name,
+      // Call the edge function to create the user
+      const { data: result, error } = await supabase.functions.invoke('create-user', {
+        body: {
+          email: data.email,
+          password: generatedPassword,
+          fullName: data.full_name,
+          role: data.role,
+          associatedAgentId: data.associated_agent_id,
         },
-        email_confirm: true // Auto-confirm the email
       });
 
-      if (authError) {
-        console.error('Auth user creation error:', authError);
+      if (error) {
+        console.error('User creation error:', error);
         toast({
           title: "User creation failed",
-          description: authError.message,
+          description: error.message,
           variant: "destructive",
         });
         return;
       }
 
-      if (!authData.user) {
-        console.error('No user data returned from auth creation');
-        toast({
-          title: "User creation failed",
-          description: "No user data returned",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      console.log('Auth user created successfully, ID:', authData.user.id);
-
-      // Create the profile record with the correct role and association
-      const profileData = {
-        id: authData.user.id,
-        email: data.email,
-        full_name: data.full_name,
-        role: data.role,
-        associated_agent_id: data.associated_agent_id === "none" ? null : data.associated_agent_id,
-        is_associated: data.role === "admin" ? true : (data.associated_agent_id && data.associated_agent_id !== "none" ? true : false)
-      };
-
-      console.log('Creating profile with data:', profileData);
-
-      const { error: profileError } = await supabaseAdmin
-        .from('profiles')
-        .insert(profileData);
-
-      if (profileError) {
-        console.error('Profile creation error:', profileError);
-        
-        // Clean up the auth user if profile creation fails
-        try {
-          await supabaseAdmin.auth.admin.deleteUser(authData.user.id);
-          console.log('Cleaned up auth user after profile creation failure');
-        } catch (cleanupError) {
-          console.error('Failed to cleanup auth user:', cleanupError);
-        }
-        
-        toast({
-          title: "Profile creation failed",
-          description: profileError.message,
-          variant: "destructive",
-        });
-        return;
-      }
-
-      console.log('Profile created successfully');
-
-      // Send welcome email with credentials
-      try {
-        const { error: emailError } = await supabaseAdmin.functions.invoke('send-welcome-email', {
-          body: {
-            email: data.email,
-            fullName: data.full_name,
-            password: generatedPassword,
-            role: data.role,
-          },
-        });
-
-        if (emailError) {
-          console.error('Welcome email error:', emailError);
-          // Don't fail the whole process for email errors
-          toast({
-            title: "User created successfully",
-            description: "User was created but welcome email failed to send. Please provide credentials manually.",
-            variant: "destructive",
-          });
-        } else {
-          console.log('Welcome email sent successfully');
-        }
-      } catch (emailError) {
-        console.error('Email function invocation error:', emailError);
-      }
+      console.log('User created successfully:', result);
 
       // Find the associated agent name if an agent is selected
       const associatedAgent = agents.find(agent => agent.id === data.associated_agent_id);
@@ -192,13 +107,7 @@ export const AddUserDialog = ({
         null;
 
       const newUser: UserProfile = {
-        id: authData.user.id,
-        email: data.email,
-        full_name: data.full_name,
-        role: data.role,
-        is_associated: profileData.is_associated,
-        created_at: new Date().toISOString(),
-        associated_agent_id: profileData.associated_agent_id,
+        ...result.user,
         associated_agent_name: associatedAgentName,
       };
 
