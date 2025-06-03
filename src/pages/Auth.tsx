@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Navigate, useSearchParams } from "react-router-dom";
 import {
@@ -105,20 +104,42 @@ const Auth = () => {
     try {
       setIsSubmitting(true);
       
-      // First, check if the user exists in our database
-      const { data: userData, error: userError } = await supabase
-        .from('profiles')
-        .select('id, full_name')
-        .eq('email', email)
-        .single();
+      // Check if the user exists in auth.users using admin API
+      const { data: { users }, error: userError } = await supabase.auth.admin.listUsers();
+      
+      if (userError) {
+        console.error('Failed to check user existence:', userError);
+        toast({
+          title: "Password reset failed",
+          description: "Unable to verify user. Please try again.",
+          variant: "destructive"
+        });
+        throw userError;
+      }
 
-      if (userError || !userData) {
+      const user = users.find(u => u.email === email);
+      
+      if (!user) {
         toast({
           title: "User not found",
           description: "No account found with this email address.",
           variant: "destructive"
         });
         throw new Error("User not found");
+      }
+
+      // Get user's full name from profiles table or use email as fallback
+      let fullName = user.user_metadata?.full_name || user.email?.split('@')[0] || 'User';
+      
+      // Try to get full name from profiles table if available
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('full_name')
+        .eq('id', user.id)
+        .single();
+      
+      if (profileData?.full_name) {
+        fullName = profileData.full_name;
       }
 
       // Generate a temporary password
@@ -129,7 +150,7 @@ const Auth = () => {
         body: {
           email: email,
           tempPassword: tempPassword,
-          fullName: userData.full_name || 'User',
+          fullName: fullName,
         },
       });
 
@@ -145,7 +166,7 @@ const Auth = () => {
 
       // Update the user's password in Supabase Auth
       const { error: updateError } = await supabase.auth.admin.updateUserById(
-        userData.id,
+        user.id,
         { password: tempPassword }
       );
 
