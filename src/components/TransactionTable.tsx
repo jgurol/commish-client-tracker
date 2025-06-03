@@ -245,7 +245,7 @@ export const TransactionTable = ({
                       
                       {isAdmin && (
                         <div className="flex gap-1">
-                          {/* Approve Commission Button - changed to blue styling */}
+                          {/* Approve Commission Button - removed checkmark icon */}
                           {!transaction.isApproved && transaction.isPaid && isOwner && (
                             <Button 
                               size="sm" 
@@ -256,7 +256,7 @@ export const TransactionTable = ({
                                 onApproveCommission(transaction.id);
                               }}
                             >
-                              <CheckCircle className="w-3 h-3 mr-1" /> Approve
+                              Approve
                             </Button>
                           )}
                           {/* Show disabled approve button if not owner but conditions are met */}
