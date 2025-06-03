@@ -59,12 +59,9 @@ export const TransactionTable = ({
   onUpdateTransaction,
   isCurrentMonth
 }: TransactionTableProps) => {
-  const { isAdmin, user } = useAuth();
+  const { isAdmin, isOwner, user } = useAuth();
   const [payDialogOpen, setPayDialogOpen] = useState(false);
   const [selectedTransactionId, setSelectedTransactionId] = useState<string>("");
-
-  // Check if user is owner (for commission approval)
-  const isOwner = user?.user_metadata?.role === 'owner';
 
   // Debug logging for user role
   console.log('[TransactionTable] User role debugging:', {
@@ -127,7 +124,7 @@ export const TransactionTable = ({
           </TableHeader>
           <TableBody>
             {transactions.map((transaction) => {
-              // Debug logging for each transaction's approve button logic
+              // Debug logging for each transaction's approve button logic - now using isOwner from auth context
               const shouldShowApproveButton = !transaction.isApproved && transaction.isPaid && isOwner;
               console.log('[TransactionTable] Approve button logic for transaction:', transaction.id, {
                 isApproved: transaction.isApproved,
@@ -249,7 +246,7 @@ export const TransactionTable = ({
                       
                       {isAdmin && (
                         <div className="flex gap-1">
-                          {/* Approve Commission Button - now using direct transaction.isPaid */}
+                          {/* Approve Commission Button - now using isOwner from auth context */}
                           {!transaction.isApproved && transaction.isPaid && isOwner && (
                             <Button 
                               size="sm" 
