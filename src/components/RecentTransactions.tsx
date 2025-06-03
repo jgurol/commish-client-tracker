@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Transaction, Client, ClientInfo } from "@/pages/Index";
@@ -104,6 +103,7 @@ export const RecentTransactions = ({
               onApproveCommission={handleApproveCommission}
               onPayCommission={onPayCommission ? handlePayCommission : undefined}
               onDeleteTransaction={onDeleteTransaction}
+              onUpdateTransaction={onUpdateTransaction}
               isCurrentMonth={isCurrentMonth}
             />
           )}

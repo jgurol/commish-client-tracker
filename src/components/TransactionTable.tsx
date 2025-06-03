@@ -1,6 +1,7 @@
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { CheckCircle, Clock, DollarSign, Pencil, Trash2 } from "lucide-react";
 import { Transaction, ClientInfo } from "@/pages/Index";
 import {
@@ -28,6 +29,7 @@ interface TransactionTableProps {
     referenceNumber: string;
   }) => void;
   onDeleteTransaction?: (transactionId: string) => void;
+  onUpdateTransaction?: (transaction: Transaction) => void;
   isCurrentMonth: (dateStr: string) => boolean;
 }
 
@@ -54,6 +56,7 @@ export const TransactionTable = ({
   onApproveCommission,
   onPayCommission,
   onDeleteTransaction,
+  onUpdateTransaction,
   isCurrentMonth
 }: TransactionTableProps) => {
   const { isAdmin, user } = useAuth();
@@ -81,6 +84,17 @@ export const TransactionTable = ({
   const handleDeleteTransaction = (transactionId: string) => {
     if (onDeleteTransaction) {
       onDeleteTransaction(transactionId);
+    }
+  };
+
+  const handleInvoicePaidChange = (transaction: Transaction, isPaid: boolean) => {
+    if (onUpdateTransaction) {
+      const updatedTransaction = {
+        ...transaction,
+        isPaid,
+        datePaid: isPaid ? new Date().toISOString().split('T')[0] : undefined
+      };
+      onUpdateTransaction(updatedTransaction);
     }
   };
 
@@ -146,6 +160,20 @@ export const TransactionTable = ({
                 
                 <TableCell>
                   <div className="text-sm">
+                    {/* Invoice Paid Checkbox */}
+                    {isAdmin && (
+                      <div className="flex items-center gap-2 mb-2">
+                        <Checkbox
+                          id={`paid-${transaction.id}`}
+                          checked={transaction.isPaid || false}
+                          onCheckedChange={(checked) => handleInvoicePaidChange(transaction, checked as boolean)}
+                        />
+                        <label htmlFor={`paid-${transaction.id}`} className="text-xs text-gray-600 cursor-pointer">
+                          Invoice Paid
+                        </label>
+                      </div>
+                    )}
+                    
                     {transaction.invoiceNumber && (
                       <div className="font-mono">#{transaction.invoiceNumber}</div>
                     )}
