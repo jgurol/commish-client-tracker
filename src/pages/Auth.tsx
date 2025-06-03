@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Navigate, useSearchParams } from "react-router-dom";
 import {
@@ -17,7 +16,6 @@ import { RegisterForm } from "@/components/auth/RegisterForm";
 import { ResetPasswordForm } from "@/components/auth/ResetPasswordForm";
 import { UpdatePasswordForm } from "@/components/auth/UpdatePasswordForm";
 import { generateRandomPassword } from "@/utils/passwordUtils";
-import { User } from '@supabase/supabase-js';
 
 const Auth = () => {
   const [activeTab, setActiveTab] = useState<string>("login");
@@ -106,53 +104,15 @@ const Auth = () => {
     try {
       setIsSubmitting(true);
       
-      // Check if the user exists in auth.users using admin API
-      const { data: { users }, error: userError } = await supabase.auth.admin.listUsers();
-      
-      if (userError) {
-        console.error('Failed to check user existence:', userError);
-        toast({
-          title: "Password reset failed",
-          description: "Unable to verify user. Please try again.",
-          variant: "destructive"
-        });
-        throw userError;
-      }
-
-      const user: User | undefined = users.find((u: User) => u.email === email);
-      
-      if (!user) {
-        toast({
-          title: "User not found",
-          description: "No account found with this email address.",
-          variant: "destructive"
-        });
-        throw new Error("User not found");
-      }
-
-      // Get user's full name from profiles table or use email as fallback
-      let fullName = user.user_metadata?.full_name || user.email?.split('@')[0] || 'User';
-      
-      // Try to get full name from profiles table if available
-      const { data: profileData } = await supabase
-        .from('profiles')
-        .select('full_name')
-        .eq('id', user.id)
-        .single();
-      
-      if (profileData?.full_name) {
-        fullName = profileData.full_name;
-      }
-
       // Generate a temporary password
       const tempPassword = generateRandomPassword(12);
       
-      // Use the send-temp-password edge function
+      // Use the send-temp-password edge function which handles user verification and admin operations
       const { data: result, error: resetError } = await supabase.functions.invoke('send-temp-password', {
         body: {
           email: email,
           tempPassword: tempPassword,
-          fullName: fullName,
+          fullName: email.split('@')[0], // Use email prefix as fallback name
         },
       });
 
@@ -160,26 +120,10 @@ const Auth = () => {
         console.error('Password reset failed:', resetError);
         toast({
           title: "Password reset failed", 
-          description: resetError.message,
+          description: resetError.message || "Unable to reset password. Please try again.",
           variant: "destructive",
         });
         throw resetError;
-      }
-
-      // Update the user's password in Supabase Auth
-      const { error: updateError } = await supabase.auth.admin.updateUserById(
-        user.id,
-        { password: tempPassword }
-      );
-
-      if (updateError) {
-        console.error('Failed to update password:', updateError);
-        toast({
-          title: "Password reset failed",
-          description: "Failed to update password. Please try again.",
-          variant: "destructive"
-        });
-        throw updateError;
       }
 
       toast({
