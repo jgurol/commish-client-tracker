@@ -1,4 +1,3 @@
-
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -246,12 +245,12 @@ export const TransactionTable = ({
                       
                       {isAdmin && (
                         <div className="flex gap-1">
-                          {/* Approve Commission Button - show only if not approved, invoice is paid, and user is owner */}
+                          {/* Approve Commission Button - changed to blue styling */}
                           {!transaction.isApproved && transaction.isPaid && isOwner && (
                             <Button 
                               size="sm" 
                               variant="outline" 
-                              className="text-xs h-6 px-2 border-green-200 text-green-700 hover:bg-green-50"
+                              className="text-xs h-6 px-2 border-blue-200 text-blue-700 hover:bg-blue-50"
                               onClick={() => {
                                 console.log('[TransactionTable] Approving commission for transaction:', transaction.id, 'isPaid:', transaction.isPaid, 'isApproved:', transaction.isApproved);
                                 onApproveCommission(transaction.id);
