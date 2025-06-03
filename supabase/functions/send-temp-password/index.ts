@@ -55,6 +55,13 @@ const handler = async (req: Request): Promise<Response> => {
             </p>
           </div>
           
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="https://agent.californiatelecom.com" 
+               style="display: inline-block; background-color: #007bff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">
+              Login to Agent Portal
+            </a>
+          </div>
+          
           <p style="color: #666; font-size: 16px; line-height: 1.5;">
             If you did not request this password reset, please contact support immediately.
           </p>
