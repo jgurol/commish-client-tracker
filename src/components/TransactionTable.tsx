@@ -87,7 +87,7 @@ export const TransactionTable = ({
     }
   };
 
-  const handleInvoicePaidChange = (transaction: Transaction, isPaid: boolean) => {
+  const handleInvoicePaidChange = async (transaction: Transaction, isPaid: boolean) => {
     if (onUpdateTransaction) {
       const updatedTransaction = {
         ...transaction,
@@ -95,6 +95,11 @@ export const TransactionTable = ({
         datePaid: isPaid ? new Date().toISOString().split('T')[0] : undefined
       };
       onUpdateTransaction(updatedTransaction);
+      
+      // Add a small delay to ensure the UI updates properly
+      setTimeout(() => {
+        console.log('Transaction updated:', updatedTransaction);
+      }, 100);
     }
   };
 
@@ -227,12 +232,16 @@ export const TransactionTable = ({
                     
                     {isAdmin && (
                       <div className="flex gap-1">
+                        {/* Approve Commission Button - Debug version */}
                         {!transaction.isApproved && transaction.isPaid && isOwner && (
                           <Button 
                             size="sm" 
                             variant="outline" 
                             className="text-xs h-6 px-2 border-green-200 text-green-700 hover:bg-green-50"
-                            onClick={() => onApproveCommission(transaction.id)}
+                            onClick={() => {
+                              console.log('Approving commission for transaction:', transaction.id, 'isPaid:', transaction.isPaid, 'isApproved:', transaction.isApproved);
+                              onApproveCommission(transaction.id);
+                            }}
                           >
                             <CheckCircle className="w-3 h-3 mr-1" /> Approve
                           </Button>
