@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Navigate, useSearchParams } from "react-router-dom";
 import {
@@ -273,7 +272,7 @@ const Auth = () => {
               </TabsContent>
             </Tabs>
           </CardContent>
-        </div>
+        </Card>
       </div>
     </div>
   );
