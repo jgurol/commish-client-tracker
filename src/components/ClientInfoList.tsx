@@ -16,6 +16,7 @@ import { EditClientInfoDialog } from "@/components/EditClientInfoDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { useClientSorting } from "@/hooks/useClientSorting";
+import { useAuth } from "@/context/AuthContext";
 
 interface ClientInfoListProps {
   clientInfos: ClientInfo[];
@@ -27,6 +28,7 @@ export const ClientInfoList = ({ clientInfos, onUpdateClientInfo, agentMapping =
   const [editingClientInfo, setEditingClientInfo] = useState<ClientInfo | null>(null);
   const [deletingClientId, setDeletingClientId] = useState<string | null>(null);
   const { toast } = useToast();
+  const { isAdmin } = useAuth();
 
   const {
     sortedClientInfos,
@@ -90,6 +92,46 @@ export const ClientInfoList = ({ clientInfos, onUpdateClientInfo, agentMapping =
       <ArrowDown className="w-4 h-4 ml-1" />;
   };
 
+  // Simplified view for agents - only show company names
+  if (!isAdmin) {
+    return (
+      <>
+        {clientInfos.length === 0 ? (
+          <div className="text-center py-8 text-gray-500">
+            <MapPin className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+            <p>No clients available.</p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>
+                    <button
+                      className="flex items-center hover:text-blue-600 transition-colors"
+                      onClick={() => handleSort('company_name')}
+                    >
+                      Company Name
+                      {getSortIcon('company_name')}
+                    </button>
+                  </TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {sortedClientInfos.map((clientInfo) => (
+                  <TableRow key={clientInfo.id}>
+                    <TableCell className="font-medium">{clientInfo.company_name}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        )}
+      </>
+    );
+  }
+
+  // Full admin view with all columns and actions
   return (
     <>
       {clientInfos.length === 0 ? (
