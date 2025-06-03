@@ -50,36 +50,10 @@ export const PaymentTab = ({
 
   return (
     <div className="space-y-4">
-      <div className="space-y-2">
-        <Label htmlFor="edit-paymentMethod">Payment Method</Label>
-        <Select value={paymentMethod} onValueChange={handlePaymentMethodChange}>
-          <SelectTrigger>
-            <SelectValue placeholder="Select payment method" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="unpaid">Unpaid</SelectItem>
-            <SelectItem value="check">Check</SelectItem>
-            <SelectItem value="zelle">Zelle</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-
-      {paymentMethod !== "unpaid" && (
-        <div className="space-y-2">
-          <Label htmlFor="edit-referenceNumber">Reference Number</Label>
-          <Input
-            id="edit-referenceNumber"
-            value={referenceNumber}
-            onChange={(e) => setReferenceNumber(e.target.value)}
-            placeholder="Check number or reference"
-          />
-        </div>
-      )}
-
-      <div className="space-y-4 pt-4 border-t">
+      <div className="space-y-4">
         <h4 className="font-medium text-gray-900">Commission Management</h4>
         
-        {/* Commission Approval - Only owners can modify */}
+        {/* Commission Approval - Only owners can modify - MOVED TO TOP */}
         <div className="flex items-center space-x-2">
           <Checkbox
             id="edit-isApproved"
@@ -111,6 +85,32 @@ export const PaymentTab = ({
           />
         </div>
       </div>
+
+      <div className="space-y-2 pt-4 border-t">
+        <Label htmlFor="edit-paymentMethod">Payment Method</Label>
+        <Select value={paymentMethod} onValueChange={handlePaymentMethodChange}>
+          <SelectTrigger>
+            <SelectValue placeholder="Select payment method" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="unpaid">Unpaid</SelectItem>
+            <SelectItem value="check">Check</SelectItem>
+            <SelectItem value="zelle">Zelle</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      {paymentMethod !== "unpaid" && (
+        <div className="space-y-2">
+          <Label htmlFor="edit-referenceNumber">Reference Number</Label>
+          <Input
+            id="edit-referenceNumber"
+            value={referenceNumber}
+            onChange={(e) => setReferenceNumber(e.target.value)}
+            placeholder="Check number or reference"
+          />
+        </div>
+      )}
     </div>
   );
 };
