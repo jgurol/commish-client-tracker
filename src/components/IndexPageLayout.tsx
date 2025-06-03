@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Header } from "@/components/Header";
 import { StatsCards } from "@/components/StatsCards";
@@ -86,11 +85,7 @@ export const IndexPageLayout = ({
             <h3 className="text-lg font-semibold text-blue-900 mb-2">You are associated with:</h3>
             <div className="flex items-center gap-4">
               <div>
-                <p className="text-blue-800 font-medium">{associatedAgentInfo.name}</p>
-                <p className="text-blue-600 text-sm">{associatedAgentInfo.email}</p>
-                {associatedAgentInfo.companyName && (
-                  <p className="text-blue-600 text-sm">{associatedAgentInfo.companyName}</p>
-                )}
+                <p className="text-blue-800 font-medium">{associatedAgentInfo.companyName || associatedAgentInfo.name}</p>
               </div>
               <div className="ml-auto text-right">
                 <p className="text-blue-800 text-sm">Commission Rate: <span className="font-medium">{associatedAgentInfo.commissionRate}%</span></p>
