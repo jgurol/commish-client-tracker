@@ -67,6 +67,15 @@ export const TransactionTable = ({
   // Check if user is owner (for commission approval)
   const isOwner = user?.user_metadata?.role === 'owner';
 
+  // Debug logging for user role
+  console.log('[TransactionTable] User role debugging:', {
+    user: user,
+    userMetadata: user?.user_metadata,
+    userRole: user?.user_metadata?.role,
+    isOwner: isOwner,
+    isAdmin: isAdmin
+  });
+
   const handlePayCommission = (transactionId: string) => {
     setSelectedTransactionId(transactionId);
     setPayDialogOpen(true);
@@ -102,7 +111,7 @@ export const TransactionTable = ({
         datePaid: isPaid ? new Date().toISOString().split('T')[0] : undefined
       };
       
-      console.log('Updating transaction isPaid:', transaction.id, 'from', transaction.isPaid, 'to', isPaid);
+      console.log('[TransactionTable] Updating transaction isPaid:', transaction.id, 'from', transaction.isPaid, 'to', isPaid);
       onUpdateTransaction(updatedTransaction);
     }
   };
@@ -134,6 +143,16 @@ export const TransactionTable = ({
           <TableBody>
             {transactions.map((transaction) => {
               const effectiveTransaction = getEffectiveTransaction(transaction);
+              
+              // Debug logging for each transaction's approve button logic
+              const shouldShowApproveButton = !transaction.isApproved && effectiveTransaction.isPaid && isOwner;
+              console.log('[TransactionTable] Approve button logic for transaction:', transaction.id, {
+                isApproved: transaction.isApproved,
+                isPaid: effectiveTransaction.isPaid,
+                isOwner: isOwner,
+                shouldShowApproveButton: shouldShowApproveButton,
+                effectiveTransaction: effectiveTransaction
+              });
               
               return (
                 <TableRow key={transaction.id} className="hover:bg-gray-50">
@@ -255,7 +274,7 @@ export const TransactionTable = ({
                               variant="outline" 
                               className="text-xs h-6 px-2 border-green-200 text-green-700 hover:bg-green-50"
                               onClick={() => {
-                                console.log('Approving commission for transaction:', transaction.id, 'isPaid:', effectiveTransaction.isPaid, 'isApproved:', transaction.isApproved);
+                                console.log('[TransactionTable] Approving commission for transaction:', transaction.id, 'isPaid:', effectiveTransaction.isPaid, 'isApproved:', transaction.isApproved);
                                 onApproveCommission(transaction.id);
                               }}
                             >
