@@ -48,37 +48,37 @@ export const useAdminUsers = () => {
     try {
       console.log('Fetching users with associated agent information...');
       
-      // Fetch users with their associated agent information
+      // First, fetch all users
       const { data: usersData, error: usersError } = await supabase
         .from('profiles')
-        .select(`
-          id, 
-          email, 
-          full_name, 
-          role, 
-          is_associated, 
-          created_at, 
-          associated_agent_id,
-          associated_agent:agents!associated_agent_id(
-            id,
-            first_name,
-            last_name,
-            company_name
-          )
-        `);
+        .select('*');
 
       if (usersError) {
         console.error('Error fetching users:', usersError);
         throw usersError;
       }
 
+      console.log('Raw users data:', usersData);
+
+      // Then fetch agents separately to match with users
+      const { data: agentsData, error: agentsError } = await supabase
+        .from('agents')
+        .select('id, first_name, last_name, company_name');
+
+      if (agentsError) {
+        console.error('Error fetching agents for user association:', agentsError);
+        throw agentsError;
+      }
+
       // Process the users data to include associated agent name
       const formattedUsers = usersData?.map(user => {
         let associatedAgentName = null;
         
-        if (user.associated_agent && Array.isArray(user.associated_agent) && user.associated_agent.length > 0) {
-          const agent = user.associated_agent[0];
-          associatedAgentName = `${agent.first_name} ${agent.last_name} (${agent.company_name || 'No Company'})`;
+        if (user.associated_agent_id && agentsData) {
+          const agent = agentsData.find(a => a.id === user.associated_agent_id);
+          if (agent) {
+            associatedAgentName = `${agent.first_name} ${agent.last_name} (${agent.company_name || 'No Company'})`;
+          }
         }
         
         return {
@@ -93,7 +93,7 @@ export const useAdminUsers = () => {
         };
       }) || [];
 
-      console.log('Successfully fetched users:', formattedUsers.length);
+      console.log('Successfully fetched and formatted users:', formattedUsers);
       setUsers(formattedUsers);
     } catch (error: any) {
       console.error('Error in fetchUsers:', error);
