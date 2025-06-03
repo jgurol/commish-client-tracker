@@ -6,13 +6,41 @@ import { useToast } from "@/hooks/use-toast";
 import { useAgentMapping } from "@/hooks/useAgentMapping";
 import { clientInfoService } from "@/services/clientInfoService";
 import { ClientManagementHook } from "@/types/clientManagement";
+import { supabase } from "@/integrations/supabase/client";
 
 export const useClientManagement = (): ClientManagementHook => {
   const [clientInfos, setClientInfos] = useState<ClientInfo[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [associatedAgentId, setAssociatedAgentId] = useState<string | null>(null);
   const { user, isAdmin } = useAuth();
   const { toast } = useToast();
   const { agentMapping } = useAgentMapping();
+
+  // Fetch user's associated agent ID
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      if (!user || isAdmin) return;
+      
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('associated_agent_id')
+          .eq('id', user.id)
+          .single();
+        
+        if (error) {
+          console.error('Error fetching user profile:', error);
+          return;
+        }
+        
+        setAssociatedAgentId(data?.associated_agent_id || null);
+      } catch (err) {
+        console.error('Exception fetching user profile:', err);
+      }
+    };
+
+    fetchUserProfile();
+  }, [user, isAdmin]);
 
   // Load client info from Supabase
   useEffect(() => {
@@ -24,7 +52,15 @@ export const useClientManagement = (): ClientManagementHook => {
       
       try {
         const data = await clientInfoService.fetchClientInfos();
-        setClientInfos(data);
+        
+        // Filter clients based on user role and associated agent
+        let filteredData = data;
+        if (!isAdmin && associatedAgentId) {
+          // Non-admin users only see clients associated with their agent
+          filteredData = data.filter(clientInfo => clientInfo.agent_id === associatedAgentId);
+        }
+        
+        setClientInfos(filteredData);
         setIsLoading(false);
       } catch (err) {
         setIsLoading(false);
@@ -36,8 +72,11 @@ export const useClientManagement = (): ClientManagementHook => {
       }
     };
 
-    fetchClientInfos();
-  }, [user, isAdmin, toast]);
+    // Only fetch when we have the associated agent ID (for non-admins) or if user is admin
+    if (isAdmin || associatedAgentId !== null) {
+      fetchClientInfos();
+    }
+  }, [user, isAdmin, associatedAgentId, toast]);
 
   // Function to add client info
   const addClientInfo = async (newClientInfo: Omit<ClientInfo, "id" | "created_at" | "updated_at" | "user_id">) => {
