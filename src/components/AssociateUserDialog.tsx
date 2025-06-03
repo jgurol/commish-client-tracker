@@ -56,6 +56,8 @@ export const AssociateUserDialog = ({
 
     setIsSubmitting(true);
     try {
+      console.log('Associating user', user.id, 'with agent', selectedAgentId);
+      
       // Find the selected agent
       const selectedAgent = agents.find(agent => agent.id === selectedAgentId);
       if (!selectedAgent) {
@@ -67,7 +69,7 @@ export const AssociateUserDialog = ({
         return;
       }
 
-      // Update the user's profile with the agent ID directly
+      // Update the user's profile with the agent ID and set is_associated to true
       const { error } = await supabase
         .from('profiles')
         .update({ 
@@ -86,6 +88,8 @@ export const AssociateUserDialog = ({
         return;
       }
 
+      console.log('Association successful');
+
       // Create a more detailed agent name that includes company name
       const associatedAgentName = `${selectedAgent.first_name} ${selectedAgent.last_name} (${selectedAgent.company_name || 'No Company'})`;
 
@@ -98,7 +102,7 @@ export const AssociateUserDialog = ({
       
       toast({
         title: "User associated",
-        description: "User has been successfully associated with the agent",
+        description: `${user.full_name || user.email} has been successfully associated with ${selectedAgent.first_name} ${selectedAgent.last_name}`,
       });
 
       onUpdateUser(updatedUser);
@@ -163,7 +167,7 @@ export const AssociateUserDialog = ({
           </Button>
           <Button 
             onClick={handleAssociate} 
-            disabled={isSubmitting}
+            disabled={isSubmitting || !selectedAgentId}
           >
             {isSubmitting ? "Associating..." : "Associate"}
           </Button>

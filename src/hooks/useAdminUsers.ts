@@ -46,47 +46,55 @@ export const useAdminUsers = () => {
   const fetchUsers = async () => {
     setLoading(true);
     try {
-      console.log('Fetching users as admin/owner...');
+      console.log('Fetching users with associated agent information...');
       
-      // Use the get_admin_users RPC function instead of direct table query
-      const { data: usersData, error: usersError } = await supabase.rpc('get_admin_users');
+      // Fetch users with their associated agent information
+      const { data: usersData, error: usersError } = await supabase
+        .from('profiles')
+        .select(`
+          id, 
+          email, 
+          full_name, 
+          role, 
+          is_associated, 
+          created_at, 
+          associated_agent_id,
+          associated_agent:agents!associated_agent_id(
+            id,
+            first_name,
+            last_name,
+            company_name
+          )
+        `);
 
       if (usersError) {
         console.error('Error fetching users:', usersError);
-        // Fallback to direct query if RPC fails
-        const { data: fallbackData, error: fallbackError } = await supabase
-          .from('profiles')
-          .select('id, email, full_name, role, is_associated, created_at, associated_agent_id');
+        throw usersError;
+      }
 
-        if (fallbackError) {
-          throw fallbackError;
+      // Process the users data to include associated agent name
+      const formattedUsers = usersData?.map(user => {
+        let associatedAgentName = null;
+        
+        if (user.associated_agent && Array.isArray(user.associated_agent) && user.associated_agent.length > 0) {
+          const agent = user.associated_agent[0];
+          associatedAgentName = `${agent.first_name} ${agent.last_name} (${agent.company_name || 'No Company'})`;
         }
         
-        // Process fallback data similarly
-        const { data: agentsData, error: agentsError } = await supabase
-          .from('agents')
-          .select('id, company_name');
+        return {
+          id: user.id,
+          email: user.email,
+          full_name: user.full_name,
+          role: user.role,
+          is_associated: user.is_associated,
+          created_at: user.created_at,
+          associated_agent_id: user.associated_agent_id,
+          associated_agent_name: associatedAgentName
+        };
+      }) || [];
 
-        if (agentsError) throw agentsError;
-
-        const usersWithAgentInfo = fallbackData?.map(user => {
-          const agent = agentsData?.find(a => a.id === user.associated_agent_id);
-          return {
-            ...user,
-            associated_agent_name: agent?.company_name || null
-          };
-        }) || [];
-
-        setUsers(usersWithAgentInfo);
-      } else {
-        console.log('Successfully fetched users:', usersData?.length || 0);
-        // Ensure the data includes associated_agent_id for TypeScript compatibility
-        const formattedUsers = usersData?.map(user => ({
-          ...user,
-          associated_agent_id: null // RPC function doesn't return this, so set to null
-        })) || [];
-        setUsers(formattedUsers);
-      }
+      console.log('Successfully fetched users:', formattedUsers.length);
+      setUsers(formattedUsers);
     } catch (error: any) {
       console.error('Error in fetchUsers:', error);
       toast({
