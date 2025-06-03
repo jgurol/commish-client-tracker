@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
@@ -46,9 +47,11 @@ export function NavigationBar() {
                     Manage your account preferences and personal information
                   </ListItem>
                   
-                  <ListItem href="/settings/billing" title="Billing & Subscriptions" Icon={CreditCard}>
-                    Manage your subscription, payment methods, and billing history
-                  </ListItem>
+                  {isAdmin && (
+                    <ListItem href="/settings/billing" title="Billing & Subscriptions" Icon={CreditCard}>
+                      Manage your subscription, payment methods, and billing history
+                    </ListItem>
+                  )}
                   
                   {isAdmin && (
                     <>
