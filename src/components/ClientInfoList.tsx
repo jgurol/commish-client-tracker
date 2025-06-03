@@ -10,11 +10,12 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Edit, MapPin, Trash2 } from "lucide-react";
+import { Edit, MapPin, Trash2, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
 import { ClientInfo } from "@/pages/Index";
 import { EditClientInfoDialog } from "@/components/EditClientInfoDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
+import { useClientSorting } from "@/hooks/useClientSorting";
 
 interface ClientInfoListProps {
   clientInfos: ClientInfo[];
@@ -26,6 +27,13 @@ export const ClientInfoList = ({ clientInfos, onUpdateClientInfo, agentMapping =
   const [editingClientInfo, setEditingClientInfo] = useState<ClientInfo | null>(null);
   const [deletingClientId, setDeletingClientId] = useState<string | null>(null);
   const { toast } = useToast();
+
+  const {
+    sortedClientInfos,
+    sortField,
+    sortDirection,
+    handleSort
+  } = useClientSorting(clientInfos, agentMapping);
 
   console.log("ClientInfoList received clientInfos:", clientInfos);
   console.log("ClientInfoList received agentMapping:", agentMapping);
@@ -73,6 +81,15 @@ export const ClientInfoList = ({ clientInfos, onUpdateClientInfo, agentMapping =
     return agentMapping[agentId] || "Unknown agent";
   };
 
+  const getSortIcon = (field: string) => {
+    if (sortField !== field) {
+      return <ArrowUpDown className="w-4 h-4 ml-1" />;
+    }
+    return sortDirection === 'asc' ? 
+      <ArrowUp className="w-4 h-4 ml-1" /> : 
+      <ArrowDown className="w-4 h-4 ml-1" />;
+  };
+
   return (
     <>
       {clientInfos.length === 0 ? (
@@ -85,15 +102,39 @@ export const ClientInfoList = ({ clientInfos, onUpdateClientInfo, agentMapping =
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Company Name</TableHead>
-                <TableHead>Revio ID</TableHead>
-                <TableHead>Associated Agent</TableHead>
+                <TableHead>
+                  <button
+                    className="flex items-center hover:text-blue-600 transition-colors"
+                    onClick={() => handleSort('company_name')}
+                  >
+                    Company Name
+                    {getSortIcon('company_name')}
+                  </button>
+                </TableHead>
+                <TableHead>
+                  <button
+                    className="flex items-center hover:text-blue-600 transition-colors"
+                    onClick={() => handleSort('revio_id')}
+                  >
+                    Revio ID
+                    {getSortIcon('revio_id')}
+                  </button>
+                </TableHead>
+                <TableHead>
+                  <button
+                    className="flex items-center hover:text-blue-600 transition-colors"
+                    onClick={() => handleSort('agent_id')}
+                  >
+                    Associated Agent
+                    {getSortIcon('agent_id')}
+                  </button>
+                </TableHead>
                 <TableHead>Last Updated</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {clientInfos.map((clientInfo) => (
+              {sortedClientInfos.map((clientInfo) => (
                 <TableRow key={clientInfo.id}>
                   <TableCell className="font-medium">{clientInfo.company_name}</TableCell>
                   <TableCell className="font-mono text-sm">{clientInfo.revio_id || "-"}</TableCell>
