@@ -128,26 +128,28 @@ export const IndexPageLayout = ({
             />
           </div>
 
-          {/* Bottom section with Chart and Agent Summary */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Commission Chart */}
-            <div className="lg:col-span-2">
-              <CommissionChart 
-                transactions={filteredTransactions} 
-              />
-            </div>
+          {/* Bottom section with Chart and Agent Summary - Only for admins/owners */}
+          {isAdmin && (
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Commission Chart */}
+              <div className="lg:col-span-2">
+                <CommissionChart 
+                  transactions={filteredTransactions} 
+                />
+              </div>
 
-            {/* Agent Summary - moved to bottom */}
-            <div>
-              <AgentSummary 
-                clients={clients} 
-                transactions={filteredTransactions}
-                allTransactions={transactions}
-                isAdmin={isAdmin}
-                activeFilter={transactionFilter}
-              />
+              {/* Agent Summary */}
+              <div>
+                <AgentSummary 
+                  clients={clients} 
+                  transactions={filteredTransactions}
+                  allTransactions={transactions}
+                  isAdmin={isAdmin}
+                  activeFilter={transactionFilter}
+                />
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
 
