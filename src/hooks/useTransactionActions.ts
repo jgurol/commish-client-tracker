@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/context/AuthContext";
@@ -8,11 +7,8 @@ export const useTransactionActions = (
   clients: Client[],
   fetchTransactions: () => void
 ) => {
-  const { user, isAdmin } = useAuth();
+  const { user, isAdmin, isOwner } = useAuth();
   const { toast } = useToast();
-
-  // Check if user is owner (for commission approval)
-  const isOwner = user?.user_metadata?.role === 'owner';
 
   // Helper function to calculate commission using override hierarchy
   const calculateCommission = async (
@@ -186,7 +182,7 @@ export const useTransactionActions = (
   const approveCommission = async (transactionId: string) => {
     if (!user) return;
     
-    // Only owners can approve commissions
+    // Only owners can approve commissions - using isOwner from auth context
     if (!isOwner) {
       toast({
         title: "Access denied",
