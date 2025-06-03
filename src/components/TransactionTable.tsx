@@ -230,7 +230,7 @@ export const TransactionTable = ({
                         )}
                       </div>
                       
-                      {/* Commission Status Badge */}
+                      {/* Commission Status Badge - only show if actually approved */}
                       {transaction.isApproved && (
                         <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200 w-fit">
                           Approved
@@ -246,7 +246,7 @@ export const TransactionTable = ({
                       
                       {isAdmin && (
                         <div className="flex gap-1">
-                          {/* Approve Commission Button - now using isOwner from auth context */}
+                          {/* Approve Commission Button - show only if not approved, invoice is paid, and user is owner */}
                           {!transaction.isApproved && transaction.isPaid && isOwner && (
                             <Button 
                               size="sm" 
@@ -260,6 +260,7 @@ export const TransactionTable = ({
                               <CheckCircle className="w-3 h-3 mr-1" /> Approve
                             </Button>
                           )}
+                          {/* Show disabled approve button if not owner but conditions are met */}
                           {!transaction.isApproved && transaction.isPaid && !isOwner && (
                             <Button 
                               size="sm" 
@@ -271,6 +272,7 @@ export const TransactionTable = ({
                               <CheckCircle className="w-3 h-3 mr-1" /> Approve
                             </Button>
                           )}
+                          {/* Show disabled approve button if invoice not paid */}
                           {!transaction.isApproved && !transaction.isPaid && (
                             <Button 
                               size="sm" 
@@ -282,6 +284,7 @@ export const TransactionTable = ({
                               <CheckCircle className="w-3 h-3 mr-1" /> Approve
                             </Button>
                           )}
+                          {/* Pay Commission Button - show only if approved, not paid, and invoice is paid */}
                           {transaction.isApproved && !transaction.commissionPaidDate && transaction.isPaid && onPayCommission && (
                             <Button 
                               size="sm" 
@@ -292,6 +295,7 @@ export const TransactionTable = ({
                               <DollarSign className="w-3 h-3 mr-1" /> Pay
                             </Button>
                           )}
+                          {/* Show disabled pay button if invoice not paid */}
                           {transaction.isApproved && !transaction.commissionPaidDate && !transaction.isPaid && onPayCommission && (
                             <Button 
                               size="sm" 
