@@ -1,6 +1,6 @@
 
-import React, { useState } from "react";
-import { Navigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { Navigate, useSearchParams } from "react-router-dom";
 import {
   Card,
   CardContent,
@@ -16,8 +16,6 @@ import { LoginForm } from "@/components/auth/LoginForm";
 import { RegisterForm } from "@/components/auth/RegisterForm";
 import { ResetPasswordForm } from "@/components/auth/ResetPasswordForm";
 import { UpdatePasswordForm } from "@/components/auth/UpdatePasswordForm";
-import { generateRandomPassword } from "@/utils/passwordUtils";
-import type { User } from "@supabase/supabase-js";
 
 const Auth = () => {
   const [activeTab, setActiveTab] = useState<string>("login");
@@ -28,6 +26,39 @@ const Auth = () => {
   const [isCheckingSession, setIsCheckingSession] = useState(false);
   const { user, signIn, signUp } = useAuth();
   const { toast } = useToast();
+  const [searchParams] = useSearchParams();
+
+  // Check for password reset tokens in URL
+  useEffect(() => {
+    const checkForPasswordReset = async () => {
+      const accessToken = searchParams.get('access_token');
+      const refreshToken = searchParams.get('refresh_token');
+      const type = searchParams.get('type');
+
+      if (accessToken && refreshToken && type === 'recovery') {
+        setIsCheckingSession(true);
+        
+        try {
+          const { data, error } = await supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken
+          });
+
+          if (error) {
+            setTokenError('Invalid or expired reset link. Please request a new password reset.');
+          } else if (data.session) {
+            setShowUpdatePasswordForm(true);
+          }
+        } catch (error) {
+          setTokenError('Failed to process reset link. Please try again.');
+        } finally {
+          setIsCheckingSession(false);
+        }
+      }
+    };
+
+    checkForPasswordReset();
+  }, [searchParams]);
 
   const handleLoginSubmit = async (email: string, password: string) => {
     try {
@@ -56,67 +87,23 @@ const Auth = () => {
     try {
       setIsSubmitting(true);
       
-      // Generate a temporary password
-      const tempPassword = generateRandomPassword(12);
-      
-      // Update the user's password in Supabase Auth (requires admin privileges)
-      const { data: { users }, error: getUserError } = await supabase.auth.admin.listUsers();
-      
-      if (getUserError) {
-        toast({
-          title: "Error",
-          description: "Unable to process password reset request",
-          variant: "destructive"
-        });
-        throw getUserError;
-      }
-      
-      const foundUser: User | undefined = users.find((u: User) => u.email === email);
-      
-      if (!foundUser) {
-        toast({
-          title: "User not found",
-          description: "No account found with that email address",
-          variant: "destructive"
-        });
-        throw new Error("User not found");
-      }
-      
-      // Update the user's password
-      const { error: updateError } = await supabase.auth.admin.updateUserById(foundUser.id, {
-        password: tempPassword
+      // Use Supabase's built-in password reset instead of custom admin approach
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/auth`,
       });
       
-      if (updateError) {
+      if (error) {
         toast({
           title: "Password reset failed",
-          description: updateError.message,
+          description: error.message,
           variant: "destructive"
         });
-        throw updateError;
-      }
-      
-      // Send temporary password email via edge function
-      const { error: emailError } = await supabase.functions.invoke('send-temp-password', {
-        body: {
-          email: email,
-          tempPassword: tempPassword,
-          fullName: foundUser.user_metadata?.full_name || 'User'
-        }
-      });
-      
-      if (emailError) {
-        toast({
-          title: "Email sending failed",
-          description: "Password was reset but email could not be sent",
-          variant: "destructive"
-        });
-        throw emailError;
+        throw error;
       }
       
       toast({
-        title: "Temporary Password Sent",
-        description: "Check your email for your temporary password. Please change it after logging in.",
+        title: "Password Reset Email Sent",
+        description: "Check your email for a password reset link.",
       });
       setShowResetForm(false);
       setActiveTab("login");
@@ -232,7 +219,7 @@ const Auth = () => {
                 />
               </div>
               <CardTitle className="text-2xl font-bold">Reset Password</CardTitle>
-              <CardDescription>Enter your email to receive a temporary password</CardDescription>
+              <CardDescription>Enter your email to receive a password reset link</CardDescription>
             </CardHeader>
             <CardContent>
               <ResetPasswordForm 
@@ -286,7 +273,7 @@ const Auth = () => {
               </TabsContent>
             </Tabs>
           </CardContent>
-        </Card>
+        </div>
       </div>
     </div>
   );
