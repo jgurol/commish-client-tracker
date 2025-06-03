@@ -1,10 +1,10 @@
 
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { X } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useAuth } from "@/context/AuthContext";
 
 interface PaymentTabProps {
   isPaid: boolean;
@@ -31,104 +31,86 @@ export const PaymentTab = ({
   setIsApproved,
   onImmediateUpdate
 }: PaymentTabProps) => {
+  const { isOwner } = useAuth();
+
   const handlePaymentMethodChange = (value: string) => {
     setPaymentMethod(value);
-    if (value === "unpaid") {
-      setCommissionPaidDate("");
-      setReferenceNumber("");
-      // Trigger immediate update to save changes to database
-      if (onImmediateUpdate) {
-        onImmediateUpdate();
-      }
+    if (onImmediateUpdate) {
+      onImmediateUpdate();
     }
+  };
+
+  const handleCommissionApprovalChange = (checked: boolean) => {
+    if (!isOwner) {
+      // Don't allow non-owners to change approval status
+      return;
+    }
+    setIsApproved(checked);
   };
 
   return (
     <div className="space-y-4">
-      {/* Payment Approval - Always visible */}
       <div className="space-y-2">
-        <div className="flex items-center space-x-2 pt-2">
-          <Checkbox 
-            id="isApproved" 
-            checked={isApproved} 
-            onCheckedChange={(checked) => setIsApproved(checked === true)}
-          />
-          <Label htmlFor="isApproved" className="font-medium text-sm">
-            Commission approved
-          </Label>
-        </div>
-        {!isPaid && (
-          <div className="text-xs text-amber-600">
-            ⚠️ Note: This transaction is not marked as paid yet
-          </div>
-        )}
+        <Label htmlFor="edit-paymentMethod">Payment Method</Label>
+        <Select value={paymentMethod} onValueChange={handlePaymentMethodChange}>
+          <SelectTrigger>
+            <SelectValue placeholder="Select payment method" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="unpaid">Unpaid</SelectItem>
+            <SelectItem value="check">Check</SelectItem>
+            <SelectItem value="zelle">Zelle</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
-      <div className="space-y-2">
-        <Label>Commission Payment Method</Label>
-        <RadioGroup 
-          value={paymentMethod} 
-          onValueChange={handlePaymentMethodChange}
-          className="flex gap-6"
-        >
-          <div className="flex items-center space-x-2">
-            <RadioGroupItem value="unpaid" id="edit-unpaid" />
-            <Label htmlFor="edit-unpaid">Unpaid</Label>
-          </div>
-          <div className="flex items-center space-x-2">
-            <RadioGroupItem value="check" id="edit-check" />
-            <Label htmlFor="edit-check">Check</Label>
-          </div>
-          <div className="flex items-center space-x-2">
-            <RadioGroupItem value="zelle" id="edit-zelle" />
-            <Label htmlFor="edit-zelle">Zelle</Label>
-          </div>
-        </RadioGroup>
-      </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="commissionPaidDate">Commission Paid Date</Label>
-        <div className="flex gap-2">
-          <Input
-            id="commissionPaidDate"
-            type="date"
-            value={commissionPaidDate}
-            onChange={(e) => setCommissionPaidDate(e.target.value)}
-            placeholder="Leave blank if not yet paid"
-            className="flex-1"
-            disabled={paymentMethod === "unpaid"}
-          />
-          {commissionPaidDate && (
-            <Button
-              type="button"
-              variant="outline"
-              size="icon"
-              onClick={() => setCommissionPaidDate("")}
-              className="shrink-0"
-              title="Clear commission paid date"
-            >
-              <X className="h-4 w-4" />
-            </Button>
-          )}
-        </div>
-        <div className="text-xs text-gray-500">
-          Date when the commission was paid to the agent
-        </div>
-      </div>
-      
-      {paymentMethod && paymentMethod !== "unpaid" && (
+      {paymentMethod !== "unpaid" && (
         <div className="space-y-2">
-          <Label htmlFor="referenceNumber">
-            {paymentMethod === "check" ? "Check Number" : "Zelle Reference"}
-          </Label>
+          <Label htmlFor="edit-referenceNumber">Reference Number</Label>
           <Input
-            id="referenceNumber"
+            id="edit-referenceNumber"
             value={referenceNumber}
             onChange={(e) => setReferenceNumber(e.target.value)}
-            placeholder={paymentMethod === "check" ? "Enter check number" : "Enter Zelle reference"}
+            placeholder="Check number or reference"
           />
         </div>
       )}
+
+      <div className="space-y-4 pt-4 border-t">
+        <h4 className="font-medium text-gray-900">Commission Management</h4>
+        
+        {/* Commission Approval - Only owners can modify */}
+        <div className="flex items-center space-x-2">
+          <Checkbox
+            id="edit-isApproved"
+            checked={isApproved}
+            onCheckedChange={handleCommissionApprovalChange}
+            disabled={!isOwner}
+          />
+          <Label 
+            htmlFor="edit-isApproved" 
+            className={`text-sm ${!isOwner ? 'text-gray-400' : 'cursor-pointer'}`}
+          >
+            Commission Approved {!isOwner && "(Owner only)"}
+          </Label>
+        </div>
+
+        {!isOwner && (
+          <div className="text-xs text-gray-500 bg-gray-50 p-2 rounded">
+            Only owners can approve commissions. Current status: {isApproved ? 'Approved' : 'Not approved'}
+          </div>
+        )}
+
+        <div className="space-y-2">
+          <Label htmlFor="edit-commissionPaidDate">Commission Paid Date</Label>
+          <Input
+            id="edit-commissionPaidDate"
+            type="date"
+            value={commissionPaidDate}
+            onChange={(e) => setCommissionPaidDate(e.target.value)}
+          />
+        </div>
+      </div>
     </div>
   );
 };
