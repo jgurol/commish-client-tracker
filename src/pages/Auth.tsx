@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Navigate, useSearchParams } from "react-router-dom";
 import {
@@ -16,6 +17,7 @@ import { RegisterForm } from "@/components/auth/RegisterForm";
 import { ResetPasswordForm } from "@/components/auth/ResetPasswordForm";
 import { UpdatePasswordForm } from "@/components/auth/UpdatePasswordForm";
 import { generateRandomPassword } from "@/utils/passwordUtils";
+import { User } from '@supabase/supabase-js';
 
 const Auth = () => {
   const [activeTab, setActiveTab] = useState<string>("login");
@@ -117,7 +119,7 @@ const Auth = () => {
         throw userError;
       }
 
-      const user = users.find(u => u.email === email);
+      const user: User | undefined = users.find((u: User) => u.email === email);
       
       if (!user) {
         toast({
