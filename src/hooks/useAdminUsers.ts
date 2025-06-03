@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -203,49 +202,27 @@ export const useAdminUsers = () => {
       // Generate a temporary password
       const tempPassword = generateRandomPassword(12);
       
-      // Update the user's password using admin.updateUserById
-      const { error: updateError } = await supabase.auth.admin.updateUserById(
-        targetUser.id,
-        { password: tempPassword }
-      );
-
-      if (updateError) {
-        console.error('Failed to update password:', updateError);
-        toast({
-          title: "Password reset failed", 
-          description: updateError.message,
-          variant: "destructive",
-        });
-        return;
-      }
-
-      // Send the temporary password email
-      const { data: result, error: emailError } = await supabase.functions.invoke('send-temp-password', {
+      // Use the new edge function for admin password reset
+      const { data: result, error: resetError } = await supabase.functions.invoke('admin-reset-password', {
         body: {
-          email: targetUser.email,
+          targetUserId: targetUser.id,
+          targetUserEmail: targetUser.email,
           tempPassword: tempPassword,
-          fullName: targetUser.full_name || targetUser.email,
+          adminUserId: user?.id,
         },
       });
 
-      if (emailError) {
-        console.error('Email sending failed:', emailError);
+      if (resetError) {
+        console.error('Password reset failed:', resetError);
         toast({
-          title: "Password was reset but email failed",
-          description: "The password was updated but the email could not be sent. Please inform the user of their new temporary password manually.",
+          title: "Password reset failed", 
+          description: resetError.message,
           variant: "destructive",
         });
         return;
       }
 
-      console.log('Password reset and email sent successfully:', result);
-
-      // Log the admin action
-      await logAdminAction('RESET_USER_PASSWORD', {
-        target_user_id: targetUser.id,
-        target_user_email: targetUser.email,
-        admin_user_id: user?.id
-      });
+      console.log('Password reset successful:', result);
 
       toast({
         title: "Password reset successful",
