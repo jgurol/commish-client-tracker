@@ -12,6 +12,7 @@ export const useClientManagement = (): ClientManagementHook => {
   const [clientInfos, setClientInfos] = useState<ClientInfo[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [associatedAgentId, setAssociatedAgentId] = useState<string | null>(null);
+  const [profileLoaded, setProfileLoaded] = useState(false);
   const { user, isAdmin } = useAuth();
   const { toast } = useToast();
   const { agentMapping } = useAgentMapping();
@@ -19,7 +20,16 @@ export const useClientManagement = (): ClientManagementHook => {
   // Fetch user's associated agent ID
   useEffect(() => {
     const fetchUserProfile = async () => {
-      if (!user || isAdmin) return;
+      if (!user) {
+        setProfileLoaded(true);
+        return;
+      }
+      
+      if (isAdmin) {
+        setAssociatedAgentId(null);
+        setProfileLoaded(true);
+        return;
+      }
       
       try {
         const { data, error } = await supabase
@@ -30,23 +40,26 @@ export const useClientManagement = (): ClientManagementHook => {
         
         if (error) {
           console.error('Error fetching user profile:', error);
-          return;
+          setAssociatedAgentId(null);
+        } else {
+          setAssociatedAgentId(data?.associated_agent_id || null);
         }
         
-        setAssociatedAgentId(data?.associated_agent_id || null);
+        setProfileLoaded(true);
       } catch (err) {
         console.error('Exception fetching user profile:', err);
+        setAssociatedAgentId(null);
+        setProfileLoaded(true);
       }
     };
 
     fetchUserProfile();
   }, [user, isAdmin]);
 
-  // Load client info from Supabase
+  // Load client info from Supabase - always runs, but waits for profile to be loaded
   useEffect(() => {
     const fetchClientInfos = async () => {
-      if (!user) {
-        setIsLoading(false);
+      if (!user || !profileLoaded) {
         return;
       }
       
@@ -72,11 +85,8 @@ export const useClientManagement = (): ClientManagementHook => {
       }
     };
 
-    // Only fetch when we have the associated agent ID (for non-admins) or if user is admin
-    if (isAdmin || associatedAgentId !== null) {
-      fetchClientInfos();
-    }
-  }, [user, isAdmin, associatedAgentId, toast]);
+    fetchClientInfos();
+  }, [user, isAdmin, associatedAgentId, profileLoaded, toast]);
 
   // Function to add client info
   const addClientInfo = async (newClientInfo: Omit<ClientInfo, "id" | "created_at" | "updated_at" | "user_id">) => {
