@@ -21,6 +21,7 @@ const Auth = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showResetForm, setShowResetForm] = useState(false);
   const [showUpdatePasswordForm, setShowUpdatePasswordForm] = useState(false);
+  const [showForcePasswordChange, setShowForcePasswordChange] = useState(false);
   const [tokenError, setTokenError] = useState<string | null>(null);
   const [isCheckingSession, setIsCheckingSession] = useState(false);
   const { user, signIn, signUp } = useAuth();
@@ -63,6 +64,22 @@ const Auth = () => {
     try {
       setIsSubmitting(true);
       await signIn(email, password);
+      
+      // Check if this might be a temporary password by checking if it's exactly 12 characters
+      // (our temp passwords are 12 chars) and contains mixed case + numbers
+      const isTempPassword = password.length === 12 && 
+        /[A-Z]/.test(password) && 
+        /[a-z]/.test(password) && 
+        /[0-9]/.test(password);
+      
+      if (isTempPassword) {
+        setShowForcePasswordChange(true);
+        toast({
+          title: "Password Change Required",
+          description: "Please change your temporary password to a secure password of your choice.",
+          variant: "destructive"
+        });
+      }
     } catch (error) {
       // Error is already handled in the signIn function
     } finally {
@@ -143,15 +160,21 @@ const Auth = () => {
       
       toast({
         title: "Password Updated",
-        description: "Your password has been successfully updated. You can now log in with your new password.",
+        description: "Your password has been successfully updated. You can now use your new password.",
       });
       
       window.history.replaceState(null, '', window.location.pathname);
       
-      await supabase.auth.signOut();
-      
       setShowUpdatePasswordForm(false);
-      setActiveTab("login");
+      setShowForcePasswordChange(false);
+      
+      // Don't sign out if it's a forced password change, just redirect
+      if (showForcePasswordChange) {
+        window.location.href = '/';
+      } else {
+        await supabase.auth.signOut();
+        setActiveTab("login");
+      }
     } catch (error) {
       // Error is already handled above
     } finally {
@@ -163,12 +186,45 @@ const Auth = () => {
     setTokenError(null);
     setShowUpdatePasswordForm(false);
     setShowResetForm(false);
+    setShowForcePasswordChange(false);
     setActiveTab("login");
     window.history.replaceState(null, '', window.location.pathname);
   };
 
-  if (user) {
+  if (user && !showForcePasswordChange) {
     return <Navigate to="/" />;
+  }
+
+  // Render the forced password change form for logged-in users with temp passwords
+  if (user && showForcePasswordChange) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-blue-50 p-4">
+        <div className="w-full max-w-md">
+          <Card className="border-0 shadow-xl">
+            <CardHeader className="text-center">
+              <div className="flex justify-center mb-4">
+                <img 
+                  src="/lovable-uploads/e5be9154-ed00-490e-b242-16319351487f.png" 
+                  alt="California Telecom" 
+                  className="h-16 w-auto"
+                />
+              </div>
+              <CardTitle className="text-2xl font-bold">Change Your Password</CardTitle>
+              <CardDescription>You must change your temporary password to continue</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <UpdatePasswordForm 
+                onUpdatePassword={handleUpdatePasswordSubmit}
+                onCancel={handleBackToLogin}
+                isSubmitting={isSubmitting}
+                tokenError={null}
+                isCheckingSession={false}
+              />
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
   }
 
   // Render the password update form

@@ -44,6 +44,21 @@ export const useAuthActions = ({
         throw error;
       }
       
+      // Check if this is a temporary password (12 chars with mixed case and numbers)
+      const isTempPassword = password.length === 12 && 
+        /[A-Z]/.test(password) && 
+        /[a-z]/.test(password) && 
+        /[0-9]/.test(password);
+      
+      if (isTempPassword) {
+        // Don't redirect immediately for temp passwords
+        toast({
+          title: "Login successful",
+          description: "Please change your temporary password to continue.",
+        });
+        return; // Don't redirect
+      }
+      
       toast({
         title: "Login successful",
         description: "Welcome back!",

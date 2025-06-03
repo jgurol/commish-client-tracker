@@ -96,7 +96,7 @@ const handler = async (req: Request): Promise<Response> => {
           <div style="background-color: #fff3cd; border: 1px solid #ffeaa7; padding: 15px; border-radius: 8px; margin: 20px 0;">
             <p style="margin: 0; color: #856404; font-weight: bold;">🔒 Important Security Notice</p>
             <p style="margin: 10px 0 0 0; color: #856404;">
-              Please log in with this temporary password and <strong>immediately change it</strong> to a secure password of your choice.
+              When you log in with this temporary password, you will be <strong>required to change it immediately</strong> before you can use the application. This ensures your account remains secure.
             </p>
           </div>
           
