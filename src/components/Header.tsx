@@ -2,10 +2,10 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/context/AuthContext';
-import { LogOut, User, Shield } from 'lucide-react';
+import { LogOut, User, Shield, Crown } from 'lucide-react';
 
 export const Header = () => {
-  const { user, signOut, isAdmin, refreshUserProfile } = useAuth();
+  const { user, signOut, isAdmin, isOwner, refreshUserProfile } = useAuth();
   
   return (
     <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
@@ -19,12 +19,17 @@ export const Header = () => {
           <User className="w-4 h-4 text-gray-600" />
           <span className="text-sm font-medium">
             {user?.email}
-            {isAdmin && (
+            {isOwner && (
+              <span className="ml-1 text-xs bg-purple-600 text-white px-2 py-0.5 rounded flex items-center gap-1">
+                <Crown className="w-3 h-3" /> Owner
+              </span>
+            )}
+            {isAdmin && !isOwner && (
               <span className="ml-1 text-xs bg-blue-500 text-white px-2 py-0.5 rounded flex items-center gap-1">
                 <Shield className="w-3 h-3" /> Admin
               </span>
             )}
-            {!isAdmin && (
+            {!isAdmin && !isOwner && (
               <span className="ml-1 text-xs bg-green-500 text-white px-2 py-0.5 rounded">
                 Agent
               </span>
