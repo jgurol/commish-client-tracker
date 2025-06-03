@@ -7,6 +7,7 @@ import { useAdminUsers } from '@/hooks/useAdminUsers';
 import { UserManagementHeader } from '@/components/admin/UserManagementHeader';
 import { UserTable } from '@/components/admin/UserTable';
 import { AdminDialogs } from '@/components/admin/AdminDialogs';
+import { ResetPasswordDialog } from '@/components/ResetPasswordDialog';
 
 interface UserProfile {
   id: string;
@@ -28,6 +29,7 @@ export default function Admin() {
     fetchUsers,
     fetchAgents,
     updateUserAssociation,
+    resetUserPassword,
     handleUpdateUser,
     handleAddUser,
     handleUserDeleted,
@@ -36,7 +38,9 @@ export default function Admin() {
   const [editingUser, setEditingUser] = useState<UserProfile | null>(null);
   const [associatingUser, setAssociatingUser] = useState<UserProfile | null>(null);
   const [deletingUser, setDeletingUser] = useState<UserProfile | null>(null);
+  const [resettingPasswordUser, setResettingPasswordUser] = useState<UserProfile | null>(null);
   const [isAddUserOpen, setIsAddUserOpen] = useState(false);
+  const [isResettingPassword, setIsResettingPassword] = useState(false);
 
   // Redirect non-admin users
   if (!isAdmin) {
@@ -46,6 +50,16 @@ export default function Admin() {
   const handleRefresh = () => {
     fetchUsers();
     fetchAgents();
+  };
+
+  const handleResetPassword = async (user: UserProfile) => {
+    setIsResettingPassword(true);
+    try {
+      await resetUserPassword(user);
+      setResettingPasswordUser(null);
+    } finally {
+      setIsResettingPassword(false);
+    }
   };
 
   return (
@@ -65,6 +79,7 @@ export default function Admin() {
         onAssociateUser={setAssociatingUser}
         onDeleteUser={setDeletingUser}
         onUpdateUserAssociation={updateUserAssociation}
+        onResetPassword={setResettingPasswordUser}
       />
 
       <AdminDialogs
@@ -80,6 +95,14 @@ export default function Admin() {
         onUpdateUser={handleUpdateUser}
         onAddUser={handleAddUser}
         onDeleteUser={handleUserDeleted}
+      />
+
+      <ResetPasswordDialog
+        user={resettingPasswordUser}
+        open={!!resettingPasswordUser}
+        onOpenChange={(open) => !open && setResettingPasswordUser(null)}
+        onResetPassword={handleResetPassword}
+        isResetting={isResettingPassword}
       />
     </div>
   );

@@ -2,7 +2,7 @@
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { TableCell, TableRow } from '@/components/ui/table';
-import { Shield, UserCheck, UserX, PencilIcon, Trash2, Crown } from 'lucide-react';
+import { Shield, UserCheck, UserX, PencilIcon, Trash2, Crown, KeyRound } from 'lucide-react';
 
 interface UserProfile {
   id: string;
@@ -21,6 +21,7 @@ interface UserTableRowProps {
   onAssociate: (user: UserProfile) => void;
   onDelete: (user: UserProfile) => void;
   onUpdateAssociation: (userId: string, associate: boolean) => void;
+  onResetPassword: (user: UserProfile) => void;
 }
 
 export const UserTableRow = ({ 
@@ -28,7 +29,8 @@ export const UserTableRow = ({
   onEdit, 
   onAssociate, 
   onDelete, 
-  onUpdateAssociation 
+  onUpdateAssociation,
+  onResetPassword
 }: UserTableRowProps) => {
   const { user } = useAuth();
 
@@ -59,6 +61,11 @@ export const UserTableRow = ({
 
   const canDeleteUser = (userProfile: UserProfile) => {
     if (userProfile.role === 'owner') return false;
+    if (userProfile.id === user?.id) return false;
+    return true;
+  };
+
+  const canResetPassword = (userProfile: UserProfile) => {
     if (userProfile.id === user?.id) return false;
     return true;
   };
@@ -101,6 +108,18 @@ export const UserTableRow = ({
             <PencilIcon className="w-4 h-4 mr-1" />
             Edit
           </Button>
+          
+          {canResetPassword(userProfile) && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => onResetPassword(userProfile)}
+              className="text-orange-600 hover:bg-orange-50"
+            >
+              <KeyRound className="w-4 h-4 mr-1" />
+              Reset Password
+            </Button>
+          )}
           
           {userProfile.role === 'agent' && userProfile.id !== user?.id && (
             <>

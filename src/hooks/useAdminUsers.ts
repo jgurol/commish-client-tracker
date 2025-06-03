@@ -1,8 +1,8 @@
-
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { generateRandomPassword } from '@/utils/passwordUtils';
 
 interface UserProfile {
   id: string;
@@ -195,6 +195,52 @@ export const useAdminUsers = () => {
     }
   };
 
+  const resetUserPassword = async (targetUser: UserProfile) => {
+    try {
+      console.log('Resetting password for user:', targetUser.email);
+      
+      // Call the edge function to reset password
+      const { data: result, error } = await supabase.functions.invoke('send-temp-password', {
+        body: {
+          email: targetUser.email,
+          tempPassword: generateRandomPassword(12),
+          fullName: targetUser.full_name || targetUser.email,
+        },
+      });
+
+      if (error) {
+        console.error('Password reset error:', error);
+        toast({
+          title: "Password reset failed",
+          description: error.message,
+          variant: "destructive",
+        });
+        return;
+      }
+
+      console.log('Password reset successful:', result);
+
+      // Log the admin action
+      await logAdminAction('RESET_USER_PASSWORD', {
+        target_user_id: targetUser.id,
+        target_user_email: targetUser.email,
+        admin_user_id: user?.id
+      });
+
+      toast({
+        title: "Password reset successful",
+        description: `A temporary password has been sent to ${targetUser.email}`,
+      });
+    } catch (error: any) {
+      console.error('Unexpected error during password reset:', error);
+      toast({
+        title: "Password reset error",
+        description: error.message || "An unexpected error occurred",
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleUpdateUser = (updatedUser: UserProfile) => {
     setUsers(users.map(u => 
       u.id === updatedUser.id ? updatedUser : u
@@ -222,6 +268,7 @@ export const useAdminUsers = () => {
     fetchUsers,
     fetchAgents,
     updateUserAssociation,
+    resetUserPassword,
     handleUpdateUser,
     handleAddUser,
     handleUserDeleted,

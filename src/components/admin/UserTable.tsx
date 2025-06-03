@@ -27,6 +27,7 @@ interface UserTableProps {
   onAssociateUser: (user: UserProfile) => void;
   onDeleteUser: (user: UserProfile) => void;
   onUpdateUserAssociation: (userId: string, associate: boolean) => void;
+  onResetPassword: (user: UserProfile) => void;
 }
 
 export const UserTable = ({ 
@@ -35,7 +36,8 @@ export const UserTable = ({
   onEditUser, 
   onAssociateUser, 
   onDeleteUser, 
-  onUpdateUserAssociation 
+  onUpdateUserAssociation,
+  onResetPassword
 }: UserTableProps) => {
   if (loading) {
     return (
@@ -74,6 +76,7 @@ export const UserTable = ({
                 onAssociate={onAssociateUser}
                 onDelete={onDeleteUser}
                 onUpdateAssociation={onUpdateUserAssociation}
+                onResetPassword={onResetPassword}
               />
             ))
           )}
