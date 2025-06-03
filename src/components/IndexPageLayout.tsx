@@ -14,6 +14,7 @@ interface IndexPageLayoutProps {
   transactions: Transaction[];
   clientInfos: ClientInfo[];
   associatedAgentId: string | null;
+  associatedAgentInfo?: Client | null;
   onAddClient: (client: Omit<Client, "id" | "totalEarnings" | "lastPayment">) => Promise<void>;
   onAddTransaction: (transaction: Omit<Transaction, "id">) => void;
   onUpdateTransaction: (transaction: Transaction) => void;
@@ -32,6 +33,7 @@ export const IndexPageLayout = ({
   transactions,
   clientInfos,
   associatedAgentId,
+  associatedAgentInfo,
   onAddClient,
   onAddTransaction,
   onUpdateTransaction,
@@ -77,6 +79,26 @@ export const IndexPageLayout = ({
       <div className="container mx-auto px-4 py-8 max-w-7xl">
         {/* Header */}
         <Header />
+
+        {/* Associated Agent Info for non-admin users */}
+        {!isAdmin && associatedAgentInfo && (
+          <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+            <h3 className="text-lg font-semibold text-blue-900 mb-2">You are associated with:</h3>
+            <div className="flex items-center gap-4">
+              <div>
+                <p className="text-blue-800 font-medium">{associatedAgentInfo.name}</p>
+                <p className="text-blue-600 text-sm">{associatedAgentInfo.email}</p>
+                {associatedAgentInfo.companyName && (
+                  <p className="text-blue-600 text-sm">{associatedAgentInfo.companyName}</p>
+                )}
+              </div>
+              <div className="ml-auto text-right">
+                <p className="text-blue-800 text-sm">Commission Rate: <span className="font-medium">{associatedAgentInfo.commissionRate}%</span></p>
+                <p className="text-blue-600 text-sm">Total Earnings: <span className="font-medium">${associatedAgentInfo.totalEarnings.toLocaleString()}</span></p>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Stats Cards */}
         <StatsCards 

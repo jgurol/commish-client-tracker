@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -11,6 +10,7 @@ export const useIndexData = () => {
   const [clientInfos, setClientInfos] = useState<ClientInfo[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [associatedAgentId, setAssociatedAgentId] = useState<string | null>(null);
+  const [associatedAgentInfo, setAssociatedAgentInfo] = useState<Client | null>(null);
   const [profileLoaded, setProfileLoaded] = useState(false);
   const { user, isAdmin } = useAuth();
   const { toast } = useToast();
@@ -56,10 +56,53 @@ export const useIndexData = () => {
       
       console.log("[fetchUserProfile] User profile data:", data);
       setAssociatedAgentId(data?.associated_agent_id || null);
+      
+      // If user has an associated agent and is not admin, fetch the agent info
+      if (data?.associated_agent_id && !isAdmin) {
+        await fetchAssociatedAgentInfo(data.associated_agent_id);
+      }
+      
       setProfileLoaded(true);
     } catch (err) {
       console.error('[fetchUserProfile] Exception fetching user profile:', err);
       setProfileLoaded(true);
+    }
+  };
+
+  // Fetch the associated agent information
+  const fetchAssociatedAgentInfo = async (agentId: string) => {
+    try {
+      console.log('[fetchAssociatedAgentInfo] Fetching agent info for:', agentId);
+      
+      const { data, error } = await supabase
+        .from('agents')
+        .select('*')
+        .eq('id', agentId)
+        .single();
+      
+      if (error) {
+        console.error('[fetchAssociatedAgentInfo] Error fetching agent info:', error);
+        return;
+      }
+      
+      if (data) {
+        const agentInfo: Client = {
+          id: data.id,
+          firstName: data.first_name,
+          lastName: data.last_name,
+          name: `${data.first_name} ${data.last_name}`,
+          email: data.email,
+          companyName: data.company_name,
+          commissionRate: data.commission_rate,
+          totalEarnings: data.total_earnings || 0,
+          lastPayment: data.last_payment ? new Date(data.last_payment).toISOString() : new Date().toISOString()
+        };
+        
+        console.log('[fetchAssociatedAgentInfo] Associated agent info:', agentInfo);
+        setAssociatedAgentInfo(agentInfo);
+      }
+    } catch (err) {
+      console.error('[fetchAssociatedAgentInfo] Exception fetching agent info:', err);
     }
   };
 
@@ -282,6 +325,7 @@ export const useIndexData = () => {
     setClientInfos,
     isLoading,
     associatedAgentId,
+    associatedAgentInfo,
     fetchClients,
     fetchTransactions,
     fetchClientInfos

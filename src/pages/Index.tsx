@@ -68,6 +68,7 @@ const Index = () => {
     setClientInfos,
     isLoading,
     associatedAgentId,
+    associatedAgentInfo,
     fetchClients,
     fetchTransactions,
     fetchClientInfos
@@ -89,6 +90,7 @@ const Index = () => {
       transactions={transactions}
       clientInfos={clientInfos}
       associatedAgentId={associatedAgentId}
+      associatedAgentInfo={associatedAgentInfo}
       onAddClient={addClient}
       onAddTransaction={addTransaction}
       onUpdateTransaction={updateTransaction}
