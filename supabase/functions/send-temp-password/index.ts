@@ -1,5 +1,6 @@
 
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 import { Resend } from "npm:resend@2.0.0";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
@@ -23,10 +24,69 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
+    // Create admin client with service role key
+    const supabaseAdmin = createClient(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
+      {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false,
+        },
+      }
+    );
+
     const { email, tempPassword, fullName }: TempPasswordRequest = await req.json();
 
-    console.log("Sending temporary password email to:", email);
+    console.log("Processing password reset for:", email);
 
+    // First, check if the user exists in auth.users
+    const { data: { users }, error: userError } = await supabaseAdmin.auth.admin.listUsers();
+    
+    if (userError) {
+      console.error('Failed to check user existence:', userError);
+      return new Response(
+        JSON.stringify({ error: "Unable to verify user. Please try again." }),
+        {
+          status: 400,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        }
+      );
+    }
+
+    const user = users.find((u) => u.email === email);
+    
+    if (!user) {
+      console.error('User not found:', email);
+      return new Response(
+        JSON.stringify({ error: "No account found with this email address." }),
+        {
+          status: 404,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        }
+      );
+    }
+
+    // Update the user's password using admin privileges
+    const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(
+      user.id,
+      { password: tempPassword }
+    );
+
+    if (updateError) {
+      console.error('Failed to update password:', updateError);
+      return new Response(
+        JSON.stringify({ error: "Failed to update password. Please try again." }),
+        {
+          status: 400,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        }
+      );
+    }
+
+    console.log("Password updated successfully for user:", user.id);
+
+    // Send email with temporary password
     const emailResponse = await resend.emails.send({
       from: "California Telecom <noreply@californiatelecom.com>",
       to: [email],
