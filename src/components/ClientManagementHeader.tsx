@@ -2,12 +2,15 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
 
 interface ClientManagementHeaderProps {
   onAddClient: () => void;
 }
 
 export const ClientManagementHeader = ({ onAddClient }: ClientManagementHeaderProps) => {
+  const { isAdmin } = useAuth();
+
   return (
     <Card className="bg-white shadow-lg border-0 mt-8">
       <CardHeader>
@@ -15,15 +18,17 @@ export const ClientManagementHeader = ({ onAddClient }: ClientManagementHeaderPr
         <CardDescription>Manage your clients' information</CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="flex justify-end mb-4">
-          <Button 
-            onClick={onAddClient}
-            className="bg-green-600 hover:bg-green-700 text-white shadow-lg hover:shadow-xl transition-all duration-200"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Add Client
-          </Button>
-        </div>
+        {isAdmin && (
+          <div className="flex justify-end mb-4">
+            <Button 
+              onClick={onAddClient}
+              className="bg-green-600 hover:bg-green-700 text-white shadow-lg hover:shadow-xl transition-all duration-200"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Add Client
+            </Button>
+          </div>
+        )}
       </CardContent>
     </Card>
   );
