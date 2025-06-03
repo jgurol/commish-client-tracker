@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/context/AuthContext";
@@ -116,6 +117,8 @@ export const useTransactionActions = (
     if (!user) return;
     
     try {
+      console.log('[updateTransaction] Starting update for transaction:', updatedTransaction.id);
+      
       // Calculate commission using override hierarchy
       const commission = await calculateCommission(
         updatedTransaction.amount,
@@ -123,6 +126,8 @@ export const useTransactionActions = (
         updatedTransaction.clientInfoId,
         updatedTransaction.commissionOverride
       );
+
+      console.log('[updateTransaction] Updating database with isPaid:', updatedTransaction.isPaid);
 
       const { data, error } = await supabase
         .from('transactions')
@@ -149,15 +154,17 @@ export const useTransactionActions = (
         .single();
 
       if (error) {
-        console.error('Error updating transaction:', error);
+        console.error('[updateTransaction] Error updating transaction:', error);
         toast({
           title: "Failed to update transaction",
           description: error.message,
           variant: "destructive"
         });
       } else {
-        // Refresh transactions to get the updated one
-        fetchTransactions();
+        console.log('[updateTransaction] Database update successful, refreshing transactions...');
+        
+        // Force refresh transactions to get the updated data
+        await fetchTransactions();
         
         const client = clients.find(c => c.id === updatedTransaction.clientId);
         toast({
@@ -166,7 +173,7 @@ export const useTransactionActions = (
         });
       }
     } catch (err) {
-      console.error('Error in update transaction operation:', err);
+      console.error('[updateTransaction] Error in update transaction operation:', err);
       toast({
         title: "Error",
         description: "Failed to update transaction",
