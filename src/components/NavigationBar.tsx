@@ -18,7 +18,7 @@ export function NavigationBar() {
   const { isAdmin } = useAuth();
 
   return (
-    <div className="w-full bg-white border-b border-gray-200 py-2 px-4 mb-6">
+    <div className="w-full bg-white border-b border-gray-200 py-2 px-4 mb-6 relative z-50">
       <div className="container mx-auto flex justify-between items-center">
         <Link to="/" className="flex items-center gap-3">
           <img 
@@ -41,8 +41,8 @@ export function NavigationBar() {
 
             <NavigationMenuItem>
               <NavigationMenuTrigger>System Settings</NavigationMenuTrigger>
-              <NavigationMenuContent>
-                <ul className="grid w-[300px] gap-3 p-4">
+              <NavigationMenuContent className="z-50">
+                <ul className="grid w-[300px] gap-3 p-4 bg-white shadow-lg border border-gray-200 rounded-md">
                   <ListItem href="/settings/profile" title="Profile Settings" Icon={Settings}>
                     Manage your account preferences and personal information
                   </ListItem>
