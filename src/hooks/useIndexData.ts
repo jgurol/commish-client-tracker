@@ -41,6 +41,7 @@ export const useIndexData = () => {
   const fetchUserProfile = async () => {
     try {
       console.log('[fetchUserProfile] Fetching user profile for:', user?.id);
+      console.log('[fetchUserProfile] Current user role (isAdmin):', isAdmin);
       
       const { data, error } = await supabase
         .from('profiles')
@@ -55,6 +56,8 @@ export const useIndexData = () => {
       }
       
       console.log("[fetchUserProfile] User profile data:", data);
+      console.log("[fetchUserProfile] User role from DB:", data?.role);
+      console.log("[fetchUserProfile] User associated_agent_id:", data?.associated_agent_id);
       setAssociatedAgentId(data?.associated_agent_id || null);
       
       // If user has an associated agent and is not admin, fetch the agent info
@@ -208,14 +211,17 @@ export const useIndexData = () => {
     try {
       setIsLoading(true);
       
-      console.log('[fetchTransactions] Starting transaction fetch - isAdmin:', isAdmin, 'associatedAgentId:', associatedAgentId);
+      console.log('[fetchTransactions] Starting transaction fetch');
+      console.log('[fetchTransactions] User ID:', user.id);
+      console.log('[fetchTransactions] isAdmin:', isAdmin);
+      console.log('[fetchTransactions] associatedAgentId:', associatedAgentId);
       
       // Build the query with filtering logic
       let query = supabase.from('transactions').select('*');
       
       // ADMIN USERS: See ALL transactions with NO filtering whatsoever
       if (isAdmin) {
-        console.log('[fetchTransactions] Admin user - no filtering applied');
+        console.log('[fetchTransactions] Admin user - fetching ALL transactions (no filtering)');
         // Admins see everything - absolutely no WHERE clauses
       } else {
         // NON-ADMIN USERS: Only see transactions where client_id matches their associated agent
@@ -247,7 +253,8 @@ export const useIndexData = () => {
         return;
       }
 
-      console.log('[fetchTransactions] Fetched transactions:', data?.length || 0);
+      console.log('[fetchTransactions] Raw transaction data from DB:', data?.length || 0, 'transactions');
+      console.log('[fetchTransactions] First few transactions:', data?.slice(0, 3));
 
       if (!data || data.length === 0) {
         console.log('[fetchTransactions] No transactions found - setting empty array');
@@ -265,6 +272,9 @@ export const useIndexData = () => {
       const agentData = agentResponse.data || [];
       const clientInfoData = clientInfoResponse.data || [];
 
+      console.log('[fetchTransactions] Agent data:', agentData?.length || 0, 'agents');
+      console.log('[fetchTransactions] Client info data:', clientInfoData?.length || 0, 'client infos');
+
       // Map database transactions to our Transaction interface
       const mappedTransactions = data.map((transaction) => {
         // Find client for this transaction
@@ -275,6 +285,8 @@ export const useIndexData = () => {
         if (transaction.client_info_id) {
           clientInfo = clientInfoData.find(ci => ci.id === transaction.client_info_id);
         }
+
+        console.log(`[fetchTransactions] Mapping transaction ${transaction.id} with client_id ${transaction.client_id}, found client:`, client ? 'YES' : 'NO');
 
         return {
           id: transaction.id,
@@ -303,6 +315,7 @@ export const useIndexData = () => {
       });
       
       console.log('[fetchTransactions] Final mapped transactions count:', mappedTransactions.length);
+      console.log('[fetchTransactions] Sample mapped transaction:', mappedTransactions[0]);
       setTransactions(mappedTransactions);
     } catch (err) {
       console.error('[fetchTransactions] Exception in transaction fetch:', err);
