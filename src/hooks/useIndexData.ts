@@ -32,8 +32,16 @@ export const useIndexData = () => {
 
   // Function to fetch transactions from Supabase - only after profile is loaded
   useEffect(() => {
+    console.log('[useEffect] Transaction fetch useEffect triggered');
+    console.log('[useEffect] profileLoaded:', profileLoaded);
+    console.log('[useEffect] isAdmin:', isAdmin);
+    console.log('[useEffect] associatedAgentId:', associatedAgentId);
+    
     if (profileLoaded) {
+      console.log('[useEffect] Calling fetchTransactions...');
       fetchTransactions();
+    } else {
+      console.log('[useEffect] Profile not loaded yet, skipping transaction fetch');
     }
   }, [profileLoaded, associatedAgentId, isAdmin]);
 
@@ -65,6 +73,7 @@ export const useIndexData = () => {
         await fetchAssociatedAgentInfo(data.associated_agent_id);
       }
       
+      console.log('[fetchUserProfile] Setting profileLoaded to true');
       setProfileLoaded(true);
     } catch (err) {
       console.error('[fetchUserProfile] Exception fetching user profile:', err);
@@ -240,8 +249,12 @@ export const useIndexData = () => {
       // Add ordering to ensure consistent results
       query = query.order('created_at', { ascending: false });
       
+      console.log('[fetchTransactions] About to execute query...');
+      
       // Execute the query
       const { data, error } = await query;
+
+      console.log('[fetchTransactions] Query executed, got response');
 
       if (error) {
         console.error('[fetchTransactions] Error fetching transactions:', error);
