@@ -48,14 +48,20 @@ export const useIndexData = () => {
     console.log('[useEffect] profileLoaded:', profileLoaded);
     console.log('[useEffect] isAdmin:', isAdmin);
     console.log('[useEffect] associatedAgentId:', associatedAgentId);
+    console.log('[useEffect] user:', user?.id);
+    console.log('[useEffect] user.user_metadata:', user?.user_metadata);
     
-    if (profileLoaded) {
-      console.log('[useEffect] Calling fetchTransactions...');
-      fetchTransactions();
+    if (profileLoaded && user) {
+      console.log('[useEffect] CONDITIONS MET - Calling fetchTransactions...');
+      // Add a small delay to ensure auth state is fully loaded
+      setTimeout(() => {
+        console.log('[useEffect] About to call fetchTransactions after timeout...');
+        fetchTransactions();
+      }, 100);
     } else {
-      console.log('[useEffect] Profile not loaded yet, skipping transaction fetch');
+      console.log('[useEffect] CONDITIONS NOT MET - profileLoaded:', profileLoaded, 'user:', !!user);
     }
-  }, [profileLoaded, associatedAgentId, isAdmin]);
+  }, [profileLoaded, associatedAgentId, isAdmin, user]);
 
   // Fetch user's profile to get associated agent ID
   const fetchUserProfile = async () => {
@@ -235,19 +241,23 @@ export const useIndexData = () => {
     try {
       setIsLoading(true);
       
+      console.log('[fetchTransactions] ===========================================');
       console.log('[fetchTransactions] Starting transaction fetch');
       console.log('[fetchTransactions] User ID:', user.id);
-      console.log('[fetchTransactions] isAdmin:', isAdmin);
+      console.log('[fetchTransactions] isAdmin from useAuth:', isAdmin);
+      console.log('[fetchTransactions] user.user_metadata:', user.user_metadata);
       console.log('[fetchTransactions] associatedAgentId:', associatedAgentId);
+      console.log('[fetchTransactions] ===========================================');
       
       // Build the query with filtering logic
       let query = supabase.from('transactions').select('*');
       
       // ADMIN USERS: See ALL transactions with NO filtering whatsoever
       if (isAdmin) {
-        console.log('[fetchTransactions] Admin user - fetching ALL transactions (no filtering)');
+        console.log('[fetchTransactions] ✅ ADMIN USER DETECTED - fetching ALL transactions (no filtering)');
         // Admins see everything - absolutely no WHERE clauses
       } else {
+        console.log('[fetchTransactions] ❌ NON-ADMIN USER - applying filters');
         // NON-ADMIN USERS: Only see transactions where client_id matches their associated agent
         if (associatedAgentId) {
           console.log('[fetchTransactions] Non-admin user - filtering by client_id =', associatedAgentId);
@@ -270,6 +280,8 @@ export const useIndexData = () => {
       const { data, error } = await query;
 
       console.log('[fetchTransactions] Query executed, got response');
+      console.log('[fetchTransactions] Error:', error);
+      console.log('[fetchTransactions] Data length:', data?.length || 0);
 
       if (error) {
         console.error('[fetchTransactions] Error fetching transactions:', error);
