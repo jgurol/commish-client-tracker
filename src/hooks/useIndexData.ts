@@ -93,8 +93,9 @@ export const useIndexData = () => {
         await fetchAssociatedAgentInfo(data.associated_agent_id);
       }
       
-      console.log('[fetchUserProfile] Setting profileLoaded to true');
+      console.log('[fetchUserProfile] About to set profileLoaded to true');
       setProfileLoaded(true);
+      console.log('[fetchUserProfile] profileLoaded has been set to true');
     } catch (err) {
       console.error('[fetchUserProfile] Exception fetching user profile:', err);
       console.log('[fetchUserProfile] Setting profileLoaded to true due to exception');
