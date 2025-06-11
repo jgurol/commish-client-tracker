@@ -17,16 +17,28 @@ export const useIndexData = () => {
 
   // Fetch the associated agent ID for the current user
   useEffect(() => {
+    console.log('[useEffect] User fetch useEffect triggered');
+    console.log('[useEffect] User:', user?.id, 'Email:', user?.email);
+    
     if (user) {
+      console.log('[useEffect] User exists, calling fetchUserProfile...');
       fetchUserProfile();
+    } else {
+      console.log('[useEffect] No user found, skipping profile fetch');
     }
   }, [user]);
 
   // Load clients from Supabase when profile is loaded
   useEffect(() => {
+    console.log('[useEffect] Clients fetch useEffect triggered');
+    console.log('[useEffect] profileLoaded for clients:', profileLoaded);
+    
     if (profileLoaded) {
+      console.log('[useEffect] Profile loaded, fetching clients and clientInfos...');
       fetchClients();
       fetchClientInfos();
+    } else {
+      console.log('[useEffect] Profile not loaded yet, skipping clients fetch');
     }
   }, [profileLoaded, associatedAgentId]);
 
@@ -48,7 +60,7 @@ export const useIndexData = () => {
   // Fetch user's profile to get associated agent ID
   const fetchUserProfile = async () => {
     try {
-      console.log('[fetchUserProfile] Fetching user profile for:', user?.id);
+      console.log('[fetchUserProfile] Starting profile fetch for user:', user?.id);
       console.log('[fetchUserProfile] Current user role (isAdmin):', isAdmin);
       
       const { data, error } = await supabase
@@ -59,6 +71,7 @@ export const useIndexData = () => {
       
       if (error) {
         console.error('[fetchUserProfile] Error fetching user profile:', error);
+        console.log('[fetchUserProfile] Setting profileLoaded to true despite error');
         setProfileLoaded(true);
         return;
       }
@@ -70,6 +83,7 @@ export const useIndexData = () => {
       
       // If user has an associated agent and is not admin, fetch the agent info
       if (data?.associated_agent_id && !isAdmin) {
+        console.log('[fetchUserProfile] User has associated agent, fetching agent info...');
         await fetchAssociatedAgentInfo(data.associated_agent_id);
       }
       
@@ -77,6 +91,7 @@ export const useIndexData = () => {
       setProfileLoaded(true);
     } catch (err) {
       console.error('[fetchUserProfile] Exception fetching user profile:', err);
+      console.log('[fetchUserProfile] Setting profileLoaded to true due to exception');
       setProfileLoaded(true);
     }
   };
