@@ -52,8 +52,8 @@ export const IndexPageLayout = ({
   const getFilteredTransactions = () => {
     let filtered = transactions;
 
-    // Apply agent filter first
-    if (selectedAgentId) {
+    // Apply agent filter first (only for admins)
+    if (selectedAgentId && isAdmin) {
       filtered = filtered.filter(t => t.clientId === selectedAgentId);
     }
 
@@ -132,25 +132,29 @@ export const IndexPageLayout = ({
                                 'Paid Commissions'})
                   </span>
                 )}
-                {selectedAgentId && (
+                {selectedAgentId && isAdmin && (
                   <span className="ml-2 text-sm font-normal text-gray-600">
                     (Agent: {clients.find(c => c.id === selectedAgentId)?.companyName || clients.find(c => c.id === selectedAgentId)?.name})
                   </span>
                 )}
               </h2>
               <div className="flex items-center gap-4">
-                {/* Agent Filter Dropdown */}
-                <AgentFilterDropdown 
-                  clients={clients}
-                  selectedAgentId={selectedAgentId}
-                  onAgentChange={setSelectedAgentId}
-                />
+                {/* Agent Filter Dropdown - Only show for admins */}
+                {isAdmin && (
+                  <AgentFilterDropdown 
+                    clients={clients}
+                    selectedAgentId={selectedAgentId}
+                    onAgentChange={setSelectedAgentId}
+                  />
+                )}
                 
-                {(transactionFilter || selectedAgentId) && (
+                {((transactionFilter || (selectedAgentId && isAdmin))) && (
                   <button
                     onClick={() => {
                       setTransactionFilter(null);
-                      setSelectedAgentId(null);
+                      if (isAdmin) {
+                        setSelectedAgentId(null);
+                      }
                     }}
                     className="text-sm text-blue-600 hover:text-blue-800 underline"
                   >
