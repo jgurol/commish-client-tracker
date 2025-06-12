@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Header } from "@/components/Header";
 import { StatsCards } from "@/components/StatsCards";
@@ -5,6 +6,7 @@ import { RecentTransactions } from "@/components/RecentTransactions";
 import { CommissionChart } from "@/components/CommissionChart";
 import { AgentSummary } from "@/components/AgentSummary";
 import { AddClientDialog } from "@/components/AddClientDialog";
+import { AgentFilterDropdown } from "@/components/AgentFilterDropdown";
 import { Client, Transaction, ClientInfo } from "@/pages/Index";
 import { useAuth } from "@/context/AuthContext";
 
@@ -43,31 +45,40 @@ export const IndexPageLayout = ({
 }: IndexPageLayoutProps) => {
   const [isAddClientOpen, setIsAddClientOpen] = useState(false);
   const [transactionFilter, setTransactionFilter] = useState<string | null>(null);
+  const [selectedAgentId, setSelectedAgentId] = useState<string | null>(null);
   const { isAdmin } = useAuth();
 
-  // Filter transactions based on the selected filter
+  // Filter transactions based on the selected filter and agent
   const getFilteredTransactions = () => {
-    if (!transactionFilter) return transactions;
+    let filtered = transactions;
+
+    // Apply agent filter first
+    if (selectedAgentId) {
+      filtered = filtered.filter(t => t.clientId === selectedAgentId);
+    }
+
+    // Then apply status filter
+    if (!transactionFilter) return filtered;
 
     switch (transactionFilter) {
       case 'unapproved':
         // Transactions with unpaid invoices, unpaid commissions, and unapproved status
-        return transactions.filter(t => !t.isPaid && !t.commissionPaidDate && !t.isApproved);
+        return filtered.filter(t => !t.isPaid && !t.commissionPaidDate && !t.isApproved);
       
       case 'qualified':
         // Transactions with paid invoices but not commissioned or approved for commission
-        return transactions.filter(t => t.isPaid && !t.isApproved && !t.commissionPaidDate);
+        return filtered.filter(t => t.isPaid && !t.isApproved && !t.commissionPaidDate);
       
       case 'approved':
         // Transactions that are paid invoices and have been approved
-        return transactions.filter(t => t.isPaid && t.isApproved && !t.commissionPaidDate);
+        return filtered.filter(t => t.isPaid && t.isApproved && !t.commissionPaidDate);
       
       case 'paid':
         // Transactions that are paid invoice, commission paid
-        return transactions.filter(t => t.isPaid && t.commissionPaidDate);
+        return filtered.filter(t => t.isPaid && t.commissionPaidDate);
       
       default:
-        return transactions;
+        return filtered;
     }
   };
 
@@ -121,15 +132,32 @@ export const IndexPageLayout = ({
                                 'Paid Commissions'})
                   </span>
                 )}
+                {selectedAgentId && (
+                  <span className="ml-2 text-sm font-normal text-gray-600">
+                    (Agent: {clients.find(c => c.id === selectedAgentId)?.companyName || clients.find(c => c.id === selectedAgentId)?.name})
+                  </span>
+                )}
               </h2>
-              {transactionFilter && (
-                <button
-                  onClick={() => setTransactionFilter(null)}
-                  className="text-sm text-blue-600 hover:text-blue-800 underline"
-                >
-                  Clear Filter
-                </button>
-              )}
+              <div className="flex items-center gap-4">
+                {/* Agent Filter Dropdown */}
+                <AgentFilterDropdown 
+                  clients={clients}
+                  selectedAgentId={selectedAgentId}
+                  onAgentChange={setSelectedAgentId}
+                />
+                
+                {(transactionFilter || selectedAgentId) && (
+                  <button
+                    onClick={() => {
+                      setTransactionFilter(null);
+                      setSelectedAgentId(null);
+                    }}
+                    className="text-sm text-blue-600 hover:text-blue-800 underline"
+                  >
+                    Clear All Filters
+                  </button>
+                )}
+              </div>
             </div>
             
             <RecentTransactions 
