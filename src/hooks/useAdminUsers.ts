@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -11,6 +12,7 @@ interface UserProfile {
   role: string; 
   is_associated: boolean;
   created_at: string;
+  last_login?: string | null;
   associated_agent_name: string | null;
   associated_agent_id: string | null;
 }
@@ -43,12 +45,23 @@ export const useAdminUsers = () => {
     }
   };
 
+  const updateLastLogin = async (userId: string) => {
+    try {
+      await supabase
+        .from('profiles')
+        .update({ last_login: new Date().toISOString() })
+        .eq('id', userId);
+    } catch (error) {
+      console.error('Failed to update last login:', error);
+    }
+  };
+
   const fetchUsers = async () => {
     setLoading(true);
     try {
       console.log('Fetching users with associated agent information...');
       
-      // First, fetch all users
+      // First, fetch all users including last_login
       const { data: usersData, error: usersError } = await supabase
         .from('profiles')
         .select('*');
@@ -88,6 +101,7 @@ export const useAdminUsers = () => {
           role: user.role,
           is_associated: user.is_associated,
           created_at: user.created_at,
+          last_login: user.last_login,
           associated_agent_id: user.associated_agent_id,
           associated_agent_name: associatedAgentName
         };
@@ -265,6 +279,13 @@ export const useAdminUsers = () => {
     fetchAgents();
     updateUserToOwner();
   }, []);
+
+  // Update last login when current user changes (login event)
+  useEffect(() => {
+    if (user?.id) {
+      updateLastLogin(user.id);
+    }
+  }, [user?.id]);
 
   return {
     users,

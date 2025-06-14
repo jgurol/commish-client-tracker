@@ -11,6 +11,7 @@ interface UserProfile {
   role: string; 
   is_associated: boolean;
   created_at: string;
+  last_login?: string | null;
   associated_agent_name: string | null;
   associated_agent_id: string | null;
 }
@@ -59,6 +60,24 @@ export const UserTableRow = ({
     }
   };
 
+  const formatLastLogin = (lastLogin: string | null | undefined) => {
+    if (!lastLogin) {
+      return <span className="text-gray-500 text-xs">Never</span>;
+    }
+    
+    const date = new Date(lastLogin);
+    const now = new Date();
+    const diffInHours = (now.getTime() - date.getTime()) / (1000 * 60 * 60);
+    
+    if (diffInHours < 24) {
+      return <span className="text-green-600 text-xs">{date.toLocaleTimeString()}</span>;
+    } else if (diffInHours < 168) { // 7 days
+      return <span className="text-blue-600 text-xs">{date.toLocaleDateString()}</span>;
+    } else {
+      return <span className="text-gray-600 text-xs">{date.toLocaleDateString()}</span>;
+    }
+  };
+
   const canDeleteUser = (userProfile: UserProfile) => {
     if (userProfile.role === 'owner') return false;
     if (userProfile.id === user?.id) return false;
@@ -96,6 +115,9 @@ export const UserTableRow = ({
         ) : (
           <span className="text-gray-500 text-xs">-</span>
         )}
+      </TableCell>
+      <TableCell>
+        {formatLastLogin(userProfile.last_login)}
       </TableCell>
       <TableCell>
         <div className="flex space-x-2">

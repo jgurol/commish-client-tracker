@@ -16,6 +16,7 @@ interface UserProfile {
   role: string; 
   is_associated: boolean;
   created_at: string;
+  last_login?: string | null;
   associated_agent_name: string | null;
   associated_agent_id: string | null;
 }
@@ -57,13 +58,14 @@ export const UserTable = ({
             <TableHead>Role</TableHead>
             <TableHead>Status</TableHead>
             <TableHead>Associated With</TableHead>
+            <TableHead>Last Login</TableHead>
             <TableHead>Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {users.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={6} className="text-center py-8">
+              <TableCell colSpan={7} className="text-center py-8">
                 No users found
               </TableCell>
             </TableRow>

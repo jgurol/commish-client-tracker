@@ -6,6 +6,7 @@ export interface UserProfile {
   role: string;
   is_associated: boolean;
   created_at: string;
+  last_login?: string | null;
   associated_agent_name?: string | null;
   associated_agent_id?: string | null;
 }
