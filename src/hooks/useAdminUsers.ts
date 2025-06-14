@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -47,10 +46,18 @@ export const useAdminUsers = () => {
 
   const updateLastLogin = async (userId: string) => {
     try {
-      await supabase
+      const { error } = await supabase
         .from('profiles')
         .update({ last_login: new Date().toISOString() })
         .eq('id', userId);
+      
+      if (error) {
+        console.error('Failed to update last login:', error);
+      } else {
+        console.log('Successfully updated last login for user:', userId);
+        // Refresh the users list to show the updated timestamp
+        fetchUsers();
+      }
     } catch (error) {
       console.error('Failed to update last login:', error);
     }

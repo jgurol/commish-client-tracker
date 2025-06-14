@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { Session, User } from '@supabase/supabase-js';
 
@@ -21,6 +20,23 @@ export const useAuthActions = ({
   setIsOwner,
   setIsAssociated
 }: UseAuthActionsProps) => {
+  const updateLastLogin = async (userId: string) => {
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ last_login: new Date().toISOString() })
+        .eq('id', userId);
+      
+      if (error) {
+        console.error('Failed to update last login:', error);
+      } else {
+        console.log('Successfully updated last login for user:', userId);
+      }
+    } catch (error) {
+      console.error('Failed to update last login:', error);
+    }
+  };
+
   const signIn = async (email: string, password: string) => {
     try {
       // Clean up existing auth state before signing in
@@ -33,7 +49,7 @@ export const useAuthActions = ({
         // Continue even if this fails
       }
 
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       
       if (error) {
         toast({
@@ -42,6 +58,11 @@ export const useAuthActions = ({
           variant: "destructive"
         });
         throw error;
+      }
+      
+      // Update last login timestamp immediately after successful login
+      if (data.user?.id) {
+        await updateLastLogin(data.user.id);
       }
       
       // Check if this is a temporary password (12 chars with mixed case and numbers)
