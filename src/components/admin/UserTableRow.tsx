@@ -69,12 +69,17 @@ export const UserTableRow = ({
     const now = new Date();
     const diffInHours = (now.getTime() - date.getTime()) / (1000 * 60 * 60);
     
+    // Always show both date and time
+    const dateStr = date.toLocaleDateString();
+    const timeStr = date.toLocaleTimeString();
+    const fullDateTime = `${dateStr} ${timeStr}`;
+    
     if (diffInHours < 24) {
-      return <span className="text-green-600 text-xs">{date.toLocaleTimeString()}</span>;
+      return <span className="text-green-600 text-xs">{fullDateTime}</span>;
     } else if (diffInHours < 168) { // 7 days
-      return <span className="text-blue-600 text-xs">{date.toLocaleDateString()}</span>;
+      return <span className="text-blue-600 text-xs">{fullDateTime}</span>;
     } else {
-      return <span className="text-gray-600 text-xs">{date.toLocaleDateString()}</span>;
+      return <span className="text-gray-600 text-xs">{fullDateTime}</span>;
     }
   };
 
